@@ -1,0 +1,27 @@
+*.obj
+*.ilk
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.rsp
+*.pgc
+*.pgd
+*.meta
+*.pdb
+*.manifest
+*.htm
+*.ncb
+*.user
+*.xml
+*.pch
+*.dep
+*.idb
+*.cache
+#detours files
+Detours/Detours/
+/Bin/FileMon.vshost.exe
+/FileMonInject/obj/Debug/FileMonInject.csproj.FileListAbsolute.txt
+/EasyHookFileMonitor/obj/Debug/FileMon.exe
+/EasyHookFileMonitor/obj/Debug/EasyHookFileMonitor.csproj.FileListAbsolute.txt
+/EasyHookFileMonitor/UpgradeLog.XML
