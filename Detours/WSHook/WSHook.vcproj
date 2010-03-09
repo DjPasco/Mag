@@ -21,7 +21,7 @@
 			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			UseOfMFC="2"
+			UseOfMFC="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -46,8 +46,9 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WSHOOK_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
+				BrowseInformation="1"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -66,6 +67,7 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\MAG\Detours\Detours\lib"
 				GenerateDebugInformation="true"
+				GenerateMapFile="true"
 				SubSystem="2"
 				TargetMachine="1"
 			/>

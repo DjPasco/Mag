@@ -35,7 +35,7 @@ HANDLE WINAPI TransCreateFile
 {
 	//MessageBox(NULL, "lala", "lala", MB_OK);
 
-	socket_utils::SendFile(lpFileName);
+ 	socket_utils::SendFile(lpFileName);
 
     return CreateFileW(
         lpFileName,
@@ -48,7 +48,7 @@ HANDLE WINAPI TransCreateFile
 };
 
 
-INT APIENTRY DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved)
+BOOL WINAPI DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved)
 {
 	switch(Reason)
 	{

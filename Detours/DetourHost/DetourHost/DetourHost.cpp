@@ -4,10 +4,36 @@
 #include "detours.h"
 #include <iostream>
 
+#undef UNICODE
+#include <cstdio>
+#include <windows.h>
+
 
 #pragma comment(lib, "Ws2_32.lib")
 
 #include <Winsock2.h>
+
+int RunNotepad()
+{
+	STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(STARTUPINFO));
+    ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+    si.cb = sizeof(STARTUPINFO);
+    char* DirPath = new char[MAX_PATH];
+    char* DLLPath = new char[MAX_PATH]; //testdll.dll
+    char* DetourPath = new char[MAX_PATH]; //detoured.dll
+    GetCurrentDirectory(MAX_PATH, DirPath);
+    sprintf_s(DLLPath, MAX_PATH, "%s\\testdll.dll", DirPath);
+    sprintf_s(DetourPath, MAX_PATH, "%s\\detoured.dll", DirPath);
+    DetourCreateProcessWithDll(NULL, "C:\\windows\\notepad.exe", NULL,
+        NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
+        &si, &pi, DetourPath, DLLPath, NULL);
+    delete [] DirPath;
+    delete [] DLLPath;
+    delete [] DetourPath;
+    return 0;
+};
 
 
 #ifdef _DEBUG
@@ -20,33 +46,35 @@ CString Readline(SOCKET *client);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-    PROCESSENTRY32 pe32;
-    pe32.dwSize = sizeof(PROCESSENTRY32);
-    HANDLE hTool32 = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
-    BOOL bProcess = Process32First(hTool32, &pe32);
-    if(bProcess == TRUE)
-    {
-		while((Process32Next(hTool32, &pe32)) == TRUE)
-		{
-			CString sProcName = pe32.szExeFile;
-			if(sProcName == "notepad.exe")
-			{
-				LPCSTR sFullPath = "c:\\MAG\\Detours\\Bin\\detoured.dll";
-				HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, pe32.th32ProcessID);
-				LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "LoadLibraryA");
-				LPVOID LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sFullPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
-				WriteProcessMemory(hProcess, LLParam, sFullPath, strlen(sFullPath), NULL);
-				CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
+  //  PROCESSENTRY32 pe32;
+  //  pe32.dwSize = sizeof(PROCESSENTRY32);
+  //  HANDLE hTool32 = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+  //  BOOL bProcess = Process32First(hTool32, &pe32);
+  //  if(bProcess == TRUE)
+  //  {
+		//while((Process32Next(hTool32, &pe32)) == TRUE)
+		//{
+		//	CString sProcName = pe32.szExeFile;
+		//	if(sProcName == "notepad.exe")
+		//	{
+		//		LPCSTR sFullPath = "c:\\MAG\\Detours\\Bin\\detoured.dll";
+		//		HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, pe32.th32ProcessID);
+		//		LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "LoadLibraryA");
+		//		LPVOID LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sFullPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+		//		WriteProcessMemory(hProcess, LLParam, sFullPath, strlen(sFullPath), NULL);
+		//		CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
 
-				LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sHookPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
-				WriteProcessMemory(hProcess, LLParam, sHookPath, strlen(sHookPath), NULL);
-				CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
+		//		LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sHookPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+		//		WriteProcessMemory(hProcess, LLParam, sHookPath, strlen(sHookPath), NULL);
+		//		CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
 
-				CloseHandle(hProcess);
-			}
-		}
-    }
-    CloseHandle(hTool32);
+		//		CloseHandle(hProcess);
+		//	}
+		//}
+  //  }
+  //  CloseHandle(hTool32);
+
+	RunNotepad();
 
 	WORD sockVersion;
 	WSADATA wsaData;
