@@ -100,7 +100,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	// We create the process as suspended since we will copy payload
 	// to the target process containing the versions we want it to get
 	BOOL fLaunchApp = DetourCreateProcessWithDll(argv[1],
-		0,0,0,CREATE_SUSPENDED|CREATE_DEFAULT_ERROR_MODE,0,0,0,&startup,&pi,
+		0,0,0,TRUE,CREATE_SUSPENDED|CREATE_DEFAULT_ERROR_MODE,0,0,&startup,&pi,
 		szDetouredPath,
 		szInjectDLLPath,
 		NULL);

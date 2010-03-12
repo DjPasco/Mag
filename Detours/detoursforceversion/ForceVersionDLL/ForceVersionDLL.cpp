@@ -2,10 +2,9 @@
 //
 
 #include "stdafx.h"
-#include <detours.h>
+#include "../../detours/include/detours.h"
 #include <tchar.h>
 #include <stdio.h>
-#define FORCEVERSIONDLL_EXPORTS
 #include "ForceVersionDLL.h"
 
 // To get the payload structure information

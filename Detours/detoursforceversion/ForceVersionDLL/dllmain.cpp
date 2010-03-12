@@ -1,7 +1,6 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
-#include <detours.h>
-#define FORCEVERSIONDLL_EXPORTS
+#include "../../detours/include/detours.h"
 #include "ForceVersionDLL.h"
 #include "detourapis.h"
 
