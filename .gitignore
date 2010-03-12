@@ -25,3 +25,6 @@ Detours/Detours/
 /EasyHookFileMonitor/obj/Debug/FileMon.exe
 /EasyHookFileMonitor/obj/Debug/EasyHookFileMonitor.csproj.FileListAbsolute.txt
 /EasyHookFileMonitor/UpgradeLog.XML
+/Detours/Bin/WSHook.bsc
+/Detours/Bin/WSHookD.map
+/Detours/WSHook/Debug/WSHook.sbr

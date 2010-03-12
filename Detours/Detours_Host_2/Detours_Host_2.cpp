@@ -4,6 +4,12 @@
 //#include <windows.h>
 #include <afx.h>
 #include "include/detours.h"
+#include <iostream>
+
+#pragma comment(lib, "Ws2_32.lib")
+
+#include <Winsock2.h>
+
 
 #pragma comment(lib, "detoured.lib")
 #pragma comment(lib, "detours.lib")
@@ -37,6 +43,34 @@ BOOL DoesDllExportOrdinal1(PCHAR pszDllPath)
     DetourEnumerateExports(hDll, &validFlag, ExportCallback);
     FreeLibrary(hDll);
     return validFlag;
+}
+
+CString Readline(SOCKET *client)
+{
+	CString sMess;
+	char buffer;
+	int rVal;
+
+	while(true)
+	{
+		rVal = recv(*(client), &buffer, 1, 0);
+		if(rVal == SOCKET_ERROR)
+		{
+			return "";
+			WSACleanup();
+		}
+		
+		if(buffer != '\n')
+		{
+			sMess += buffer;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return sMess;
 }
 
 int main(int argc, char* argv[])
@@ -84,6 +118,69 @@ int main(int argc, char* argv[])
 	}
 
     delete [] DirPath;
+
+	WORD sockVersion;
+	WSADATA wsaData;
+	int rVal;
+
+	sockVersion = MAKEWORD(2,2);
+	WSAStartup(sockVersion, &wsaData);
+
+	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if(s == INVALID_SOCKET)
+	{
+		closesocket(s);
+		WSACleanup();
+		return 0;
+	}
+
+	SOCKADDR_IN sin;
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(8888);
+	sin.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+	rVal = bind(s, (LPSOCKADDR)&sin, sizeof(sin));
+	if(rVal == SOCKET_ERROR)
+	{
+		closesocket(s);
+		WSACleanup();
+		return 0;
+	}
+
+	rVal = listen(s, 2);
+	if(rVal == SOCKET_ERROR)
+	{
+		closesocket(s);
+		WSACleanup();
+		return 0;
+	}
+
+	bool b_Done(false);
+
+	while (!b_Done)
+	{
+		SOCKET client;
+		client = accept(s, NULL, NULL);
+
+		if(client == INVALID_SOCKET)
+		{
+			closesocket(s);
+			WSACleanup();
+			return 0;
+		}
+
+		CString sMessage;
+		sMessage = Readline(&client);
+		std::cout << sMessage;
+	}
+
+	closesocket(s);
+
+	WSACleanup();
+
+
+	system("pause");
 
 //	// Resume thread and wait on the process..
 //	ResumeThread(pi.hThread);

