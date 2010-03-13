@@ -25,6 +25,7 @@
 *.aps
 *.opt
 *.clw
+*.XML
 
 #detours files
 Detours/Detours/
