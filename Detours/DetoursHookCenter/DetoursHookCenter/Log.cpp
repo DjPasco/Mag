@@ -25,6 +25,12 @@ void CLog::AddRichText(LPCSTR sText)
 	AddText(str);
 }
 
+void CLog::AddRichText(LPCWSTR sText)
+{
+	CString str(sText);
+	AddText(str);
+}
+
 void CLog::AddRichText(CString &sText)
 {
 	AddText(sText);

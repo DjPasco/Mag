@@ -12,4 +12,8 @@
 
 
 SYSTEM_HOOK_API void DoNothing();
-SYSTEM_HOOK_API void DoSomething();
+
+namespace utils
+{
+	void SetHwnd(HWND Hwnd);
+}

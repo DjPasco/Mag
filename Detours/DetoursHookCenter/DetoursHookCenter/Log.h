@@ -8,6 +8,7 @@ public:
 
 public:
 	void AddRichText(LPCSTR sText);
+	void AddRichText(LPCWSTR sText);
 	void AddRichText(CString &sText);
 	void EraseLog	();
 	void AddBoldText(LPCSTR sText);

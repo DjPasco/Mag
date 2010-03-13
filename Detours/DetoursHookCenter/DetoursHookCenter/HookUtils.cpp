@@ -92,4 +92,47 @@ namespace hook_utils
 			log.AddRichText(sError);
 		}
 	}
+
+	void EnumeratePayloads(CLog &log)
+	{
+		HANDLE hOld = INVALID_HANDLE_VALUE;
+		PDETOUR_BINARY pBinary = NULL;
+
+		LPCWSTR sFilePath = _T("C:\\MAG_REPO\\Detours\\Bin\\SystemHookD.dll");
+
+		hOld = CreateFile(sFilePath,
+						  GENERIC_READ,
+						  FILE_SHARE_READ,
+						  NULL,
+						  OPEN_EXISTING,
+						  FILE_ATTRIBUTE_NORMAL,
+						  NULL);
+
+		if (hOld == INVALID_HANDLE_VALUE)
+		{
+			CString sError;
+			sError.Format(_T("ERROR: %s: Failed to open input file with error: %d."), sFilePath, GetLastError());
+			log.AddRichText(sError);
+			return;
+		}
+
+		if ((pBinary = DetourBinaryOpen(hOld)) == NULL)
+		{
+			CString sError;
+			sError.Format(_T("ERROR: %s: DetourBinaryOpen failed: %d."), sFilePath, GetLastError());
+			log.AddRichText(sError);
+			return;
+		}
+
+		if (hOld != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(hOld);
+			hOld = INVALID_HANDLE_VALUE;
+		}
+
+		GUID id;
+		DWORD dwData = 0;
+		DWORD dwIterator = 0;
+		DetourBinaryEnumeratePayloads(pBinary, &id, &dwData, &dwIterator);
+	}
 }

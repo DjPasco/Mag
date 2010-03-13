@@ -27,6 +27,7 @@ protected:
 
 protected:
 	void OnHookNotepad();
+	LRESULT OnMyMessage(WPARAM wParam, LPARAM lParam);
 
 private:
 	CLog m_Log;

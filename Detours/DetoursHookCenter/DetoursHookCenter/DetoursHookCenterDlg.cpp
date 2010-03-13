@@ -2,10 +2,13 @@
 #include "DetoursHookCenter.h"
 #include "DetoursHookCenterDlg.h"
 #include "HookUtils.h"
+#include <iostream>
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
+
+static const UINT WM_MY_MESSAGE = RegisterWindowMessage(TEXT("WM_MY_MESSAGE"));
 
 class CAboutDlg : public CDialog
 {
@@ -34,6 +37,7 @@ BEGIN_MESSAGE_MAP(CDetoursHookCenterDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_HOOK_NOTEPAD, OnHookNotepad)
+	ON_REGISTERED_MESSAGE(WM_MY_MESSAGE, OnMyMessage)
 END_MESSAGE_MAP()
 
 
@@ -120,4 +124,12 @@ HCURSOR CDetoursHookCenterDlg::OnQueryDragIcon()
 void CDetoursHookCenterDlg::OnHookNotepad()
 {
 	hook_utils::LoadNotepadWithHookDll(m_Log);
+	//hook_utils::EnumeratePayloads(m_Log);
 }
+
+LRESULT CDetoursHookCenterDlg::OnMyMessage(WPARAM wParam, LPARAM lParam)
+{
+	m_Log.AddRichText("!!!!");
+	return 0;
+}
+
