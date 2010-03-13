@@ -18,13 +18,18 @@
 *.dep
 *.idb
 *.cache
+*.lib
+*.dll
+*.exp
+*.exe
+*.aps
+*.opt
+*.clw
+
 #detours files
 Detours/Detours/
-/Bin/FileMon.vshost.exe
-/FileMonInject/obj/Debug/FileMonInject.csproj.FileListAbsolute.txt
-/EasyHookFileMonitor/obj/Debug/FileMon.exe
-/EasyHookFileMonitor/obj/Debug/EasyHookFileMonitor.csproj.FileListAbsolute.txt
 /EasyHookFileMonitor/UpgradeLog.XML
-/Detours/Bin/WSHook.bsc
-/Detours/Bin/WSHookD.map
-/Detours/WSHook/Debug/WSHook.sbr
+
+#Debug catalog 
+[Dd]ebug*/
+[Bb]in*/
