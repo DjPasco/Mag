@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "SystemHook.h"
 #include <Winsock2.h>
-#include "../Utils/Socket.h"
 
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
@@ -24,7 +23,7 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 {
 	//MessageBox(NULL, (LPCWSTR)"lala", (LPCWSTR)"lala", MB_OK);
 
- 	socket_utils::SendFile(lpFileName);
+ 	//socket_utils::SendFile(lpFileName);
 
     return pTrueCreateFileW(lpFileName,
 					   dwDesiredAccess,
@@ -63,6 +62,11 @@ HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName,
 };
 
 SYSTEM_HOOK_API void DoNothing()
+{
+	//
+}
+
+SYSTEM_HOOK_API void DoSomething()
 {
 	//
 }

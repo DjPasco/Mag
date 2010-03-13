@@ -1,0 +1,33 @@
+#pragma once
+
+#include "Log.h"
+
+// CDetoursHookCenterDlg dialog
+class CDetoursHookCenterDlg : public CDialog
+{
+// Construction
+public:
+	CDetoursHookCenterDlg(CWnd* pParent = NULL);
+	virtual ~CDetoursHookCenterDlg();
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);
+
+
+// Implementation
+protected:
+	HICON m_hIcon;
+
+	// Generated message map functions
+	virtual BOOL OnInitDialog();
+	void OnSysCommand(UINT nID, LPARAM lParam);
+	void OnPaint();
+	HCURSOR OnQueryDragIcon();
+	DECLARE_MESSAGE_MAP()
+
+protected:
+	void OnHookNotepad();
+
+private:
+	CLog m_Log;
+};
