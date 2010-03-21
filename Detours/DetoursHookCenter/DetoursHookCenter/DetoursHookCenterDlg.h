@@ -10,6 +10,12 @@ public:
 	CDetoursHookCenterDlg(CWnd* pParent = NULL);
 	virtual ~CDetoursHookCenterDlg();
 
+public:
+	void OnFiles();
+
+protected:
+	CString Readline(SOCKET *client);
+
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
 
@@ -31,4 +37,6 @@ protected:
 
 private:
 	CLog m_Log;
+
+	CWinThread *m_pFilesTask;
 };

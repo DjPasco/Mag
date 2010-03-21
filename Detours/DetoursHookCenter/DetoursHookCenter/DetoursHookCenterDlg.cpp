@@ -10,6 +10,8 @@
 
 static const UINT WM_MY_MESSAGE = RegisterWindowMessage(TEXT("WM_MY_MESSAGE"));
 
+UINT StartOnFiles(LPVOID pParam);
+
 class CAboutDlg : public CDialog
 {
 public:
@@ -17,7 +19,8 @@ public:
 };
 
 CDetoursHookCenterDlg::CDetoursHookCenterDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(IDD_DETOURSHOOKCENTER_DIALOG, pParent)
+	: CDialog(IDD_DETOURSHOOKCENTER_DIALOG, pParent),
+	  m_pFilesTask(NULL)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -120,11 +123,10 @@ HCURSOR CDetoursHookCenterDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
 void CDetoursHookCenterDlg::OnHookNotepad()
 {
+	m_pFilesTask = AfxBeginThread(StartOnFiles, (LPVOID)this);
 	hook_utils::LoadNotepadWithHookDll(m_Log);
-	//hook_utils::EnumeratePayloads(m_Log);
 }
 
 LRESULT CDetoursHookCenterDlg::OnMyMessage(WPARAM wParam, LPARAM lParam)
@@ -133,3 +135,102 @@ LRESULT CDetoursHookCenterDlg::OnMyMessage(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+CString CDetoursHookCenterDlg::Readline(SOCKET *client)
+{
+	CString sMess;
+	char buffer;
+	int rVal;
+
+	while(true)
+	{
+		rVal = recv(*(client), &buffer, 1, 0);
+		if(rVal == SOCKET_ERROR)
+		{
+			return "";
+			WSACleanup();
+		}
+		
+		if(buffer != '\n')
+		{
+			sMess += buffer;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return sMess;
+}
+
+void CDetoursHookCenterDlg::OnFiles()
+{
+	WORD sockVersion;
+	WSADATA wsaData;
+	int rVal;
+
+	sockVersion = MAKEWORD(2,2);
+	WSAStartup(sockVersion, &wsaData);
+
+	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if(s == INVALID_SOCKET)
+	{
+		closesocket(s);
+		WSACleanup();
+		return;
+	}
+
+	SOCKADDR_IN sin;
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(8888);
+	sin.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+	rVal = bind(s, (LPSOCKADDR)&sin, sizeof(sin));
+	if(rVal == SOCKET_ERROR)
+	{
+		closesocket(s);
+		WSACleanup();
+		return;
+	}
+
+	rVal = listen(s, 2);
+	if(rVal == SOCKET_ERROR)
+	{
+		closesocket(s);
+		WSACleanup();
+		return;
+	}
+
+	bool b_Done(false);
+
+	while (!b_Done)
+	{
+		SOCKET client;
+		client = accept(s, NULL, NULL);
+
+		if(client == INVALID_SOCKET)
+		{
+			closesocket(s);
+			WSACleanup();
+			return;
+		}
+
+		CString sMessage;
+		sMessage = Readline(&client);
+		m_Log.AddRichText(sMessage);
+		
+		closesocket(client);
+	}
+
+	closesocket(s);
+
+	WSACleanup();
+}
+
+UINT StartOnFiles(LPVOID pParam)
+{
+	CDetoursHookCenterDlg *pDlg = (CDetoursHookCenterDlg*)pParam;
+	pDlg->OnFiles();
+	return 0;
+}

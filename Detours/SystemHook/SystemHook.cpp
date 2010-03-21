@@ -5,8 +5,10 @@
 #include "SystemHook.h"
 #include <iostream>
 
-static HWND g_Hwnd;
-static const UINT WM_MY_MESSAGE = RegisterWindowMessage(TEXT("WM_MY_MESSAGE"));
+#ifndef SOCKET_SENDER
+	#include "../../Socket/SocketSender.h"
+#endif
+
 
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
@@ -24,9 +26,12 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 							   DWORD dwFlagsAndAttributes,
 							   HANDLE hTemplateFile)
 {
-	SendMessage(g_Hwnd, WM_MY_MESSAGE, 0, 0);
+	char fname[MAX_PATH];
+	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, fname, MAX_PATH,NULL,NULL);
 
-    return pTrueCreateFileW(lpFileName,
+	CSender::instance()->SendFile(fname);
+
+	return pTrueCreateFileW(lpFileName,
 					   dwDesiredAccess,
 					   dwShareMode,
 					   lpSecurityAttributes,
@@ -51,9 +56,7 @@ HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName,
 							   DWORD dwFlagsAndAttributes,
 							   HANDLE hTemplateFile)
 {
-	MessageBox(NULL, (LPCWSTR)"lala", (LPCWSTR)"lala", MB_OK);
-
-    return CreateFileA(lpFileName,
+	return CreateFileA(lpFileName,
 					   dwDesiredAccess,
 					   dwShareMode,
 					   lpSecurityAttributes,
@@ -65,12 +68,4 @@ HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName,
 SYSTEM_HOOK_API void DoNothing()
 {
 	//
-}
-
-namespace utils
-{
-	void SetHwnd(HWND Hwnd)
-	{
-		g_Hwnd = Hwnd;
-	}
 }

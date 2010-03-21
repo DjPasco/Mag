@@ -50,15 +50,6 @@ namespace hook_utils
 		ZeroMemory(&si, sizeof(STARTUPINFO));
 		ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 		si.cb = sizeof(STARTUPINFO);
-//		char* DirPath = new char[MAX_PATH];
-	    
-//		GetCurrentDirectory(MAX_PATH, DirPath);
-
-		//CString sDllPath;
-		//sDllPath.Format(_T("%s\\WSHookD.dll"), DirPath);
-
-		//CString sDetourPath;
-		//sDetourPath.Format(_T("%s\\detoured.dll"), DirPath);
 
 		LPCWSTR sDllPathW    = _T("C:\\MAG_REPO\\Detours\\Bin\\SystemHookD.dll");
 

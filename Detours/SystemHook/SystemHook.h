@@ -12,8 +12,3 @@
 
 
 SYSTEM_HOOK_API void DoNothing();
-
-namespace utils
-{
-	void SetHwnd(HWND Hwnd);
-}
