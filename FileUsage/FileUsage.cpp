@@ -1,15 +1,9 @@
-// FileUsage.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 #include "FileUsage.h"
 
 #ifdef _DEBUG
-#define new DEBUG_NEW
+	#define new DEBUG_NEW
 #endif
-
-
-// The one and only application object
 
 CWinApp theApp;
 
@@ -45,7 +39,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		printf("Finished in about %.5f seconds. \n", dOneFile);
 		int k;
 		cin>>k;
-
 	}
 
 	return nRetCode;
