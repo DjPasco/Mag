@@ -11,7 +11,7 @@ static const char * const _strPostfix = "}}";
 
 CLog::CLog()
 {
-	//
+	m_Lines = 0;
 }
 
 CLog::~CLog()
@@ -33,7 +33,11 @@ void CLog::AddRichText(LPCWSTR sText)
 
 void CLog::AddRichText(CString &sText)
 {
-	AddText(sText);
+	CString s;
+	s.Format(_T("%d : "), m_Lines);
+	s += sText;
+	AddText(s);
+	m_Lines++;
 }
 
 void CLog::SetLastPos()

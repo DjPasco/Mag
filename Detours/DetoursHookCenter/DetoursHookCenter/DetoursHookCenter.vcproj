@@ -272,6 +272,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Socket"
+			>
+			<File
+				RelativePath="..\..\..\Socket\SocketSender.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\Socket\SocketSender.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 		<Global

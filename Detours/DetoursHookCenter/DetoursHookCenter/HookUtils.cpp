@@ -64,7 +64,7 @@ namespace hook_utils
 		LPCSTR sDetourPath = "C:\\MAG_REPO\\Detours\\Bin\\detoured.dll";
 		LPCSTR sDllPath = "C:\\MAG_REPO\\Detours\\Bin\\SystemHookD.dll";
 
-		if(!DetourCreateProcessWithDll(_T("C:\\Windows\\Notepad.exe"),
+		if(!DetourCreateProcessWithDll(_T("C:\\MAG_REPO\\Detours\\Bin\\FileUsage.exe"),
 									   NULL,
 									   NULL,
 									   NULL,

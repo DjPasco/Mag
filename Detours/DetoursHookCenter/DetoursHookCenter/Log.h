@@ -16,4 +16,7 @@ public:
 private:
 	void SetLastPos	();
 	void AddText(CString &str);
+
+private:
+	int m_Lines;
 };

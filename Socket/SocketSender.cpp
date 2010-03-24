@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "SocketSender.h"
+#include "SocketImpl.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -48,6 +49,8 @@ bool CSender::Initialize()
 		return false;
 	}
 
+	setsockopt(m_SocketListen, SOL_SOCKET, SO_KEEPALIVE, NULL, 0);
+
 	//SendFile("Soketas sukurtas");
 
 	return true;
@@ -62,19 +65,26 @@ void CSender::DropConection()
 
 bool CSender::SendFile(LPCSTR sFile)
 {
-	if(!Initialize())
-	{
-		return false;
-	}
+	//if(!Initialize())
+	//{
+	//	return false;
+	//}
+	////if(NULL == m_SocketListen)
+	////{
+	////	return false;
+	////}
 
-	char szScanBuffer[MAX_PATH];
+	//char szScanBuffer[MAX_PATH];
 
-	sprintf_s(szScanBuffer, "%s\n", sFile);
-	int nSize = strlen(szScanBuffer);
-	int nGetSize = send(m_SocketListen, szScanBuffer, nSize, 0);
+	//sprintf_s(szScanBuffer, "%s\n", sFile);
+	//int nSize = strlen(szScanBuffer);
+	//int nGetSize = send(m_SocketListen, szScanBuffer, nSize, 0);
 
 
-	DropConection();
+	//DropConection();
+
+	SocketClient s("127.0.0.1", 8888);
+	s.SendLine(sFile);
 
 	return true;
 }

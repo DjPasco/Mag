@@ -18,7 +18,8 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved)
         DetourAttach(&(PVOID&)pTrueCreateFileW, TransCreateFileW);
         DetourTransactionCommit();
 
-		CSender::instance()->SendFile("Prikabinom");
+		//CSender::instance()->Initialize();
+		//CSender::instance()->SendFile("Prikabinom");
 
    }
     else if (dwReason == DLL_PROCESS_DETACH)

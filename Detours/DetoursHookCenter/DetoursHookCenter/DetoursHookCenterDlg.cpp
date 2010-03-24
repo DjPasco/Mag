@@ -27,7 +27,7 @@ CDetoursHookCenterDlg::CDetoursHookCenterDlg(CWnd* pParent /*=NULL*/)
 
 CDetoursHookCenterDlg::~CDetoursHookCenterDlg()
 {
-	//
+	delete m_pFilesTask;
 }
 
 void CDetoursHookCenterDlg::DoDataExchange(CDataExchange* pDX)
@@ -42,7 +42,6 @@ BEGIN_MESSAGE_MAP(CDetoursHookCenterDlg, CDialog)
 	ON_BN_CLICKED(IDC_HOOK_NOTEPAD, OnHookNotepad)
 	ON_REGISTERED_MESSAGE(WM_MY_MESSAGE, OnMyMessage)
 END_MESSAGE_MAP()
-
 
 BOOL CDetoursHookCenterDlg::OnInitDialog()
 {
