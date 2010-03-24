@@ -1,5 +1,3 @@
-#include <windows.h>
-
 HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 								   DWORD dwDesiredAccess,
 								   DWORD dwShareMode,

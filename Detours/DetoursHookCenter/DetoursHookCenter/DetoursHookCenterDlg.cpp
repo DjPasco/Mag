@@ -2,15 +2,12 @@
 #include "DetoursHookCenter.h"
 #include "DetoursHookCenterDlg.h"
 #include "HookUtils.h"
+#include "../../Utils/SendObj.h"
 #include <iostream>
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
-
-static const UINT WM_MY_MESSAGE = RegisterWindowMessage(TEXT("WM_MY_MESSAGE"));
-
-UINT StartOnFiles(LPVOID pParam);
 
 class CAboutDlg : public CDialog
 {
@@ -19,15 +16,14 @@ public:
 };
 
 CDetoursHookCenterDlg::CDetoursHookCenterDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(IDD_DETOURSHOOKCENTER_DIALOG, pParent),
-	  m_pFilesTask(NULL)
+	: CDialog(IDD_DETOURSHOOKCENTER_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 CDetoursHookCenterDlg::~CDetoursHookCenterDlg()
 {
-	delete m_pFilesTask;
+	//
 }
 
 void CDetoursHookCenterDlg::DoDataExchange(CDataExchange* pDX)
@@ -40,8 +36,9 @@ BEGIN_MESSAGE_MAP(CDetoursHookCenterDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_HOOK_NOTEPAD, OnHookNotepad)
-	ON_REGISTERED_MESSAGE(WM_MY_MESSAGE, OnMyMessage)
+	ON_MESSAGE(WM_COPYDATA, OnCopyData)
 END_MESSAGE_MAP()
+
 
 BOOL CDetoursHookCenterDlg::OnInitDialog()
 {
@@ -124,112 +121,16 @@ HCURSOR CDetoursHookCenterDlg::OnQueryDragIcon()
 
 void CDetoursHookCenterDlg::OnHookNotepad()
 {
-	m_pFilesTask = AfxBeginThread(StartOnFiles, (LPVOID)this);
 	hook_utils::LoadNotepadWithHookDll(m_Log);
+	//hook_utils::EnumeratePayloads(m_Log);
 }
 
-LRESULT CDetoursHookCenterDlg::OnMyMessage(WPARAM wParam, LPARAM lParam)
+LRESULT CDetoursHookCenterDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 {
-	m_Log.AddRichText("!!!!");
+	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
+	CString sText = ((CSendObj *)(copy->lpData))->m_sPath;
+	m_Log.AddRichText(sText);
+
 	return 0;
 }
 
-CString CDetoursHookCenterDlg::Readline(SOCKET *client)
-{
-	CString sMess;
-	char buffer;
-	int rVal;
-
-	while(true)
-	{
-		rVal = recv(*(client), &buffer, 1, 0);
-		if(rVal == SOCKET_ERROR)
-		{
-			return "";
-			WSACleanup();
-		}
-		
-		if(buffer != '\n')
-		{
-			sMess += buffer;
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	return sMess;
-}
-
-void CDetoursHookCenterDlg::OnFiles()
-{
-	WORD sockVersion;
-	WSADATA wsaData;
-	int rVal;
-
-	sockVersion = MAKEWORD(2,2);
-	WSAStartup(sockVersion, &wsaData);
-
-	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	if(s == INVALID_SOCKET)
-	{
-		closesocket(s);
-		WSACleanup();
-		return;
-	}
-
-	SOCKADDR_IN sin;
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(8888);
-	sin.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-	rVal = bind(s, (LPSOCKADDR)&sin, sizeof(sin));
-	if(rVal == SOCKET_ERROR)
-	{
-		closesocket(s);
-		WSACleanup();
-		return;
-	}
-
-	rVal = listen(s, 2);
-	if(rVal == SOCKET_ERROR)
-	{
-		closesocket(s);
-		WSACleanup();
-		return;
-	}
-
-	bool b_Done(false);
-
-	while (!b_Done)
-	{
-		SOCKET client;
-		client = accept(s, NULL, NULL);
-
-		if(client == INVALID_SOCKET)
-		{
-			closesocket(s);
-			WSACleanup();
-			return;
-		}
-
-		CString sMessage;
-		sMessage = Readline(&client);
-		m_Log.AddRichText(sMessage);
-		
-		closesocket(client);
-	}
-
-	closesocket(s);
-
-	WSACleanup();
-}
-
-UINT StartOnFiles(LPVOID pParam)
-{
-	CDetoursHookCenterDlg *pDlg = (CDetoursHookCenterDlg*)pParam;
-	pDlg->OnFiles();
-	return 0;
-}

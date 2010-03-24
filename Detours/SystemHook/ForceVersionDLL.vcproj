@@ -233,22 +233,10 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Socket"
+			Name="Utils"
 			>
 			<File
-				RelativePath="..\..\Socket\SocketImpl.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Socket\SocketImpl.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Socket\SocketSender.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Socket\SocketSender.h"
+				RelativePath="..\Utils\SendObj.h"
 				>
 			</File>
 		</Filter>

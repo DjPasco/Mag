@@ -4,12 +4,9 @@
 #include <stdio.h>
 #include "SystemHook.h"
 #include <iostream>
+#include "../Utils/SendObj.h"
 
-#ifndef SOCKET_SENDER
-	#include "../../Socket/SocketSender.h"
-#endif
-
-
+static HWND g_Hwnd;
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
 										  DWORD dwShareMode,
@@ -26,12 +23,21 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 							   DWORD dwFlagsAndAttributes,
 							   HANDLE hTemplateFile)
 {
-	char fname[MAX_PATH];
-	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, fname, MAX_PATH,NULL,NULL);
+	CSendObj obj;
+	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, obj.m_sPath, MAX_PATH,NULL,NULL); 
 
-	CSender::instance()->SendFile(fname);
+	COPYDATASTRUCT copy;
 
-	return pTrueCreateFileW(lpFileName,
+	copy.dwData = 1;          // function identifier
+	copy.cbData = sizeof( obj );  // size of data
+	copy.lpData = &obj;           // data structure
+
+	LRESULT result = SendMessage(g_Hwnd,
+								 WM_COPYDATA,
+								 0,
+								 (LPARAM) (LPVOID) &copy);
+
+    return pTrueCreateFileW(lpFileName,
 					   dwDesiredAccess,
 					   dwShareMode,
 					   lpSecurityAttributes,
@@ -68,4 +74,12 @@ HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName,
 SYSTEM_HOOK_API void DoNothing()
 {
 	//
+}
+
+namespace utils
+{
+	void SetHwnd(HWND Hwnd)
+	{
+		g_Hwnd = Hwnd;
+	}
 }

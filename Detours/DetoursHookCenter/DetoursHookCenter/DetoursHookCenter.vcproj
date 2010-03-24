@@ -273,14 +273,10 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Socket"
+			Name="Utils"
 			>
 			<File
-				RelativePath="..\..\..\Socket\SocketSender.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\Socket\SocketSender.h"
+				RelativePath="..\..\Utils\SendObj.h"
 				>
 			</File>
 		</Filter>

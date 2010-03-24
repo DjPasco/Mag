@@ -10,15 +10,8 @@ public:
 	CDetoursHookCenterDlg(CWnd* pParent = NULL);
 	virtual ~CDetoursHookCenterDlg();
 
-public:
-	void OnFiles();
-
-protected:
-	CString Readline(SOCKET *client);
-
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
-
 
 // Implementation
 protected:
@@ -33,10 +26,8 @@ protected:
 
 protected:
 	void OnHookNotepad();
-	LRESULT OnMyMessage(WPARAM wParam, LPARAM lParam);
+	LRESULT OnCopyData(WPARAM wParam, LPARAM lParam);
 
 private:
 	CLog m_Log;
-
-	CWinThread *m_pFilesTask;
 };
