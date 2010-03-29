@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting;
+using Microsoft.Win32;
 using System.Text;
 using System.IO;
 using EasyHook;
@@ -14,12 +15,9 @@ namespace FileMon
             Console.WriteLine("FileMon has been installed in target {0}.\r\n", InClientPID);
         }
 
-        public void OnCreateFile(Int32 InClientPID, String[] InFileNames)
+        public void OnCreateFile(Int32 InClientPID, String InFileName)
         {
-            for (int i = 0; i < InFileNames.Length; i++)
-            {
-                Console.WriteLine(InFileNames[i]);
-            }
+            //Console.WriteLine(InFileName);
         }
 
         public void ReportException(Exception InInfo)
@@ -38,16 +36,16 @@ namespace FileMon
 
         static void Main(string[] args)
         {
-            Int32 TargetPID = 0;
+            //Int32 TargetPID = 0;
 
-            if ((args.Length != 1) || !Int32.TryParse(args[0], out TargetPID))
-            {
-                Console.WriteLine();
-                Console.WriteLine("Usage: FileMon %PID%");
-                Console.WriteLine();
+            //if ((args.Length != 1) || !Int32.TryParse(args[0], out TargetPID))
+            //{
+            //    Console.WriteLine();
+            //    Console.WriteLine("Usage: FileMon %PID%");
+            //    Console.WriteLine();
 
-                return;
-            }
+            //    return;
+            //}
 
             try
             {
@@ -64,11 +62,14 @@ namespace FileMon
                 }
 
                 RemoteHooking.IpcCreateServer<FileMonInterface>(ref ChannelName, WellKnownObjectMode.SingleCall);
-
-                RemoteHooking.Inject(
-                    TargetPID,
+                int nProcID;
+                RemoteHooking.CreateAndInject(
+                    "FileUsage.exe", 
+                    "",
+                    0,
                     "FileMonInject.dll",
                     "FileMonInject.dll",
+                    out nProcID,
                     ChannelName);
 
                 Console.ReadLine();

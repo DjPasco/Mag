@@ -50,34 +50,34 @@ namespace FileMonInject
             RemoteHooking.WakeUpProcess();
 
             // wait for host process termination...
-            try
-            {
+            //try
+            //{
                 while (true)
                 {
-                    Thread.Sleep(501);
+            //        //Thread.Sleep(501);
 
-                    // transmit newly monitored file accesses...
-                    if (Queue.Count > 0)
-                    {
-                        String[] Package = null;
+            //        //// transmit newly monitored file accesses...
+            //        //if (Queue.Count > 0)
+            //        //{
+            //        //    String[] Package = null;
 
-                        lock (Queue)
-                        {
-                            Package = Queue.ToArray();
+            //        //    lock (Queue)
+            //        //    {
+            //        //        Package = Queue.ToArray();
 
-                            Queue.Clear();
-                        }
+            //        //        Queue.Clear();
+            //        //    }
 
-                        Interface.OnCreateFile(RemoteHooking.GetCurrentProcessId(), Package);
-                    }
-                    else
-                        Interface.Ping();
+            //        //    //Interface.OnCreateFile(RemoteHooking.GetCurrentProcessId(), Package);
+            //        //}
+            //        //else
+            //        //    Interface.Ping();
                 }
-            }
-            catch
-            {
-                // Ping() will raise an exception if host is unreachable
-            }
+            //}
+            //catch
+            //{
+            //    // Ping() will raise an exception if host is unreachable
+            //}
         }
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall,
@@ -116,22 +116,23 @@ namespace FileMonInject
             UInt32 InFlagsAndAttributes,
             IntPtr InTemplateFile)
         {
-            if (InDesiredAccess != 0 && !InFileName.Contains("\\.\\"))
-            {
-                try
-                {
-                    Main This = (Main)HookRuntimeInfo.Callback;
+            //if (InDesiredAccess != 0 && !InFileName.Contains("\\.\\"))
+            //{
+            //    try
+            //    {
+            //        Main This = (Main)HookRuntimeInfo.Callback;
 
-                    lock (This.Queue)
-                    {
-                        This.Queue.Push("[" + RemoteHooking.GetCurrentProcessId() + ":" +
-                            RemoteHooking.GetCurrentThreadId() + "]: \"" + InFileName + "\"");
-                    }
-                }
-                catch
-                {
-                }
-            }
+            //        //lock (This.Queue)
+            //        //{
+            //        //    This.Queue.Push("[" + RemoteHooking.GetCurrentProcessId() + ":" +
+            //        //        RemoteHooking.GetCurrentThreadId() + "]: \"" + InFileName + "\"");
+            //        //}
+            //        This.Interface.OnCreateFile(RemoteHooking.GetCurrentProcessId(), InFileName);
+            //    }
+            //    catch
+            //    {
+            //    }
+            //}
 
             // call original API...
             return CreateFile(
