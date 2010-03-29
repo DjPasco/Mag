@@ -59,27 +59,8 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\DetoursHookCenter.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Dialog
 //
-
-IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About DetoursHookCenter"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    LTEXT           "DetoursHookCenter, Version 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2010",IDC_STATIC,42,26,114,8
-    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
-END
 
 IDD_DETOURSHOOKCENTER_DIALOG DIALOGEX 0, 0, 370, 199
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
@@ -89,8 +70,8 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,259,178,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,313,178,50,14
-    PUSHBUTTON      "Start Hooked Notepad",IDC_HOOK_NOTEPAD,7,7,81,14
-    CONTROL         "",IDC_RICH_LOG,"RichEdit20W",ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | WS_BORDER | WS_VSCROLL | WS_TABSTOP,7,25,356,147
+    PUSHBUTTON      "Start Detours Hook",IDC_HOOK_NOTEPAD,7,7,81,14
+    CONTROL         "",IDC_RICH_LOG,"RichEdit20W",WS_BORDER | WS_VSCROLL | WS_TABSTOP | 0x8c4,7,25,356,147
 END
 
 
@@ -141,14 +122,6 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO 
 BEGIN
-    IDD_ABOUTBOX, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 163
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 55
-    END
-
     IDD_DETOURSHOOKCENTER_DIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -158,18 +131,6 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE 
-BEGIN
-    IDS_ABOUTBOX            "&About DetoursHookCenter..."
-    IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
-END
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

@@ -4,6 +4,12 @@
 #include <iostream>
 #include "Log.h"
 
+#ifdef _DEBUG
+	#define FILE_USAGE "FileUsageD.exe"
+#else
+	#define FILE_USAGE "FileUsage.exe"
+#endif
+
 namespace hook_utils
 {
 	namespace internal
@@ -51,7 +57,7 @@ namespace hook_utils
 		ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 		si.cb = sizeof(STARTUPINFO);
 
-		LPCWSTR sDllPathW    = _T("C:\\MAG_REPO\\Detours\\Bin\\SystemHookD.dll");
+		LPCWSTR sDllPathW    = _T("C:\\MAG_REPO\\Bin\\SystemHookD.dll");
 
 		if (!internal::DoesDllExportOrdinal1(log, sDllPathW))
 		{
@@ -61,10 +67,13 @@ namespace hook_utils
 			return;
 		}
 
-		LPCSTR sDetourPath = "C:\\MAG_REPO\\Detours\\Bin\\detoured.dll";
-		LPCSTR sDllPath = "C:\\MAG_REPO\\Detours\\Bin\\SystemHookD.dll";
+		LPCSTR sDetourPath = "C:\\MAG_REPO\\Bin\\detoured.dll";
+		LPCSTR sDllPath = "C:\\MAG_REPO\\Bin\\SystemHookD.dll";
 
-		if(!DetourCreateProcessWithDll(_T("C:\\MAG_REPO\\Detours\\Bin\\FileUsage.exe"),
+		std::wstring sFileUsage = _T("C:\\MAG_REPO\\Bin\\");
+		sFileUsage += _T(FILE_USAGE);
+
+		if(!DetourCreateProcessWithDll(sFileUsage.c_str(),
 									   NULL,
 									   NULL,
 									   NULL,
@@ -82,48 +91,5 @@ namespace hook_utils
 			sError.Format(_T("ERROR: DetourCreateProcessWithDll failed: %d"), GetLastError());
 			log.AddRichText(sError);
 		}
-	}
-
-	void EnumeratePayloads(CLog &log)
-	{
-		HANDLE hOld = INVALID_HANDLE_VALUE;
-		PDETOUR_BINARY pBinary = NULL;
-
-		LPCWSTR sFilePath = _T("C:\\MAG_REPO\\Detours\\Bin\\SystemHookD.dll");
-
-		hOld = CreateFile(sFilePath,
-						  GENERIC_READ,
-						  FILE_SHARE_READ,
-						  NULL,
-						  OPEN_EXISTING,
-						  FILE_ATTRIBUTE_NORMAL,
-						  NULL);
-
-		if (hOld == INVALID_HANDLE_VALUE)
-		{
-			CString sError;
-			sError.Format(_T("ERROR: %s: Failed to open input file with error: %d."), sFilePath, GetLastError());
-			log.AddRichText(sError);
-			return;
-		}
-
-		if ((pBinary = DetourBinaryOpen(hOld)) == NULL)
-		{
-			CString sError;
-			sError.Format(_T("ERROR: %s: DetourBinaryOpen failed: %d."), sFilePath, GetLastError());
-			log.AddRichText(sError);
-			return;
-		}
-
-		if (hOld != INVALID_HANDLE_VALUE)
-		{
-			CloseHandle(hOld);
-			hOld = INVALID_HANDLE_VALUE;
-		}
-
-		GUID id;
-		DWORD dwData = 0;
-		DWORD dwIterator = 0;
-		DetourBinaryEnumeratePayloads(pBinary, &id, &dwData, &dwIterator);
 	}
 }

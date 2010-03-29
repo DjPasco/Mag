@@ -23,19 +23,19 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 							   DWORD dwFlagsAndAttributes,
 							   HANDLE hTemplateFile)
 {
-	CSendObj obj;
-	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, obj.m_sPath, MAX_PATH,NULL,NULL); 
+	//CSendObj obj;
+	//WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, obj.m_sPath, MAX_PATH,NULL,NULL); 
 
-	COPYDATASTRUCT copy;
+	//COPYDATASTRUCT copy;
 
-	copy.dwData = 1;          // function identifier
-	copy.cbData = sizeof( obj );  // size of data
-	copy.lpData = &obj;           // data structure
+	//copy.dwData = 1;          // function identifier
+	//copy.cbData = sizeof( obj );  // size of data
+	//copy.lpData = &obj;           // data structure
 
-	LRESULT result = SendMessage(g_Hwnd,
-								 WM_COPYDATA,
-								 0,
-								 (LPARAM) (LPVOID) &copy);
+	//LRESULT result = SendMessage(g_Hwnd,
+	//							 WM_COPYDATA,
+	//							 0,
+	//							 (LPARAM) (LPVOID) &copy);
 
     return pTrueCreateFileW(lpFileName,
 					   dwDesiredAccess,

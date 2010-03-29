@@ -2,26 +2,15 @@
 
 #include "Log.h"
 
-// CDetoursHookCenterDlg dialog
 class CDetoursHookCenterDlg : public CDialog
 {
-// Construction
 public:
-	CDetoursHookCenterDlg(CWnd* pParent = NULL);
-	virtual ~CDetoursHookCenterDlg();
+	CDetoursHookCenterDlg(CWnd* pParent = NULL)
+		:CDialog(IDD_DETOURSHOOKCENTER_DIALOG, pParent) { };
+	virtual ~CDetoursHookCenterDlg() { };
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);
-
-// Implementation
-protected:
-	HICON m_hIcon;
-
-	// Generated message map functions
 	virtual BOOL OnInitDialog();
-	void OnSysCommand(UINT nID, LPARAM lParam);
-	void OnPaint();
-	HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
 protected:

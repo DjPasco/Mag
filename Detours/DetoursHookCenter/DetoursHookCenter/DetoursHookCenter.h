@@ -1,24 +1,14 @@
 #pragma once
 
-#include "resource.h"		// main symbols
-
-
-// CDetoursHookCenterApp:
-// See DetoursHookCenter.cpp for the implementation of this class
-//
+#include "resource.h"
 
 class CDetoursHookCenterApp : public CWinApp
 {
 public:
-	CDetoursHookCenterApp();
+	CDetoursHookCenterApp() { };
 
-// Overrides
-	public:
+public:
 	virtual BOOL InitInstance();
-
-// Implementation
-
-	DECLARE_MESSAGE_MAP()
 };
 
 extern CDetoursHookCenterApp theApp;

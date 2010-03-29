@@ -23,7 +23,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	else
 	{
 		time_t start, stop;
-		int nCount = 9999;
+		int nCount = 20000;
+
 		time(&start);
 		
 		for(int i = 0; i < nCount; ++i)
