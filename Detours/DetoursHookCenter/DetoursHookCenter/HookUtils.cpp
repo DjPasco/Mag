@@ -38,7 +38,7 @@ namespace hook_utils
 			{
 				CString sError;
 				sError.Format(_T("ERROR: LoadLibraryEx(%s) failed with error %d."), pszDllPath, GetLastError());
-				log.AddRichText(sError);
+				//log.AddRichText(sError);
 				return FALSE;
 			}
 
@@ -63,7 +63,7 @@ namespace hook_utils
 		{
 			CString sError;
 			sError.Format(_T("ERROR: %s does not export function with ordinal #1."), sDllPathW);
-			log.AddRichText(sError);
+			//log.AddRichText(sError);
 			return;
 		}
 
@@ -89,7 +89,7 @@ namespace hook_utils
 		{
 			CString sError;
 			sError.Format(_T("ERROR: DetourCreateProcessWithDll failed: %d"), GetLastError());
-			log.AddRichText(sError);
+			//log.AddRichText(sError);
 		}
 	}
 }
