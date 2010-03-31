@@ -13,71 +13,45 @@ namespace FileMonInject
         LocalHook CreateFileHook;
         Stack<String> Queue = new Stack<String>();
 
-        public Main(
-            RemoteHooking.IContext InContext,
-            String InChannelName)
+        public Main(RemoteHooking.IContext InContext,
+                    String InChannelName)
         {
             // connect to host...
             Interface = RemoteHooking.IpcConnectClient<FileMon.FileMonInterface>(InChannelName);
-
-            Interface.Ping();
         }
 
-        public void Run(
-            RemoteHooking.IContext InContext,
-            String InChannelName)
+        public void Run(RemoteHooking.IContext InContext,
+                        String InChannelName)
         {
             // install hook...
             try
             {
-
-                CreateFileHook = LocalHook.Create(
-                    LocalHook.GetProcAddress("kernel32.dll", "CreateFileW"),
-                    new DCreateFile(CreateFile_Hooked),
-                    this);
+                CreateFileHook = LocalHook.Create(LocalHook.GetProcAddress("kernel32.dll", "CreateFileW"),
+                                                  new DCreateFile(CreateFile_Hooked),
+                                                  this);
 
                 CreateFileHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+                RemoteHooking.WakeUpProcess();
             }
             catch (Exception ExtInfo)
             {
                 Interface.ReportException(ExtInfo);
-
                 return;
             }
 
             Interface.IsInstalled(RemoteHooking.GetCurrentProcessId());
 
-            RemoteHooking.WakeUpProcess();
-
-            // wait for host process termination...
-            //try
-            //{
+            try
+            {
                 while (true)
                 {
-            //        //Thread.Sleep(501);
-
-            //        //// transmit newly monitored file accesses...
-            //        //if (Queue.Count > 0)
-            //        //{
-            //        //    String[] Package = null;
-
-            //        //    lock (Queue)
-            //        //    {
-            //        //        Package = Queue.ToArray();
-
-            //        //        Queue.Clear();
-            //        //    }
-
-            //        //    //Interface.OnCreateFile(RemoteHooking.GetCurrentProcessId(), Package);
-            //        //}
-            //        //else
-            //        //    Interface.Ping();
+                    Interface.Ping();
                 }
-            //}
-            //catch
-            //{
-            //    // Ping() will raise an exception if host is unreachable
-            //}
+            }
+            catch
+            {
+                //
+            }
         }
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall,
@@ -116,24 +90,6 @@ namespace FileMonInject
             UInt32 InFlagsAndAttributes,
             IntPtr InTemplateFile)
         {
-            //if (InDesiredAccess != 0 && !InFileName.Contains("\\.\\"))
-            //{
-            //    try
-            //    {
-            //        Main This = (Main)HookRuntimeInfo.Callback;
-
-            //        //lock (This.Queue)
-            //        //{
-            //        //    This.Queue.Push("[" + RemoteHooking.GetCurrentProcessId() + ":" +
-            //        //        RemoteHooking.GetCurrentThreadId() + "]: \"" + InFileName + "\"");
-            //        //}
-            //        This.Interface.OnCreateFile(RemoteHooking.GetCurrentProcessId(), InFileName);
-            //    }
-            //    catch
-            //    {
-            //    }
-            //}
-
             // call original API...
             return CreateFile(
                 InFileName,
