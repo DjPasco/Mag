@@ -39,7 +39,7 @@ namespace FileMonInject
                 return;
             }
 
-            Interface.IsInstalled(RemoteHooking.GetCurrentProcessId());
+            //Interface.IsInstalled(RemoteHooking.GetCurrentProcessId());
 
             try
             {

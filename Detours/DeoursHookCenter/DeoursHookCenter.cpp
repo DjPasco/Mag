@@ -31,11 +31,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 		if(0 == sCommand.compare(_T("hook")))
 		{
-			hook_utils::LoadNotepadWithHookDll(sFileName);
+			hook_utils::StartExeWithHookDll(sFileName);
 		}
 		else if (0 == sCommand.compare(_T("run")))
 		{
-			std::wstring sExe = hook_utils::GetExePath(sFileName);
+			std::wstring sExe = hook_utils::GetExePathW(sFileName);
 
 			STARTUPINFO info={sizeof(info)};
 			PROCESS_INFORMATION processInfo;

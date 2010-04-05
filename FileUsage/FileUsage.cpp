@@ -20,22 +20,25 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
 	else
 	{
-		time_t start, stop;
-		int nCount = 20000;
-
-		time(&start);
-		
-		for(int i = 0; i < nCount; ++i)
+		for(int k = 0; k < 10; k++)
 		{
-			CFile file(_T("Test.txt"), CFile::modeCreate);
+			time_t start, stop;
+			int nCount = 20000;
+
+			time(&start);
+			
+			for(int i = 0; i < nCount; ++i)
+			{
+				CFile file(_T("Test.txt"), CFile::modeCreate);
+			}
+
+			time(&stop);
+
+			double dDiff = difftime(stop, start);
+			printf("Bendras laikas     %.5f s. \n", dDiff);
+			double dOneFile = dDiff / nCount;
+			printf("Vieno failo laikas %.5f s. \n\n", dOneFile);
 		}
-
-		time(&stop);
-
-		double dDiff = difftime(stop, start);
-		printf("Bendras laikas     %.5f s. \n", dDiff);
-		double dOneFile = dDiff / nCount;
-		printf("Vieno failo laikas %.5f s. \n", dOneFile);
 	}
 
 	return nRetCode;

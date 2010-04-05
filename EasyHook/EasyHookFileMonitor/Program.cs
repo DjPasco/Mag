@@ -22,7 +22,11 @@ namespace FileMon
             {
                 Process proc = new Process();
                 proc.StartInfo.FileName = args[1];
-                proc.Start();
+                proc.StartInfo.UseShellExecute = false;
+                if (proc.Start())
+                {
+                    proc.WaitForExit();
+                }
             }
 
             return;

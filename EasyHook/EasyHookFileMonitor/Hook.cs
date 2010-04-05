@@ -12,7 +12,7 @@ namespace FileMon
     {
         public void IsInstalled(Int32 InClientPID)
         {
-            Console.WriteLine("FileMon has been installed in target {0}.\r\n", InClientPID);
+            //Console.WriteLine("FileMon has been installed in target {0}.\r\n", InClientPID);
         }
 
         public void OnCreateFile(Int32 InClientPID, String InFileName)
@@ -22,7 +22,7 @@ namespace FileMon
 
         public void ReportException(Exception InInfo)
         {
-            Console.WriteLine("The target process has reported an error:\r\n" + InInfo.ToString());
+            //Console.WriteLine("The target process has reported an error:\r\n" + InInfo.ToString());
         }
 
         public void Ping()
