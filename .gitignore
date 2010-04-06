@@ -30,7 +30,6 @@
 
 #detours files
 Detours/Detours/
-/EasyHookFileMonitor/UpgradeLog.XML
 
 #Debug catalog 
 [Dd]ebug*/
