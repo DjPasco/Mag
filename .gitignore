@@ -36,3 +36,6 @@ Detours/Detours/
 [Bb]in*/
 [Oo]bj*/
 [Rr]elease*/
+
+#But allow
+!*.sh
