@@ -39,3 +39,5 @@ Detours/Detours/
 
 #But allow
 !*.sh
+!libclamavd.dll
+!LibClamAV*/
