@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libclamavd.lib"
+				AdditionalDependencies="libclamav.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\MAG_REPO\LibClamAV"
 				GenerateDebugInformation="true"
