@@ -42,7 +42,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		printf("Loading Database...\n");
 
 		unsigned int nSignCount = 0;
+		time_t start, stop;
+
+		time(&start);
+
 		nRet = cl_load(sPath, pEngine, &nSignCount, CL_DB_BYTECODE);
+
+		time(&stop);
+		double dDiff = difftime(stop, start);
+		printf("Duombazes loadinimo laikas: %.5f s. \n", dDiff);
+
 		if(CL_SUCCESS != nRet)
 		{
 			return 1;
@@ -54,29 +63,36 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			return 1;
 		}
 
-		cl_debug();
+		//cl_debug();
 
 		printf("Scanning.\n");
-		LPCSTR sFile = "c:\\DVD 1 - Finelight Portraiture.avi";
-		//LPCSTR sFile = "c:\\MAG_REPO";
-		const char *sVirname;
-		unsigned long nScanned;
-		int nVirus = cl_scanfile(sFile, &sVirname, &nScanned, pEngine, CL_SCAN_RAW);
+		LPCSTR sFile = "c:\\WINDOWS\\system32\\shell32.dll";
+		int nCount = 10;
 
-		if(CL_CLEAN != nVirus)
+		time(&start);
+		//for(int i = 0; i < nCount; ++i)
 		{
-			printf("Virusas");
+			const char *sVirname;
+			unsigned long nScanned;
+			cl_scanfile(sFile, &sVirname, &nScanned, pEngine, /*CL_SCAN_RAW*/CL_SCAN_STDOPT);
+			//sFile = "c:\\WINDOWS\\regedit.exe";	
+			//cl_scanfile(sFile, &sVirname, &nScanned, pEngine, CL_SCAN_RAW);
+			//printf("%d\n", i);
 		}
+		time(&stop);
+
+		dDiff = difftime(stop, start);
+		printf("Bendras laikas     %.5f s. \n", dDiff);
+		double dOneFile = dDiff / nCount;
+		printf("Failo skenavimo laikas %.5f s. \n\n", dOneFile);
+
+		printf("Scan ends.\n");
 
 		nRet = cl_engine_free(pEngine);
 		if(CL_SUCCESS != nRet)
 		{
 			return 1;
 		}
-
-		int kl;
-		printf("Pabaiga.\n");
-		cin >> kl;
 	}
 
 	return nRetCode;
