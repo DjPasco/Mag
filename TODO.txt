@@ -35,3 +35,9 @@ For ciklo pvz su NVidia Cuda:
 	}
 
 11) Multithreading.
+
+
+Clam naudoja siuos algoritmus:
+	1)	Aho-Corasick
+	2)	extended version of Boyer-Moore
+	
