@@ -1,5 +1,3 @@
-1)	ClamAV skenavimo block schema.
-2)	Hash tyrimas (Windows naudoja LM Hash. Naudojamas jei paswordas ne ilgesnis nei 14 simboliu. Kitu atveju neimanoma suskaiciuoti. Atkrenta.).
 3)	Indeksavimas (galimas stlport panaudojimas).
 4)	Startavimas pirmam, pries visus kitus procesus.
 5)	COM vs Socket vs WM_COPY_MESSAGE.
