@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\Bin"
+			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			UseOfMFC="2"
@@ -42,6 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="C:\MAG_REPO\ClamTools\Third\openssl\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,10 +62,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libclamavd.lib"
+				AdditionalDependencies="libclamavd.lib libeay32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)D.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\MAG_REPO\LibClamAV"
+				AdditionalLibraryDirectories="C:\MAG_REPO\LibClamAV;C:\MAG_REPO\ClamTools\Third\openssl\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -93,7 +94,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\Bin"
+			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			UseOfMFC="2"
@@ -119,6 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="C:\MAG_REPO\ClamTools\Third\openssl\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -137,9 +139,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libclamav.lib"
+				AdditionalDependencies="libclamav.lib  libeay32.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\MAG_REPO\LibClamAV"
+				AdditionalLibraryDirectories="C:\MAG_REPO\LibClamAV;C:\MAG_REPO\ClamTools\Third\openssl\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

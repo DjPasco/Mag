@@ -1,14 +1,13 @@
 #include "stdafx.h"
 #include "ClamScan.h"
-#include "../../LibClamAV/clamav.h"
-#include <vector>
+#include "openssl/evp.h"
+
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
 
 CWinApp theApp;
-
 using namespace std;
 
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
@@ -24,78 +23,60 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
 	else
 	{
-		int nRet = cl_init(CL_INIT_DEFAULT);
-		if(CL_SUCCESS != nRet)
+		OpenSSL_add_all_digests();
+
+		std::string sCipherName[3];
+		sCipherName[0] = "sha1";
+		//sCipherName[1] = "sha256";
+		//sCipherName[2] = "ripemd160";
+
+		for(int ci = 0; ci < 1; ++ci)
 		{
-			return 1;
+			const EVP_MD *md = EVP_get_digestbyname(sCipherName[ci].c_str());
+			printf("%s\n", sCipherName[ci].c_str());
+
+			for(int fi = 0; fi < 4; ++fi)
+			{
+				std::wstring sFileName[4];
+
+				sFileName[0] = _T("c:\\strobist8-1.mkv");
+				sFileName[1] = _T("c:\\Seinfeld-801-The Foundation.avi");
+				sFileName[2] = _T("c:\\WINDOWS\\system32\\shell32.dll");
+				sFileName[3] = _T("c:\\CSAntivirus.log");
+
+				EVP_MD_CTX mdctx;
+
+				unsigned char md_value[EVP_MAX_MD_SIZE];
+				unsigned int md_len;
+				CFile file(sFileName[fi].c_str(), CFile::modeRead);
+
+				ULONGLONG nSize = file.GetLength();
+
+				char *data = new char[(unsigned int)nSize];
+				file.Read(data, (unsigned int)nSize);
+
+				int nCount = 2000000;
+				time_t start, stop;
+				time(&start);
+				for(int i = 0; i < nCount; ++i)
+				{
+					EVP_MD_CTX_init(&mdctx);
+					EVP_DigestInit_ex(&mdctx, md, NULL);
+					EVP_DigestUpdate(&mdctx, data, strlen(data));
+					EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
+					EVP_MD_CTX_cleanup(&mdctx);
+				}
+				time(&stop);
+
+				delete data;
+
+				double dDiff = (difftime(stop, start) / nCount) * 1000000.0;
+				double dSize = (double)nSize / (1024*1024);
+
+				printf("Laikas: %.10f | Failo dydis: %.3f\n", dDiff, dSize);
+			}
 		}
 
-		std::vector<int> loki;
-		loki;
-
-		cl_engine *pEngine = cl_engine_new();
-		if(NULL == pEngine)
-		{
-			ASSERT(FALSE);
-			return 1;
-		}
-
-		LPCSTR sPath = "c:\\MAG_REPO\\LibClamAV\\main.cvd";
-
-		printf("Loading Database...\n");
-
-		unsigned int nSignCount = 0;
-		time_t start, stop;
-
-		time(&start);
-
-		nRet = cl_load(sPath, pEngine, &nSignCount, CL_DB_BYTECODE);
-
-		time(&stop);
-		double dDiff = difftime(stop, start);
-		printf("Duombazes loadinimo laikas: %.5f s. \n", dDiff);
-
-		if(CL_SUCCESS != nRet)
-		{
-			return 1;
-		}
-
-		nRet = cl_engine_compile(pEngine);
-		if(CL_SUCCESS != nRet)
-		{
-			return 1;
-		}
-
-		//cl_debug();
-
-		printf("Scanning.\n");
-		LPCSTR sFile = "c:\\WINDOWS\\system32\\shell32.dll";
-		int nCount = 10;
-
-		time(&start);
-		//for(int i = 0; i < nCount; ++i)
-		{
-			const char *sVirname;
-			unsigned long nScanned;
-			//cl_scanfile(sFile, &sVirname, &nScanned, pEngine, CL_SCAN_STDOPT);
-			sFile = "c:\\MAG_REPO\\TODO.txt";
-			cl_scanfile(sFile, &sVirname, &nScanned, pEngine, CL_SCAN_STDOPT);
-			//printf("%d\n", i);
-		}
-		time(&stop);
-
-		dDiff = difftime(stop, start);
-		printf("Bendras laikas     %.5f s. \n", dDiff);
-		double dOneFile = dDiff / nCount;
-		printf("Failo skenavimo laikas %.5f s. \n\n", dOneFile);
-
-		printf("Scan ends.\n");
-
-		nRet = cl_engine_free(pEngine);
-		if(CL_SUCCESS != nRet)
-		{
-			return 1;
-		}
 	}
 
 	return nRetCode;
