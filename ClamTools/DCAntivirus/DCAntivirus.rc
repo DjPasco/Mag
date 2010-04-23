@@ -77,12 +77,18 @@ IDD_DCANTIVIRUS_DIALOG DIALOGEX 0, 0, 320, 200
 STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "DCAntiVirus"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,260,7,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,260,23,50,14
-    LTEXT           "TODO: Place dialog controls here.",IDC_STATIC,50,90,200,
-                    8
+    GROUPBOX        "Signatures Database",IDC_STATIC_DB,7,7,175,50
+    LTEXT           "Database status:",IDC_STATIC_DB_STATUS,13,21,61,8
+    EDITTEXT        IDC_EDIT_DB_STATUS,77,18,98,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    LTEXT           "Database status:",IDC_STATIC_DB_VERSION,13,38,61,8,NOT 
+                    WS_VISIBLE
+    EDITTEXT        IDC_EDIT_DB_VERSION,77,35,98,14,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_VISIBLE
 END
 
 

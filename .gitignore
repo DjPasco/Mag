@@ -40,4 +40,19 @@ Detours/Detours/
 #But allow
 !*.sh
 !libclamavd.dll
+!libclamavd.pdb
+!libclamavd.lib
+
+!libclamav.dll
+!libclamav.pdb
+!libclamav.lib
+
+!stlportd.5.1.dll
+!stlportd.5.1.pdb
+!stlportd.5.1.lib
+
+!stlport.5.1.dll
+!stlport.5.1.pdb
+!stlport.5.1.lib
+
 !LibClamAV*/

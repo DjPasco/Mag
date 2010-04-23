@@ -2,6 +2,8 @@
 #define _STDAFX_H__
 #pragma once
 
+#pragma warning( disable : 4786 )
+
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 
 #include <afxwin.h>         // MFC core and standard components
