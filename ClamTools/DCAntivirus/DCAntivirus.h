@@ -1,31 +1,20 @@
-// DCAntivirus.h : main header file for the PROJECT_NAME application
-//
-
+#ifndef _DC_ANTI_VIRUS_H__
+#define _DC_ANTI_VIRUS_H__
 #pragma once
 
 #ifndef __AFXWIN_H__
-	#error "include 'stdafx.h' before including this file for PCH"
+	#error include 'stdafx.h' before including this file for PCH
 #endif
 
 #include "resource.h"		// main symbols
 
-
-// CDCAntivirusApp:
-// See DCAntivirus.cpp for the implementation of this class
-//
-
-class CDCAntivirusApp : public CWinApp
+class CDCAntiVirusApp : public CWinApp
 {
 public:
-	CDCAntivirusApp();
+	CDCAntiVirusApp() { };
 
-// Overrides
-	public:
+public:
 	virtual BOOL InitInstance();
-
-// Implementation
-
-	DECLARE_MESSAGE_MAP()
 };
 
-extern CDCAntivirusApp theApp;
+#endif

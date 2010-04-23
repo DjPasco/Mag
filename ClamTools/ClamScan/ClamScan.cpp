@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ClamScan.h"
 #include "../../LibClamAV/clamav.h"
+#include <vector>
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -29,6 +30,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			return 1;
 		}
 
+		std::vector<int> loki;
+		loki;
 
 		cl_engine *pEngine = cl_engine_new();
 		if(NULL == pEngine)
@@ -37,7 +40,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			return 1;
 		}
 
-		LPCSTR sPath = "c:\\MAG_REPO\\LibClamAV\\daily.cvd";
+		LPCSTR sPath = "c:\\MAG_REPO\\LibClamAV\\main.cvd";
 
 		printf("Loading Database...\n");
 
@@ -74,9 +77,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		{
 			const char *sVirname;
 			unsigned long nScanned;
-			cl_scanfile(sFile, &sVirname, &nScanned, pEngine, /*CL_SCAN_RAW*/CL_SCAN_STDOPT);
-			//sFile = "c:\\WINDOWS\\regedit.exe";	
-			//cl_scanfile(sFile, &sVirname, &nScanned, pEngine, CL_SCAN_RAW);
+			//cl_scanfile(sFile, &sVirname, &nScanned, pEngine, CL_SCAN_STDOPT);
+			sFile = "c:\\MAG_REPO\\TODO.txt";
+			cl_scanfile(sFile, &sVirname, &nScanned, pEngine, CL_SCAN_STDOPT);
 			//printf("%d\n", i);
 		}
 		time(&stop);
