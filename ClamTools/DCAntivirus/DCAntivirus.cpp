@@ -20,13 +20,6 @@ BOOL CDCAntiVirusApp::InitInstance()
 
 	CDCAntiVirusDlg dlg;
 	m_pMainWnd = &dlg;
-	int nResponse = dlg.DoModal();
-	if (nResponse == IDOK)
-	{
-	}
-	else if (nResponse == IDCANCEL)
-	{
-	}
-
+	dlg.DoModal();
 	return FALSE;
 }

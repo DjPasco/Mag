@@ -14,7 +14,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved)
         DetourTransactionCommit();
 		
 		HWND hwnd = NULL;
-		hwnd = FindWindow(NULL, _T("DCAntiVirus"));
+		hwnd = FindWindow(NULL, _T("DCAntiVirusScan"));
 		if(hwnd)
 		{
 			utils::SetHwnd(hwnd);

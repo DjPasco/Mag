@@ -2,9 +2,12 @@
 #define _SCANNER_H__
 #pragma once
 
-#include <hash_map>
+#ifndef HEADER_ENVELOPE_H
+	#include "openssl/evp.h"
+#endif
 
-typedef std::hash_map<LPCSTR, CString, std::hash<LPCSTR> > CScannedFileMap;
+class CScannedFileMap;
+class CDCScanner;
 
 class CScanner  
 {
@@ -21,7 +24,11 @@ private:
 	void Free();
 
 private:
-	CScannedFileMap m_FilesMap;
+	CDCScanner *m_pMainScan;
+	CDCScanner *m_pDailyScan;
+
+	CScannedFileMap *m_pFilesMap;
+	const EVP_MD *m_pMD5;
 };
 
 #endif

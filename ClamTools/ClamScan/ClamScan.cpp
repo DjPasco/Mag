@@ -30,34 +30,35 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		sCipherName[1] = "sha256";
 		sCipherName[2] = "ripemd160";
 
+		std::string sFileName[4];
+		
+		sFileName[0] = "c:\\strobist8-1.mkv";
+		sFileName[1] = "c:\\Seinfeld-801-The Foundation.avi";
+		sFileName[2] = "c:\\WINDOWS\\system32\\shell32.dll";
+		sFileName[3] = "c:\\Sondering\\Sondering\\Bin\\stlportd.5.1.dll";
+
 		for(int ci = 0; ci < 3; ++ci)
 		{
 			const EVP_MD *md = EVP_get_digestbyname(sCipherName[ci].c_str());
 			printf("%s\n", sCipherName[ci].c_str());
 
-			for(int fi = 0; fi < 1; ++fi)
+			for(int fi = 0; fi < 4; ++fi)
 			{
-				std::wstring sFileName[4];
-
-				
-				sFileName[0] = _T("c:\\Sondering\\Sondering\\Bin\\stlportd.5.1.dll");
-
-				//sFileName[0] = _T("c:\\strobist8-1.mkv");
-				//sFileName[1] = _T("c:\\Seinfeld-801-The Foundation.avi");
-				//sFileName[2] = _T("c:\\WINDOWS\\system32\\shell32.dll");
-				//sFileName[3] = _T("c:\\CSAntivirus.log");
-
 				EVP_MD_CTX mdctx;
 
 				unsigned char md_value[EVP_MAX_MD_SIZE];
 				unsigned int md_len;
-				CFile file(sFileName[fi].c_str(), CFile::modeRead);
 
-				ULONGLONG nSize = file.GetLength();
-
-				char *data = new char[(unsigned int)nSize];
-				file.Read(data, (unsigned int)nSize);
-
+				FILE *pFile;
+				fopen_s(&pFile, sFileName[fi].c_str(), "rb");
+				fseek(pFile, 0L, SEEK_END);
+				long lSize = ftell(pFile);
+				fseek(pFile, 0L, SEEK_SET);
+				
+				char *data = (char *)malloc(lSize);
+				fread(data, sizeof(char), lSize, pFile);
+				fclose(pFile);
+	
 				int nCount = 2000000;
 				time_t start, stop;
 				time(&start);
@@ -71,10 +72,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				}
 				time(&stop);
 
-				delete data;
+				free((void *)data);
 
 				double dDiff = (difftime(stop, start) / nCount) * 1000000.0;
-				double dSize = (double)nSize / (1024*1024);
+				double dSize = (double)lSize / (1024*1024);
 
 				printf("Laikas: %.10f | Failo dydis: %.3f\n", dDiff, dSize);
 			}

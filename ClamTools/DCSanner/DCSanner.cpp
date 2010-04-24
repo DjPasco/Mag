@@ -2,7 +2,9 @@
 #include "DCSanner.h"
 #include "../ClamInclude/clamav.h"
 
-cl_engine *gpEngine = NULL;
+#ifdef _DEBUG
+	#define new DEBUG_NEW
+#endif
 
 bool CDCScanner::Init()
 {
@@ -17,13 +19,13 @@ bool CDCScanner::Init()
 
 bool CDCScanner::CreateEngine()
 {
-	if(NULL != gpEngine)
+	if(NULL != m_pEngine)
 	{
 		return true;
 	}
 
-	gpEngine = cl_engine_new();
-	if(NULL == gpEngine)
+	m_pEngine = cl_engine_new();
+	if(NULL == m_pEngine)
 	{
 		return false;
 	}
@@ -33,12 +35,12 @@ bool CDCScanner::CreateEngine()
 
 bool CDCScanner::FreeEngine()
 {
-	if(NULL == gpEngine)
+	if(NULL == m_pEngine)
 	{
 		return true;
 	}
 
-	int nRet = cl_engine_free(gpEngine);
+	int nRet = cl_engine_free(m_pEngine);
 	if(CL_SUCCESS != nRet)
 	{
 		return false;
@@ -47,19 +49,22 @@ bool CDCScanner::FreeEngine()
 	return true;
 }
 
-bool CDCScanner::LoadDatabases()
+bool CDCScanner::LoadDatabase(LPCSTR sDBPath)
 {
-	LPCSTR sDailyPath = "c:\\MAG_REPO\\LibClamAV\\daily.cvd";
+	cl_cvd *dbInfo = cl_cvdhead(sDBPath);
+	
+	m_nDBVersion = dbInfo->version;
+	cl_cvdfree(dbInfo);
 
 	unsigned int nSignCount = 0;
-	int nRet = cl_load(sDailyPath, gpEngine, &nSignCount, CL_DB_BYTECODE);
+	int nRet = cl_load(sDBPath, m_pEngine, &nSignCount, CL_DB_BYTECODE);
 
 	if(CL_SUCCESS != nRet)
 	{
 		return false;
 	}
 
-	nRet = cl_engine_compile(gpEngine);
+	nRet = cl_engine_compile(m_pEngine);
 	if(CL_SUCCESS != nRet)
 	{
 		return false;
@@ -71,7 +76,7 @@ bool CDCScanner::LoadDatabases()
 bool CDCScanner::ScanFile(LPCSTR sFile, const char *sVirname)
 {
 	unsigned long lScanned;
-	int nRet = cl_scanfile(sFile, &sVirname, &lScanned, gpEngine, CL_SCAN_STDOPT);
+	int nRet = cl_scanfile(sFile, &sVirname, &lScanned, m_pEngine, CL_SCAN_STDOPT);
 
 	if(CL_VIRUS == nRet)
 	{
@@ -79,4 +84,9 @@ bool CDCScanner::ScanFile(LPCSTR sFile, const char *sVirname)
 	}
 
 	return false;
+}
+
+unsigned int CDCScanner::GetDBVersion()
+{
+	return m_nDBVersion;
 }

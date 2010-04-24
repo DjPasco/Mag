@@ -3,15 +3,15 @@
 #pragma once
 
 class CScanner;
+class CDCAntivirusScanDlg;
 
 class CDCAntiVirusDlg : public CDialog
 {
 public:
 	CDCAntiVirusDlg(CWnd* pParent = NULL);	// standard constructor
+	virtual ~CDCAntiVirusDlg();
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
-	LRESULT OnCopyData(WPARAM wParam, LPARAM lParam);
 	LRESULT OnLoadDB(WPARAM wParam, LPARAM lParam);
 	LRESULT OnHookSystem(WPARAM wParam, LPARAM lParam);
 
@@ -24,7 +24,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
-	CScanner *m_pScanner;
+	CScanner			*m_pScanner;
+	CDCAntivirusScanDlg	*m_pScanDlg;
 };
 
 #endif

@@ -3,8 +3,6 @@
 #include "detours.h"
 #include <iostream>
 
-//#include "DCSanner\DCSanner.h"
-
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -61,7 +59,13 @@ namespace hook_utils
 		GetCurrentDirectory(MAX_PATH, sCurrDir);
 
 		CString sHookDllPath;
+
+#ifdef _DEBUG
+		sHookDllPath.Format("%s\\%s", sCurrDir, "SystemHookD.dll");
+#else
 		sHookDllPath.Format("%s\\%s", sCurrDir, "SystemHook.dll");
+#endif
+
 		//std::string sHookDllPath = sCurrDir + " \\" + "SystemHook.dll";
 		
 		if (!internal::DoesDllExportOrdinal1(sHookDllPath))

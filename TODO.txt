@@ -1,38 +1,12 @@
-3)	Indeksavimas (galimas stlport panaudojimas).
-4)	Startavimas pirmam, pries visus kitus procesus.
-5)	COM vs Socket vs WM_COPY_MESSAGE.
-6)	Programa turi buti kaip servisas.
-7)	Skenuotu geru failu hashinimas ir saugojimas. Formatas: [Path:Hash:Count:DBVersija].
+5)	Socket vs WM_COPYDATA.
+6)	Programa turi buti kaip servisas (Startavimas pirmam, pries visus kitus procesus)
+7)	Skenuotu geru failu hashinimas ir saugojimas. Formatas: [Hash:DBVersija_Main:DBVersija_Daily].
 8)	Skenuotu failu DB uzrakinimas startavus procesui.
 9)	Antivirusu palyginimas (Kaspersky, Avira, AVG, ....).
+
+[Aptarimas teorijoje]
 10)	GPU panaudojimas (Kaspersky tai jau daro).
-For ciklo pvz su NVidia Cuda:
-	for(i=0;i<N;i++)
-	{
-		y[i] = alpha*x[i] + y[i];
-	}
-
-	The CUDA code to run this on a GPU would be something like:
-	__global__ void loop1( int N, float alpha, float* x, float* y )
-	{
-		int i;
-		int i0 = blockIdx.x*blockDim.x + threadIdx.x;
-		for(i=i0;i<N;i+=blockDim.x*gridDim.x)
-		{
-		  y[i] = alpha*x[i] + y[i];
-		}
-	}
-	int main( int argc, char** argv )
-	{
-	   cudaMemcpy( host_x, gpu_x, N*sizeof(float), cudaMemcpyHostToDevice );
-	   cudaMemcpy( host_y, gpu_y, N*sizeof(float), cudaMemcpyHostToDevice );
-
-	   loop1<<<64,256>>>( N, alpha, gpu_x, gpu_y );
-
-	   cudaMemcpy( gpu_y, host_y, N*sizeof(float), cudaMemcpyDeviceToHost );
-	}
-
-11) Multithreading.
+11) 	Multithreading.
 
 
 Clam naudoja siuos algoritmus:

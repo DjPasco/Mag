@@ -2,6 +2,7 @@
 #include "Resource.h"
 #include "DCAntiVirusDlg.h"
 
+#include "DCAntivirusScanDlg.h"
 #include "../Detours/Utils/SendObj.h"
 #include "Scanner/Scanner.h"
 #include "Hook/Hook.h"
@@ -23,9 +24,10 @@ CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent /*=NULL*/)
 	m_pScanner = new CScanner;
 }
 
-void CDCAntiVirusDlg::DoDataExchange(CDataExchange* pDX)
+CDCAntiVirusDlg::~CDCAntiVirusDlg()
 {
-	CDialog::DoDataExchange(pDX);
+	delete m_pScanner;
+	delete m_pScanDlg;
 }
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CDialog)
@@ -44,6 +46,12 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	this->PostMessage(WM_LOAD_DB);
+
+	m_pScanDlg = new CDCAntivirusScanDlg(m_pScanner);
+	m_pScanDlg->Create(IDD_SCAN_DLG, this);
+	m_pScanDlg->ShowWindow(SW_HIDE);
+
+	this->PostMessage(WM_HOOK_SYSTEM);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -78,15 +86,6 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 	return (HCURSOR) m_hIcon;
 }
 
-LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
-{
-	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
-	CString sFile = ((CSendObj *)(copy->lpData))->m_sPath;
-	CString sVirusName;
-	m_pScanner->ScanFile(sFile, sVirusName);
-	return 0;
-}
-
 LRESULT CDCAntiVirusDlg::OnLoadDB(WPARAM wParam, LPARAM lParam)
 {
 	this->GetDlgItem(IDC_EDIT_DB_STATUS)->SetWindowText("Loading...");
@@ -101,8 +100,6 @@ LRESULT CDCAntiVirusDlg::OnLoadDB(WPARAM wParam, LPARAM lParam)
 		this->GetDlgItem(IDC_EDIT_DB_STATUS)->SetWindowText("Invalid database.");
 	}
 
-	this->PostMessage(WM_HOOK_SYSTEM);
-
 	return 0;
 }
 
@@ -111,5 +108,3 @@ LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 	hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 	return 0;
 }
-
-

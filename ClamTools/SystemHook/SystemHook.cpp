@@ -6,6 +6,11 @@
 #include <iostream>
 #include "../Utils/SendObj.h"
 
+
+#ifdef _DEBUG
+	#define new DEBUG_NEW
+#endif
+
 static HWND g_Hwnd;
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
