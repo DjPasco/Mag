@@ -26,23 +26,26 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		OpenSSL_add_all_digests();
 
 		std::string sCipherName[3];
-		sCipherName[0] = "sha1";
-		//sCipherName[1] = "sha256";
-		//sCipherName[2] = "ripemd160";
+		sCipherName[0] = "md5";
+		sCipherName[1] = "sha256";
+		sCipherName[2] = "ripemd160";
 
-		for(int ci = 0; ci < 1; ++ci)
+		for(int ci = 0; ci < 3; ++ci)
 		{
 			const EVP_MD *md = EVP_get_digestbyname(sCipherName[ci].c_str());
 			printf("%s\n", sCipherName[ci].c_str());
 
-			for(int fi = 0; fi < 4; ++fi)
+			for(int fi = 0; fi < 1; ++fi)
 			{
 				std::wstring sFileName[4];
 
-				sFileName[0] = _T("c:\\strobist8-1.mkv");
-				sFileName[1] = _T("c:\\Seinfeld-801-The Foundation.avi");
-				sFileName[2] = _T("c:\\WINDOWS\\system32\\shell32.dll");
-				sFileName[3] = _T("c:\\CSAntivirus.log");
+				
+				sFileName[0] = _T("c:\\Sondering\\Sondering\\Bin\\stlportd.5.1.dll");
+
+				//sFileName[0] = _T("c:\\strobist8-1.mkv");
+				//sFileName[1] = _T("c:\\Seinfeld-801-The Foundation.avi");
+				//sFileName[2] = _T("c:\\WINDOWS\\system32\\shell32.dll");
+				//sFileName[3] = _T("c:\\CSAntivirus.log");
 
 				EVP_MD_CTX mdctx;
 
