@@ -3,7 +3,7 @@
 
 #include "DCSanner\DCSanner.h"
 #include <stdio.h>
-#include <hash_map>
+#include <map>
 #include <string>
 
 #ifdef _DEBUG
@@ -17,9 +17,33 @@ class CFileInfo
 public:
 	unsigned int m_nMainDBVersion;
 	unsigned int m_nDailyDBVersion;
+	CString m_sFilePath;
 };
 
-class CScannedFileMap : public std::hash_map<LPCSTR, CFileInfo, std::hash<LPCSTR> >
+//typedef char CDCHash[16];
+
+struct eqHash
+{
+	bool operator()(const std::string &s1, const std::string &s2) const
+	{
+		if(16 != s1.size() || 16 != s2.size())
+		{
+			return false;
+		}
+
+		for(int i = 0; i < 16; ++i)
+		{
+			if(s1[i] != s2[i])
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+};
+
+class CScannedFileMap : public std::map<std::string, CFileInfo/*, eqHash*/>
 {
 public:
 	CScannedFileMap() { };
@@ -28,13 +52,17 @@ public:
 
 typedef CScannedFileMap::const_iterator CMapI;
 
-CString gsDataFile = _T("PassData.dat");
+#ifdef _DEBUG
+	CString gsDataFile = _T("PassDataD.dat");
+#else
+	CString gsDataFile = _T("PassData.dat");
+#endif
 
 namespace file_utils
 {
 	namespace internal
 	{
-		bool GetFileHash(LPCSTR sFile, CString &sHash, const EVP_MD *pMD5)
+		bool GetFileHash(LPCSTR sFile, std::string &hash, const EVP_MD *pMD5)
 		{
 			FILE *pFile = fopen(sFile, "rb");
 			if(NULL == pFile)
@@ -56,17 +84,22 @@ namespace file_utils
 
 			EVP_MD_CTX_init(&mdctx);
 			EVP_DigestInit_ex(&mdctx, pMD5, NULL);
-			EVP_DigestUpdate(&mdctx, data, strlen(data));
+			EVP_DigestUpdate(&mdctx, data, lSize);
 			EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
 			EVP_MD_CTX_cleanup(&mdctx);
 
 			free((void *)data);
 
+			if(md_len > 16)
+			{
+				return false;//Wrong data
+			}
+
+			hash.resize(16);
 			
-			sHash.Empty();
 			for(unsigned int i = 0; i < md_len; ++i)
 			{
-				sHash += md_value[i];
+				hash[i] = md_value[i];
 			}
 
 			return true;
@@ -76,16 +109,17 @@ namespace file_utils
 	bool FileExistsInInternalDB(LPCSTR sFile,
 								CScannedFileMap *pMapFiles,
 								const EVP_MD *pMD5,
-								CString &sHash,
+								std::string &hash,
 								unsigned int nMainDBVersion,
 								unsigned int nDailyDBVersion)
 	{
-		if(!internal::GetFileHash(sFile, sHash, pMD5))
+		hash.resize(0);
+		if(!internal::GetFileHash(sFile, hash, pMD5))
 		{
 			return false;
 		}
-		
-		CMapI it = pMapFiles->find(sHash);
+
+		CMapI it = pMapFiles->find(hash);
 		if(it != pMapFiles->end())
 		{
 			CFileInfo info = (*it).second;
@@ -98,12 +132,138 @@ namespace file_utils
 		return false;
 	}
 
-	void AddFileHash(CScannedFileMap *pMapFiles, CString &sHash, int nMainVersion, int nDailyVersion)
+	void AddFileHash(CScannedFileMap *pMapFiles, std::string &hash, int nMainVersion, int nDailyVersion, LPCSTR sFilePath)
 	{
 		CFileInfo info;
 		info.m_nMainDBVersion = nMainVersion;
 		info.m_nDailyDBVersion = nDailyVersion;
-		(*pMapFiles)[sHash] = info;
+		info.m_sFilePath = sFilePath;
+		(*pMapFiles)[hash] = info;
+	}
+
+	bool ReadHash(FILE *pFile, std::string &hash)
+	{
+		char sHashBuffer[16];
+		int nRead = fread(sHashBuffer, sizeof(char), 16, pFile); 
+		if(0 == nRead || 16 != nRead)
+		{
+			return false;
+		}
+		
+		hash.resize(16);
+		
+		for(int i = 0; i < 16; ++i)
+		{
+			hash[i] = sHashBuffer[i];
+		}
+
+		return true;
+	}
+
+	bool ReadPath(FILE *pFile, CString &sPath)
+	{
+		char s;
+		while(true)
+		{
+			if(0 == fread(&s, sizeof(char), 1, pFile))
+			{
+				return false;
+			}
+
+			if(s == 13 || s == 10)
+			{
+				break;
+			}
+
+			sPath += s;
+		}
+
+		return true;
+	}
+
+	void ReadPassData(CScannedFileMap *pMapFiles)
+	{
+		FILE *pFile = fopen(gsDataFile, "rb");
+		if(NULL == pFile)
+		{
+			return;
+		}
+
+		char symbol;
+		CString sBuffer;
+
+		while(!feof(pFile))
+		{
+			std::string hash;
+			if(!ReadHash(pFile, hash))
+			{
+				break;
+			}
+
+			CFileInfo info;
+			fscanf(pFile, "%u", &info.m_nMainDBVersion);
+			fscanf(pFile, "%u", &info.m_nDailyDBVersion);
+
+			fread(&symbol, sizeof(char), 1, pFile);
+
+			ReadPath(pFile, info.m_sFilePath);
+
+			(*pMapFiles)[hash] = info;
+		}
+
+		fclose(pFile);
+	}
+
+	void WritePassData(CScannedFileMap *pMapFiles)
+	{
+		FILE *pFile = fopen(gsDataFile, "wb");
+		if(NULL == pFile)
+		{
+			return;
+		}
+
+		std::string sHash;
+		CFileInfo info;
+		CMapI begin = pMapFiles->begin();
+		CMapI end = pMapFiles->end();
+		for(CMapI it = begin; it != end; ++it)
+		{
+			sHash	= it->first;
+			info	= it->second;
+
+			int nHashSize = sHash.size();
+			
+			if(16 != nHashSize)
+			{
+				continue;//Corrupted data.
+			}
+				
+			for(int i = 0; i < nHashSize; ++i)
+			{
+				unsigned char ps(sHash[i]);
+				fwrite(&ps, sizeof(unsigned char), 1, pFile);
+			}
+
+			fprintf(pFile, " %u %u %s\n", info.m_nMainDBVersion, info.m_nDailyDBVersion, info.m_sFilePath);
+		}
+
+		fclose(pFile);
+	}
+
+	bool FileIsSupported(LPCSTR sFile)
+	{
+		FILE *pFile = fopen(sFile, "rb");
+		if(NULL == pFile)
+		{
+			return false;
+		}
+
+		if(NULL == strstr(sFile, "\\\\.\\"))//Named Pipe
+		{
+			return true;
+		}
+
+		return false;
 	}
 }
 
@@ -114,12 +274,16 @@ CScanner::CScanner()
 	m_pMD5 = EVP_md5();
 
 	m_pFilesMap = new CScannedFileMap;
-	m_pFilesMap->clear();
+
+	file_utils::ReadPassData(m_pFilesMap);
 }
 
 CScanner::~CScanner()
 {
 	Free();
+	
+	file_utils::WritePassData(m_pFilesMap);
+
 	m_pFilesMap->clear();
 	delete m_pFilesMap;
 }
@@ -173,11 +337,16 @@ void CScanner::Free()
 
 bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 {
-	CString sHash;
+	if(!file_utils::FileIsSupported(sFile))
+	{
+		return true;
+	}
+
+	std::string hash;
 	if(file_utils::FileExistsInInternalDB(sFile,
 										  m_pFilesMap,
 										  m_pMD5,
-										  sHash,
+										  hash,
 										  m_pMainScan->GetDBVersion(),
 										  m_pDailyScan->GetDBVersion()))
 	{
@@ -200,7 +369,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 		return true;
 	}
 
-	file_utils::AddFileHash(m_pFilesMap, sHash, m_pMainScan->GetDBVersion(), m_pDailyScan->GetDBVersion());
+	file_utils::AddFileHash(m_pFilesMap, hash, m_pMainScan->GetDBVersion(), m_pDailyScan->GetDBVersion(), sFile);
 
 	sVirus.Empty();
 	return false;

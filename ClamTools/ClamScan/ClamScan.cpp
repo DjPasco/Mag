@@ -26,23 +26,23 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		OpenSSL_add_all_digests();
 
 		std::string sCipherName[3];
-		sCipherName[0] = "md5";
-		sCipherName[1] = "sha256";
-		sCipherName[2] = "ripemd160";
+		//sCipherName[0] = "md5";
+		//sCipherName[0] = "sha256";
+		sCipherName[0] = "ripemd160";
 
 		std::string sFileName[4];
 		
-		sFileName[0] = "c:\\strobist8-1.mkv";
+		//sFileName[0] = "c:\\strobist8-1.mkv";
 		sFileName[1] = "c:\\Seinfeld-801-The Foundation.avi";
 		sFileName[2] = "c:\\WINDOWS\\system32\\shell32.dll";
 		sFileName[3] = "c:\\Sondering\\Sondering\\Bin\\stlportd.5.1.dll";
 
-		for(int ci = 0; ci < 3; ++ci)
+		for(int ci = 0; ci < 1; ++ci)
 		{
 			const EVP_MD *md = EVP_get_digestbyname(sCipherName[ci].c_str());
 			printf("%s\n", sCipherName[ci].c_str());
 
-			for(int fi = 0; fi < 4; ++fi)
+			for(int fi = 1; fi < 4; ++fi)
 			{
 				EVP_MD_CTX mdctx;
 
@@ -59,14 +59,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				fread(data, sizeof(char), lSize, pFile);
 				fclose(pFile);
 	
-				int nCount = 2000000;
+				int nCount = 10;
 				time_t start, stop;
 				time(&start);
 				for(int i = 0; i < nCount; ++i)
 				{
 					EVP_MD_CTX_init(&mdctx);
 					EVP_DigestInit_ex(&mdctx, md, NULL);
-					EVP_DigestUpdate(&mdctx, data, strlen(data));
+					EVP_DigestUpdate(&mdctx, data, lSize);
 					EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
 					EVP_MD_CTX_cleanup(&mdctx);
 				}
@@ -74,7 +74,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				free((void *)data);
 
-				double dDiff = (difftime(stop, start) / nCount) * 1000000.0;
+				double dDiff = difftime(stop, start) / nCount;
 				double dSize = (double)lSize / (1024*1024);
 
 				printf("Laikas: %.10f | Failo dydis: %.3f\n", dDiff, dSize);
