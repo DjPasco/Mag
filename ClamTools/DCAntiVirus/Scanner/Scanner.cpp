@@ -3,7 +3,7 @@
 
 #include "DCSanner\DCSanner.h"
 #include <stdio.h>
-#include <map>
+#include <hash_map>
 #include <string>
 
 #ifdef _DEBUG
@@ -11,6 +11,9 @@
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
+
+#define DC_HASH_SIZE 16
+#define DC_HASH_BUFFER 1048576
 
 class CFileInfo
 {
@@ -20,30 +23,7 @@ public:
 	CString m_sFilePath;
 };
 
-//typedef char CDCHash[16];
-
-struct eqHash
-{
-	bool operator()(const std::string &s1, const std::string &s2) const
-	{
-		if(16 != s1.size() || 16 != s2.size())
-		{
-			return false;
-		}
-
-		for(int i = 0; i < 16; ++i)
-		{
-			if(s1[i] != s2[i])
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-};
-
-class CScannedFileMap : public std::map<std::string, CFileInfo/*, eqHash*/>
+class CScannedFileMap : public std::hash_map<std::string, CFileInfo, std::hash<std::string> >
 {
 public:
 	CScannedFileMap() { };
@@ -74,28 +54,30 @@ namespace file_utils
 			unsigned char md_value[EVP_MAX_MD_SIZE];
 			unsigned int md_len;
 
-			fseek(pFile, 0L, SEEK_END);
-			long lSize = ftell(pFile);
-			fseek(pFile, 0L, SEEK_SET);
-			
-			char *data = (char *)malloc(lSize);
-			fread(data, sizeof(char), lSize, pFile);
-			fclose(pFile);
+			char *data = (char *)malloc(DC_HASH_BUFFER);
+			unsigned int uRead(0);
 
 			EVP_MD_CTX_init(&mdctx);
 			EVP_DigestInit_ex(&mdctx, pMD5, NULL);
-			EVP_DigestUpdate(&mdctx, data, lSize);
+
+			while(!feof(pFile))
+			{
+				uRead = fread(data, sizeof(char), DC_HASH_BUFFER, pFile);
+				EVP_DigestUpdate(&mdctx, data, uRead);
+			}
+			
 			EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
 			EVP_MD_CTX_cleanup(&mdctx);
 
+			fclose(pFile);
 			free((void *)data);
 
-			if(md_len > 16)
+			if(md_len > DC_HASH_SIZE)
 			{
 				return false;//Wrong data
 			}
 
-			hash.resize(16);
+			hash.resize(DC_HASH_SIZE);
 			
 			for(unsigned int i = 0; i < md_len; ++i)
 			{
@@ -143,16 +125,16 @@ namespace file_utils
 
 	bool ReadHash(FILE *pFile, std::string &hash)
 	{
-		char sHashBuffer[16];
-		int nRead = fread(sHashBuffer, sizeof(char), 16, pFile); 
-		if(0 == nRead || 16 != nRead)
+		char sHashBuffer[DC_HASH_SIZE];
+		int nRead = fread(sHashBuffer, sizeof(char), DC_HASH_SIZE, pFile); 
+		if(0 == nRead || DC_HASH_SIZE != nRead)
 		{
 			return false;
 		}
 		
-		hash.resize(16);
+		hash.resize(DC_HASH_SIZE);
 		
-		for(int i = 0; i < 16; ++i)
+		for(int i = 0; i < DC_HASH_SIZE; ++i)
 		{
 			hash[i] = sHashBuffer[i];
 		}
@@ -233,7 +215,7 @@ namespace file_utils
 
 			int nHashSize = sHash.size();
 			
-			if(16 != nHashSize)
+			if(DC_HASH_SIZE != nHashSize)
 			{
 				continue;//Corrupted data.
 			}

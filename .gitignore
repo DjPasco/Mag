@@ -27,6 +27,7 @@
 *.clw
 *.XML
 *.suo
+*.plg
 
 #detours files
 Detours/Detours/
