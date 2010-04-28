@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma warning( disable : 4103 ) //stlport warnings
+
 #include "targetver.h"
 
 #include <stdio.h>
