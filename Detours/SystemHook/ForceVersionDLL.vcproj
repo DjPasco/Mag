@@ -21,7 +21,7 @@
 			OutputDirectory="..\..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="detours.lib detoured.lib"
+				AdditionalDependencies="detours.lib detoured.lib wsock32.lib"
 				OutputFile="$(OutDir)\SystemHookD.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\MAG_REPO\Detours\Detours\lib"
@@ -95,7 +95,8 @@
 			OutputDirectory="..\..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			UseOfMFC="0"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -139,6 +140,9 @@
 				OutputFile="$(OutDir)\SystemHook.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\MAG_REPO\Detours\Detours\lib"
+				GenerateManifest="true"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -238,6 +242,18 @@
 		<Filter
 			Name="Utils"
 			>
+			<File
+				RelativePath=".\client.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\client.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ipcsetup.h"
+				>
+			</File>
 			<File
 				RelativePath="..\Utils\SendObj.h"
 				>

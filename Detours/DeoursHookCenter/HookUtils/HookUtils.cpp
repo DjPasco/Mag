@@ -77,6 +77,7 @@ namespace hook_utils
 		}
 		else
 		{
+			printf("Wait For Single Object.\n");
 			::WaitForSingleObject(pi.hProcess, INFINITE);
 			CloseHandle(pi.hProcess);
 			CloseHandle(pi.hThread);

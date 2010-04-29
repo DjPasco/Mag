@@ -13,7 +13,9 @@
 
 SYSTEM_HOOK_API void DoNothing();
 
+//class MyClient;
 namespace utils
 {
-	void SetHwnd(HWND Hwnd);
+	//void SetHwnd(HWND Hwnd);
+	//void SetClient(MyClient *pClient);
 }
