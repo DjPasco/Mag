@@ -1,17 +1,8 @@
 #include "stdafx.h"
-#include "../../../detours/include/detours.h"
-#include <tchar.h>
-#include <stdio.h>
 #include "SystemHook.h"
-#include <iostream>
-#include "../Utils/SendObj.h"
+#include "DCComunication/DCComunication.h"
+#include <tchar.h>
 
-
-#ifdef _DEBUG
-	#define new DEBUG_NEW
-#endif
-
-static HWND g_Hwnd;
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
 										  DWORD dwShareMode,
@@ -28,21 +19,15 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 							   DWORD dwFlagsAndAttributes,
 							   HANDLE hTemplateFile)
 {
-	CSendObj obj;
-	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, obj.m_sPath, MAX_PATH,NULL,NULL); 
+	char sPath[MAX_PATH];
+	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, sPath, MAX_PATH,NULL,NULL);
 
-	COPYDATASTRUCT copy;
+	if(NULL == strstr(sPath, "\\\\.\\"))//Named Pipe
+	{
+		bool bFileOK = CDCClient::Execute(lpFileName);
+	}
 
-	copy.dwData = 1;          // function identifier
-	copy.cbData = sizeof( obj );  // size of data
-	copy.lpData = &obj;           // data structure
-
-	LRESULT result = SendMessage(g_Hwnd,
-								 WM_COPYDATA,
-								 0,
-								 (LPARAM) (LPVOID) &copy);
-
-    return pTrueCreateFileW(lpFileName,
+	return pTrueCreateFileW(lpFileName,
 					   dwDesiredAccess,
 					   dwShareMode,
 					   lpSecurityAttributes,
@@ -76,15 +61,4 @@ HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName,
 					   hTemplateFile);
 };
 
-SYSTEM_HOOK_API void DoNothing()
-{
-	//
-}
-
-namespace utils
-{
-	void SetHwnd(HWND Hwnd)
-	{
-		g_Hwnd = Hwnd;
-	}
-}
+SYSTEM_HOOK_API void DoMagic(){ }
