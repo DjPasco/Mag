@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SystemHook.h"
 #include "DCComunication/DCComunication.h"
+#include <tchar.h>
 
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
@@ -18,9 +19,15 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 							   DWORD dwFlagsAndAttributes,
 							   HANDLE hTemplateFile)
 {
-	bool bFileOK = CDCClient::Execute(lpFileName);
+	char sPath[MAX_PATH];
+	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, sPath, MAX_PATH,NULL,NULL);
 
-    return pTrueCreateFileW(lpFileName,
+	if(NULL == strstr(sPath, "\\\\.\\"))//Named Pipe
+	{
+		bool bFileOK = CDCClient::Execute(lpFileName);
+	}
+
+	return pTrueCreateFileW(lpFileName,
 					   dwDesiredAccess,
 					   dwShareMode,
 					   lpSecurityAttributes,

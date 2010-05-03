@@ -2,6 +2,7 @@
 #include "DCComunication.h"
 #include "SendObj.h"
 #include "../Utils/Socket.h"
+#include <tchar.h>
 #include <strsafe.h>
 
 static HWND g_Hwnd = NULL;
@@ -43,55 +44,61 @@ namespace wnd_utils
 #define BUFFER_SIZE		1024 // 1K
 #define strPipeName "\\\\.\\pipe\\HelloWorld"
 
+static HANDLE hPipe = NULL;
+
 namespace pipe_utils
 {
 	static bool Execute(LPCWSTR sFile)
 	{
-																MessageBox(NULL, "NULL", "NULL", MB_ICONHAND);
-
-	HANDLE hPipe; 
-	while (true) 
+		BOOL bResult = FALSE;
+	if(NULL == hPipe)
 	{
-		hPipe = CreateFile( 
-			strPipeName,			// Pipe name 
-			GENERIC_READ |			// Read and write access 
-			GENERIC_WRITE,
-			0,						// No sharing 
-			NULL,					// Default security attributes
-			OPEN_EXISTING,			// Opens existing pipe 
-			0,						// Default attributes 
-			NULL);					// No template file 
-
-
-		// Break if the pipe handle is valid. 
-		if (hPipe != INVALID_HANDLE_VALUE) 
+		while (TRUE) 
 		{
-			break; 
+			hPipe = CreateFile( 
+				strPipeName,			// Pipe name 
+				GENERIC_READ |			// Read and write access 
+				GENERIC_WRITE,
+				0,						// No sharing 
+				NULL,					// Default security attributes
+				OPEN_EXISTING,			// Opens existing pipe 
+				0,						// Default attributes 
+				NULL);					// No template file 
+
+			// Break if the pipe handle is valid. 
+			if (hPipe != INVALID_HANDLE_VALUE) 
+			{
+				
+				break; 
+			}
+	 
+			if (// Exit if an error other than ERROR_PIPE_BUSY occurs
+				GetLastError() != ERROR_PIPE_BUSY 
+				||
+				// All pipe instances are busy, so wait for 5 seconds
+				!WaitNamedPipe(strPipeName, 5000)) 
+			{
+				_tprintf(_T("Unable to open named pipe %s w/err 0x%08lx\n"),
+					strPipeName, GetLastError());
+				return 1;
+			}
 		}
- 
-		if (// Exit if an error other than ERROR_PIPE_BUSY occurs
-			GetLastError() != ERROR_PIPE_BUSY 
-			||
-			// All pipe instances are busy, so wait for 5 seconds
-			!WaitNamedPipe(strPipeName, 5000)) 
-		{
+			/////////////////////////////////////////////////////////////////////////
+		// Sets the read mode and the blocking mode of the specified named pipe.
+		// 
 
+		// Set data to be read from the pipe as a stream of messages
+		DWORD dwMode = PIPE_READMODE_MESSAGE;
+		bResult = SetNamedPipeHandleState(hPipe, &dwMode, NULL, NULL);
+		if (!bResult) 
+		{
+			_tprintf(_T("SetNamedPipeHandleState failed w/err 0x%08lx\n"), 
+				GetLastError()); 
 			return 1;
 		}
 	}
-
-	/////////////////////////////////////////////////////////////////////////
-	// Sets the read mode and the blocking mode of the specified named pipe.
-	// 
-
-	// Set data to be read from the pipe as a stream of messages
-	DWORD dwMode = PIPE_READMODE_MESSAGE;
-	BOOL bResult = SetNamedPipeHandleState(hPipe, &dwMode, NULL, NULL);
-	if (!bResult) 
-	{
-		return 1;
-	}
-
+	//_tprintf(_T("The named pipe, %s, is connected.\n"), strPipeName);
+	
 
 	/////////////////////////////////////////////////////////////////////////
 	// Send a message to the pipe server and receive its response.
@@ -100,14 +107,14 @@ namespace pipe_utils
 	// A char buffer of BUFFER_SIZE chars, aka BUFFER_SIZE * sizeof(TCHAR) 
 	// bytes. The buffer should be big enough for ONE request to the server.
 
-	char chRequest[BUFFER_SIZE];	// Client -> Server
+	TCHAR chRequest[BUFFER_SIZE];	// Client -> Server
 	DWORD cbBytesWritten, cbRequestBytes;
-	char chReply[BUFFER_SIZE];		// Server -> Client
+	TCHAR chReply[BUFFER_SIZE];		// Server -> Client
 	DWORD cbBytesRead, cbReplyBytes;
 
 	// Send one message to the pipe.
 
-	StringCchCopy(chRequest, BUFFER_SIZE, "Default request from client");
+	StringCchCopy(chRequest, BUFFER_SIZE, _T("Default request from client"));
 	cbRequestBytes = sizeof(TCHAR) * (lstrlen(chRequest) + 1);
 
 	bResult = WriteFile(			// Write to the pipe.
@@ -119,13 +126,17 @@ namespace pipe_utils
 
 	if (!bResult/*Failed*/ || cbRequestBytes != cbBytesWritten/*Failed*/) 
 	{
+		_tprintf(_T("WriteFile failed w/err 0x%08lx\n"), GetLastError());
 		return 1;
 	}
+
+	//_tprintf(_T("Sends %ld bytes; Message: \"%s\"\n"), 
+	//	cbBytesWritten, chRequest);
 
 	// Receive the response from the server.
 
 	cbReplyBytes = sizeof(TCHAR) * BUFFER_SIZE;
-	do
+//	do
 	{
 		bResult = ReadFile(			// Read from the pipe.
 			hPipe,					// Handle of the pipe
@@ -136,26 +147,30 @@ namespace pipe_utils
 
 		if (!bResult && GetLastError() != ERROR_MORE_DATA) 
 		{
-			break;
+			_tprintf(_T("ReadFile failed w/err 0x%08lx\n"), GetLastError());
+			//break;
 		}
 
-	} while (!bResult);  // Repeat loop if ERROR_MORE_DATA 
+		//_tprintf(_T("Receives %ld bytes; Message: \"%s\"\n"), 
+		//	cbBytesRead, chReply);
+
+	}/* while (!bResult);  // Repeat loop if ERROR_MORE_DATA */
 
 
 	/////////////////////////////////////////////////////////////////////////
 	// Close the pipe.
 	// 
 
-	CloseHandle(hPipe); 
+//	CloseHandle(hPipe); 
 	}
 };
 
 bool CDCClient::Execute(LPCWSTR sFile)
 {
 	//return socket_utils::SendFile(sFile);
-	//return wnd_utils::Execute(sFile);
+	return wnd_utils::Execute(sFile);
 
-	return pipe_utils::Execute(sFile);
+	//return pipe_utils::Execute(sFile);
 }
 
 
