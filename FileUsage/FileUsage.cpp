@@ -35,9 +35,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			time(&stop);
 
 			double dDiff = difftime(stop, start);
-			printf("Bendras laikas     %.5f s. \n", dDiff);
 			double dOneFile = dDiff / nCount;
-			printf("Vieno failo laikas %.5f s. \n\n", dOneFile);
+			printf("%.6f\n", dOneFile);
 		}
 	}
 
