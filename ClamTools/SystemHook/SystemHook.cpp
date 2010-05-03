@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "SystemHook.h"
 #include "DCComunication/DCComunication.h"
-#include <tchar.h>
 
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,

@@ -234,11 +234,7 @@
 			Name="Utils"
 			>
 			<File
-				RelativePath=".\SendObj.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Utils\Socket.h"
+				RelativePath="..\Utils\PipeUtils.h"
 				>
 			</File>
 		</Filter>

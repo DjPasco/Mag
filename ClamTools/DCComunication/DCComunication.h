@@ -8,4 +8,5 @@ class DCCOMUNICATION_API CDCClient
 {
 public:
 	static bool Execute(LPCWSTR sFile);
+	static void Close();
 };

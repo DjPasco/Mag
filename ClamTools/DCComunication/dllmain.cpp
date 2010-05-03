@@ -1,6 +1,5 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
-#include "../Utils/Socket.h"
+#include "DCComunication.h"
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -10,13 +9,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		{
-			WSADATA wsaData;
-			if(WSAStartup(MAKEWORD(2,2), &wsaData) != NO_ERROR)
-			{
-				return FALSE;
-			}
-		}
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
@@ -24,8 +16,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		break;
 	case DLL_PROCESS_DETACH:
 		{
-			socket_utils::ShutDown();
-			WSACleanup();
+			CDCClient::Close();
 		}
 		break;
 	}
