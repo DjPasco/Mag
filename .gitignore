@@ -38,6 +38,8 @@ Detours/Detours/
 [Oo]bj*/
 [Rr]elease*/
 
+[Cc]lamwin*/
+
 #But allow
 !*.sh
 !libclamavd.dll
