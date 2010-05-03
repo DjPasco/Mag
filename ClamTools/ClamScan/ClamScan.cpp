@@ -134,200 +134,200 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		//pThread->SetThreadPriority(THREAD_PRIORITY_TIME_CRITICAL);
 		//WaitForSingleObject(pThread->m_hThread, INFINITE);
 
-		//WORD sockVersion;
-		//WSADATA wsaData;
-		//int rVal;
+		WORD sockVersion;
+		WSADATA wsaData;
+		int rVal;
 
-		//sockVersion = MAKEWORD(2,2);
-		//WSAStartup(sockVersion, &wsaData);
+		sockVersion = MAKEWORD(2,2);
+		WSAStartup(sockVersion, &wsaData);
 
-		//SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-		//if(s == INVALID_SOCKET)
-		//{
-		//	closesocket(s);
-		//	WSACleanup();
-		//	return 0;
-		//}
-
-		//SOCKADDR_IN sin;
-		//sin.sin_family = AF_INET;
-		//sin.sin_port = htons(8888);
-		//sin.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-		//rVal = bind(s, (LPSOCKADDR)&sin, sizeof(sin));
-		//if(rVal == SOCKET_ERROR)
-		//{
-		//	closesocket(s);
-		//	WSACleanup();
-		//	return 0;
-		//}
-
-		//rVal = listen(s, 2);
-		//if(rVal == SOCKET_ERROR)
-		//{
-		//	closesocket(s);
-		//	WSACleanup();
-		//	return 0;
-		//}
-
-		//bool b_Done(false);
-
-		//SOCKET client;
-		//client = accept(s, NULL, NULL);
-
-		//if(client == INVALID_SOCKET)
-		//{
-		//	closesocket(s);
-		//	WSACleanup();
-		//	return 0;
-		//}
-
-		//while (!b_Done)
-		//{
-		//	CString sMessage;
-		//	sMessage = Readline(&client);
-		//	char szScanBuffer[3];
-		//	sprintf(szScanBuffer, "%d\n", 1);
-		//	int nSize = strlen(szScanBuffer);
-		//	int nGetSize = send(client, szScanBuffer, nSize, 0);
-		//}
-
-		//closesocket(s);
-
-		//WSACleanup();		
-
-	SECURITY_ATTRIBUTES sa;
-	sa.lpSecurityDescriptor = (PSECURITY_DESCRIPTOR)malloc(
-		SECURITY_DESCRIPTOR_MIN_LENGTH);
-	InitializeSecurityDescriptor(sa.lpSecurityDescriptor, 
-		SECURITY_DESCRIPTOR_REVISION);
-	// ACL is set as NULL in order to allow all access to the object.
-	SetSecurityDescriptorDacl(sa.lpSecurityDescriptor, TRUE, NULL, FALSE);
-	sa.nLength = sizeof(sa);
-	sa.bInheritHandle = TRUE;
-
-	// Create the named pipe.
-	HANDLE hPipe = CreateNamedPipe(
-		strPipeName,				// The unique pipe name. This string must 
-									// have the form of \\.\pipe\pipename
-		PIPE_ACCESS_DUPLEX,			// The pipe is bi-directional; both  
-									// server and client processes can read 
-									// from and write to the pipe
-		PIPE_TYPE_MESSAGE |			// Message type pipe 
-		PIPE_READMODE_MESSAGE |		// Message-read mode 
-		PIPE_WAIT,					// Blocking mode is enabled
-		PIPE_UNLIMITED_INSTANCES,	// Max. instances
-
-		// These two buffer sizes have nothing to do with the buffers that 
-		// are used to read from or write to the messages. The input and 
-		// output buffer sizes are advisory. The actual buffer size reserved 
-		// for each end of the named pipe is either the system default, the 
-		// system minimum or maximum, or the specified size rounded up to the 
-		// next allocation boundary. The buffer size specified should be 
-		// small enough that your process will not run out of nonpaged pool, 
-		// but large enough to accommodate typical requests.
-		BUFFER_SIZE,				// Output buffer size in bytes
-		BUFFER_SIZE,				// Input buffer size in bytes
-
-		NMPWAIT_USE_DEFAULT_WAIT,	// Time-out interval
-		&sa							// Security attributes
-		);
-
-	if (hPipe == INVALID_HANDLE_VALUE)
-	{
-		_tprintf(_T("Unable to create named pipe %s w/err 0x%08lx\n"), 
-			strPipeName, GetLastError());
-		return 1;
-	}
-	_tprintf(_T("The named pipe, %s, is created.\n"), strPipeName);
-
-
-	/////////////////////////////////////////////////////////////////////////
-	// Wait for the client to connect.
-	// 
-	_putts(_T("Waiting for the client's connection..."));
-
-	BOOL bConnected = ConnectNamedPipe(hPipe, NULL) ? 
-		TRUE : (GetLastError() == ERROR_PIPE_CONNECTED); 
-
-	if (!bConnected)
-	{
-		_tprintf(_T(
-			"Error occurred while connecting to the client: 0x%08lx\n"
-			), GetLastError()); 
-		CloseHandle(hPipe);
-		return 1;
-	}
-
-
-	/////////////////////////////////////////////////////////////////////////
-	// Read client requests from the pipe and write the response.
-	// 
-	
-	// A char buffer of BUFFER_SIZE chars, aka BUFFER_SIZE * sizeof(TCHAR) 
-	// bytes. The buffer should be big enough for ONE request from a client.
-
-	TCHAR chRequest[BUFFER_SIZE];	// Client -> Server
-	DWORD cbBytesRead, cbRequestBytes;
-	TCHAR chReply[BUFFER_SIZE];		// Server -> Client
-	DWORD cbBytesWritten, cbReplyBytes;
-
-	BOOL bResult;
-
-	while (TRUE)
-	{
-		// Receive one message from the pipe.
-
-		cbRequestBytes = sizeof(TCHAR) * BUFFER_SIZE;
-		bResult = ReadFile(			// Read from the pipe.
-			hPipe,					// Handle of the pipe
-			chRequest,				// Buffer to receive data
-			cbRequestBytes,			// Size of buffer in bytes
-			&cbBytesRead,			// Number of bytes read
-			NULL);					// Not overlapped I/O
-
-		if (!bResult/*Failed*/ || cbBytesRead == 0/*Finished*/) 
-			break;
-		
-		_tprintf(_T("Receives %ld bytes; Message: \"%s\"\n"), 
-			cbBytesRead, chRequest);
-
-		// Prepare the response.
-
-		StringCchCopy(
-			chReply, BUFFER_SIZE, _T("Default response from server"));
-		cbReplyBytes = sizeof(TCHAR) * (lstrlen(chReply) + 1);
-
-		// Write the response to the pipe.
-
-		bResult = WriteFile(		// Write to the pipe.
-			hPipe,					// Handle of the pipe
-			chReply,				// Buffer to write to 
-			cbReplyBytes,			// Number of bytes to write 
-			&cbBytesWritten,		// Number of bytes written 
-			NULL);					// Not overlapped I/O 
-
-		if (!bResult/*Failed*/ || cbReplyBytes != cbBytesWritten/*Failed*/) 
+		if(s == INVALID_SOCKET)
 		{
-			_tprintf(_T("WriteFile failed w/err 0x%08lx\n"), GetLastError());
-			break;
+			closesocket(s);
+			WSACleanup();
+			return 0;
 		}
 
-		_tprintf(_T("Replies %ld bytes; Message: \"%s\"\n"), 
-			cbBytesWritten, chReply);
-	}
+		SOCKADDR_IN sin;
+		sin.sin_family = AF_INET;
+		sin.sin_port = htons(8888);
+		sin.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+		rVal = bind(s, (LPSOCKADDR)&sin, sizeof(sin));
+		if(rVal == SOCKET_ERROR)
+		{
+			closesocket(s);
+			WSACleanup();
+			return 0;
+		}
+
+		rVal = listen(s, 2);
+		if(rVal == SOCKET_ERROR)
+		{
+			closesocket(s);
+			WSACleanup();
+			return 0;
+		}
+
+		bool b_Done(false);
+
+		SOCKET client;
+		client = accept(s, NULL, NULL);
+
+		if(client == INVALID_SOCKET)
+		{
+			closesocket(s);
+			WSACleanup();
+			return 0;
+		}
+
+		while (!b_Done)
+		{
+			CString sMessage;
+			sMessage = Readline(&client);
+			char szScanBuffer[3];
+			sprintf(szScanBuffer, "%d\n", 1);
+			int nSize = strlen(szScanBuffer);
+			int nGetSize = send(client, szScanBuffer, nSize, 0);
+		}
+
+		closesocket(s);
+
+		WSACleanup();		
+
+	//SECURITY_ATTRIBUTES sa;
+	//sa.lpSecurityDescriptor = (PSECURITY_DESCRIPTOR)malloc(
+	//	SECURITY_DESCRIPTOR_MIN_LENGTH);
+	//InitializeSecurityDescriptor(sa.lpSecurityDescriptor, 
+	//	SECURITY_DESCRIPTOR_REVISION);
+	//// ACL is set as NULL in order to allow all access to the object.
+	//SetSecurityDescriptorDacl(sa.lpSecurityDescriptor, TRUE, NULL, FALSE);
+	//sa.nLength = sizeof(sa);
+	//sa.bInheritHandle = TRUE;
+
+	//// Create the named pipe.
+	//HANDLE hPipe = CreateNamedPipe(
+	//	strPipeName,				// The unique pipe name. This string must 
+	//								// have the form of \\.\pipe\pipename
+	//	PIPE_ACCESS_DUPLEX,			// The pipe is bi-directional; both  
+	//								// server and client processes can read 
+	//								// from and write to the pipe
+	//	PIPE_TYPE_MESSAGE |			// Message type pipe 
+	//	PIPE_READMODE_MESSAGE |		// Message-read mode 
+	//	PIPE_WAIT,					// Blocking mode is enabled
+	//	PIPE_UNLIMITED_INSTANCES,	// Max. instances
+
+	//	// These two buffer sizes have nothing to do with the buffers that 
+	//	// are used to read from or write to the messages. The input and 
+	//	// output buffer sizes are advisory. The actual buffer size reserved 
+	//	// for each end of the named pipe is either the system default, the 
+	//	// system minimum or maximum, or the specified size rounded up to the 
+	//	// next allocation boundary. The buffer size specified should be 
+	//	// small enough that your process will not run out of nonpaged pool, 
+	//	// but large enough to accommodate typical requests.
+	//	BUFFER_SIZE,				// Output buffer size in bytes
+	//	BUFFER_SIZE,				// Input buffer size in bytes
+
+	//	NMPWAIT_USE_DEFAULT_WAIT,	// Time-out interval
+	//	&sa							// Security attributes
+	//	);
+
+	//if (hPipe == INVALID_HANDLE_VALUE)
+	//{
+	//	_tprintf(_T("Unable to create named pipe %s w/err 0x%08lx\n"), 
+	//		strPipeName, GetLastError());
+	//	return 1;
+	//}
+	//_tprintf(_T("The named pipe, %s, is created.\n"), strPipeName);
 
 
-	/////////////////////////////////////////////////////////////////////////
-	// Flush the pipe to allow the client to read the pipe's contents before
-	// disconnecting. Then disconnect the pipe, and close the handle to this 
-	// pipe instance. 
-	// 
+	///////////////////////////////////////////////////////////////////////////
+	//// Wait for the client to connect.
+	//// 
+	//_putts(_T("Waiting for the client's connection..."));
 
-	FlushFileBuffers(hPipe); 
-	DisconnectNamedPipe(hPipe); 
-	CloseHandle(hPipe);
+	//BOOL bConnected = ConnectNamedPipe(hPipe, NULL) ? 
+	//	TRUE : (GetLastError() == ERROR_PIPE_CONNECTED); 
+
+	//if (!bConnected)
+	//{
+	//	_tprintf(_T(
+	//		"Error occurred while connecting to the client: 0x%08lx\n"
+	//		), GetLastError()); 
+	//	CloseHandle(hPipe);
+	//	return 1;
+	//}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	//// Read client requests from the pipe and write the response.
+	//// 
+	//
+	//// A char buffer of BUFFER_SIZE chars, aka BUFFER_SIZE * sizeof(TCHAR) 
+	//// bytes. The buffer should be big enough for ONE request from a client.
+
+	//TCHAR chRequest[BUFFER_SIZE];	// Client -> Server
+	//DWORD cbBytesRead, cbRequestBytes;
+	//TCHAR chReply[BUFFER_SIZE];		// Server -> Client
+	//DWORD cbBytesWritten, cbReplyBytes;
+
+	//BOOL bResult;
+
+	//while (TRUE)
+	//{
+	//	// Receive one message from the pipe.
+
+	//	cbRequestBytes = sizeof(TCHAR) * BUFFER_SIZE;
+	//	bResult = ReadFile(			// Read from the pipe.
+	//		hPipe,					// Handle of the pipe
+	//		chRequest,				// Buffer to receive data
+	//		cbRequestBytes,			// Size of buffer in bytes
+	//		&cbBytesRead,			// Number of bytes read
+	//		NULL);					// Not overlapped I/O
+
+	//	if (!bResult/*Failed*/ || cbBytesRead == 0/*Finished*/) 
+	//		break;
+	//	
+	//	//_tprintf(_T("Receives %ld bytes; Message: \"%s\"\n"), 
+	//	//	cbBytesRead, chRequest);
+
+	//	// Prepare the response.
+
+	//	StringCchCopy(
+	//		chReply, BUFFER_SIZE, _T("Default response from server"));
+	//	cbReplyBytes = sizeof(TCHAR) * (lstrlen(chReply) + 1);
+
+	//	// Write the response to the pipe.
+
+	//	bResult = WriteFile(		// Write to the pipe.
+	//		hPipe,					// Handle of the pipe
+	//		chReply,				// Buffer to write to 
+	//		cbReplyBytes,			// Number of bytes to write 
+	//		&cbBytesWritten,		// Number of bytes written 
+	//		NULL);					// Not overlapped I/O 
+
+	//	if (!bResult/*Failed*/ || cbReplyBytes != cbBytesWritten/*Failed*/) 
+	//	{
+	//		_tprintf(_T("WriteFile failed w/err 0x%08lx\n"), GetLastError());
+	//		break;
+	//	}
+
+	//	//_tprintf(_T("Replies %ld bytes; Message: \"%s\"\n"), 
+	//	//	cbBytesWritten, chReply);
+	//}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	//// Flush the pipe to allow the client to read the pipe's contents before
+	//// disconnecting. Then disconnect the pipe, and close the handle to this 
+	//// pipe instance. 
+	//// 
+
+	//FlushFileBuffers(hPipe); 
+	//DisconnectNamedPipe(hPipe); 
+	//CloseHandle(hPipe);
 
 	}
 
