@@ -20,6 +20,7 @@ class CFileInfo
 public:
 	unsigned int m_nMainDBVersion;
 	unsigned int m_nDailyDBVersion;
+	unsigned int m_nCount;
 	CString m_sFilePath;
 };
 
@@ -31,6 +32,7 @@ public:
 };
 
 typedef CScannedFileMap::const_iterator CMapI;
+typedef CScannedFileMap::iterator CMapEditI;
 
 #ifdef _DEBUG
 	CString gsDataFile = _T("PassDataD.dat");
@@ -101,10 +103,11 @@ namespace file_utils
 			return false;
 		}
 
-		CMapI it = pMapFiles->find(hash);
+		CMapEditI it = pMapFiles->find(hash);
 		if(it != pMapFiles->end())
 		{
-			CFileInfo info = (*it).second;
+			CFileInfo &info = (*it).second;
+			info.m_nCount++;
 			if(nMainDBVersion == info.m_nMainDBVersion && nDailyDBVersion == info.m_nDailyDBVersion)
 			{
 				return true;
@@ -114,12 +117,8 @@ namespace file_utils
 		return false;
 	}
 
-	void AddFileHash(CScannedFileMap *pMapFiles, std::string &hash, int nMainVersion, int nDailyVersion, LPCSTR sFilePath)
+	void AddFileHash(CScannedFileMap *pMapFiles, std::string &hash, CFileInfo &info)
 	{
-		CFileInfo info;
-		info.m_nMainDBVersion = nMainVersion;
-		info.m_nDailyDBVersion = nDailyVersion;
-		info.m_sFilePath = sFilePath;
 		(*pMapFiles)[hash] = info;
 	}
 
@@ -185,6 +184,7 @@ namespace file_utils
 			CFileInfo info;
 			fscanf(pFile, "%u", &info.m_nMainDBVersion);
 			fscanf(pFile, "%u", &info.m_nDailyDBVersion);
+			fscanf(pFile, "%u", &info.m_nCount);
 
 			fread(&symbol, sizeof(char), 1, pFile);
 
@@ -226,7 +226,7 @@ namespace file_utils
 				fwrite(&ps, sizeof(unsigned char), 1, pFile);
 			}
 
-			fprintf(pFile, " %u %u %s\n", info.m_nMainDBVersion, info.m_nDailyDBVersion, info.m_sFilePath);
+			fprintf(pFile, " %u %u %u %s\n", info.m_nMainDBVersion, info.m_nDailyDBVersion, info.m_nCount, info.m_sFilePath);
 		}
 
 		fclose(pFile);
@@ -351,7 +351,12 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 		return true;
 	}
 
-	file_utils::AddFileHash(m_pFilesMap, hash, m_pMainScan->GetDBVersion(), m_pDailyScan->GetDBVersion(), sFile);
+	CFileInfo info;
+	info.m_nCount = 1;
+	info.m_nMainDBVersion = m_pMainScan->GetDBVersion();
+	info.m_nDailyDBVersion = m_pDailyScan->GetDBVersion();
+	info.m_sFilePath = sFile;
+	file_utils::AddFileHash(m_pFilesMap, hash, info);
 
 	sVirus.Empty();
 	return false;
