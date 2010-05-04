@@ -26,6 +26,7 @@ CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent /*=NULL*/)
 
 CDCAntiVirusDlg::~CDCAntiVirusDlg()
 {
+	hook_utils::GlobalUnHook();
 	delete m_pScanner;
 	delete m_pScanDlg;
 }
@@ -105,6 +106,7 @@ LRESULT CDCAntiVirusDlg::OnLoadDB(WPARAM wParam, LPARAM lParam)
 
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
-	hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+	hook_utils::GlobalHook();
 	return 0;
 }

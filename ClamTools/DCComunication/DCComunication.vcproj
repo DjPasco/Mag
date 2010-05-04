@@ -237,6 +237,10 @@
 				RelativePath="..\Utils\PipeUtils.h"
 				>
 			</File>
+			<File
+				RelativePath="..\Utils\SendObj.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

@@ -2,7 +2,7 @@
 #include "Resource.h"
 #include "DCAntivirusScanDlg.h"
 
-#include "../Detours/Utils/SendObj.h"
+#include "../Utils/SendObj.h"
 #include "Scanner/Scanner.h"
 
 #ifdef _DEBUG

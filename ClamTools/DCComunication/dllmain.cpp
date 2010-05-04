@@ -16,7 +16,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		break;
 	case DLL_PROCESS_DETACH:
 		{
-			CDCClient::Close();
+			//CDCClient::Close();
 		}
 		break;
 	}
