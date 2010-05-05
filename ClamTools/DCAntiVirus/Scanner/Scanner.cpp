@@ -12,6 +12,10 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+#ifndef _DEBUG
+	//#define LOAD_MAIN_DB
+#endif
+
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
 
@@ -272,7 +276,7 @@ CScanner::~CScanner()
 
 bool CScanner::LoadDatabases()
 {
-#ifndef _DEBUG
+#ifdef LOAD_MAIN_DB
 	if(m_pMainScan->LoadDatabase("c:\\MAG_REPO\\LibClamAV\\main.cvd"))
 #endif
 	{
@@ -292,7 +296,7 @@ void CScanner::Init()
 	m_pMainScan		= new CDCScanner;
 	m_pDailyScan	= new CDCScanner;
 
-#ifndef _DEBUG
+#ifdef LOAD_MAIN_DB
 	if(m_pMainScan->Init())
 	{
 		m_pMainScan->CreateEngine();
@@ -307,7 +311,7 @@ void CScanner::Init()
 
 void CScanner::Free()
 {
-#ifndef _DEBUG
+#ifdef LOAD_MAIN_DB
 	m_pMainScan->FreeEngine();
 	
 #endif
@@ -337,7 +341,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 
 	const char *sVirname = NULL;
 
-#ifndef _DEBUG
+#ifdef LOAD_MAIN_DB
 	if(m_pMainScan->ScanFile(sFile, sVirname))
 	{
 		sVirus.Format("&s", sVirname);

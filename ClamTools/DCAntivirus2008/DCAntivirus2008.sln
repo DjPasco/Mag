@@ -6,6 +6,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DCSanner", "..\DCSanner\DCSanner.vcproj", "{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemHook", "..\SystemHook\ForceVersionDLL.vcproj", "{0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F60EB229-B06C-4662-912B-2B874D5EAC0C} = {F60EB229-B06C-4662-912B-2B874D5EAC0C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

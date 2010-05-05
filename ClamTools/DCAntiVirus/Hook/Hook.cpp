@@ -15,6 +15,26 @@ namespace hook_utils
 {
 	namespace internal
 	{
+		void GetHookDllPath(char *sHookPath)
+		{
+			char dirPath[MAX_PATH];
+			GetCurrentDirectory(MAX_PATH, dirPath);
+
+		#ifdef _DEBUG
+			sprintf(sHookPath, "%s\\SystemHookD.dll", dirPath);
+		#else
+			sprintf(sHookPath, "%s\\SystemHook.dll", dirPath);
+		#endif
+		}
+
+		void GetDetourDllPath(char *sDetourPath)
+		{
+			char dirPath[MAX_PATH];
+			GetCurrentDirectory(MAX_PATH, dirPath);
+
+			sprintf(sDetourPath, "%s\\detoured.dll", dirPath);
+		}
+
 		void EnableDebugPriv()
 		{
 			HANDLE hToken;
@@ -23,42 +43,38 @@ namespace hook_utils
 
 			OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken);
 
-			LookupPrivilegeValue( NULL, SE_DEBUG_NAME, &luid );
+			LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid);
 
 			tkp.PrivilegeCount = 1;
 			tkp.Privileges[0].Luid = luid;
 			tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-			AdjustTokenPrivileges( hToken, false, &tkp, sizeof( tkp ), NULL, NULL );
+			AdjustTokenPrivileges(hToken, false, &tkp, sizeof(tkp), NULL, NULL);
 
-			CloseHandle( hToken ); 
+			CloseHandle(hToken); 
+		}
+
+		void RunLoadLibraryInProcess(HANDLE hProcess, LPVOID LoadLibraryAddr, char *sDLLPath)
+		{
+			LPVOID LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sDLLPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+			WriteProcessMemory(hProcess, LLParam, sDLLPath, strlen(sDLLPath), NULL);
+			CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
 		}
 
 		void Inject(PROCESSENTRY32 &entry)
 		{
-			char dirPath[MAX_PATH];
 			char sHookPath[MAX_PATH];
-
-			GetCurrentDirectory(MAX_PATH, dirPath);
-
-		#ifdef _DEBUG
-			sprintf(sHookPath, "%s\\SystemHookD.dll", dirPath);
-		#else
-			sprintf(sHookPath, "%s\\SystemHook.dll", dirPath);
-		#endif
+			internal::GetHookDllPath(sHookPath);
 
 			char sFullDetoursPath[MAX_PATH];
-			sprintf(sFullDetoursPath, "%s\\detoured.dll", dirPath);
+			internal::GetDetourDllPath(sFullDetoursPath);
 
 			HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, entry.th32ProcessID);
 			LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "LoadLibraryA");
-			LPVOID LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sFullDetoursPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
-			WriteProcessMemory(hProcess, LLParam, sFullDetoursPath, strlen(sFullDetoursPath), NULL);
-			CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
 
-			LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sHookPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
-			WriteProcessMemory(hProcess, LLParam, sHookPath, strlen(sHookPath), NULL);
-			CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
+			RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sFullDetoursPath);
+			RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sHookPath);
+			
 			CloseHandle( hProcess );
 		}
 
@@ -66,11 +82,11 @@ namespace hook_utils
 		{
 			if(NULL != strstr(sExeName, "exe") || NULL != strstr(sExeName, "EXE"))
 			{
-				if(0 == stricmp(sExeName, "notepad.exe"))
-				{
-					return true;
-				}
-				else if(0 == stricmp(sExeName, "TOTALCMD.EXE"))
+//				if(0 == lstrcmpi(sExeName, "notepad.exe"))
+//				{
+//					return true;
+//				}
+				/*else */if(0 == stricmp(sExeName, "TOTALCMD.EXE"))
 				{
 					return true;
 				}
@@ -79,25 +95,25 @@ namespace hook_utils
 			return false;
 		}
 
-		BOOL EjectDLL (DWORD WorProcessId, CONST CHAR * ChaDLL)
+		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath)
 		{
 			HANDLE HanProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, WorProcessId);
-			CHAR ChaDLLFilePath[(MAX_PATH + 16)] = { 0 };
+			char sDLLFilePath[(MAX_PATH + 16)] = { 0 };
 
-			strcpy(ChaDLLFilePath, ChaDLL);
+			strcpy(sDLLFilePath, sDllPath);
 
 			HMODULE ModDLLHandle = NULL;
 			BYTE * BytDLLBaseAdress = 0;
 			MODULEENTRY32 MOEModuleInformation = { 0 };
-			MOEModuleInformation.dwSize = sizeof ( MODULEENTRY32 );
+			MOEModuleInformation.dwSize = sizeof(MODULEENTRY32);
 
-			HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot ( TH32CS_SNAPMODULE, WorProcessId );
+			HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, WorProcessId);
 
 			Module32First(HanModuleSnapshot, &MOEModuleInformation);
 
 			do
 			{
-				if(!strcmp(MOEModuleInformation.szExePath, ChaDLLFilePath))
+				if(!lstrcmpi(MOEModuleInformation.szExePath, sDLLFilePath))
 				{
 					ModDLLHandle = MOEModuleInformation.hModule;
 					BytDLLBaseAdress = MOEModuleInformation.modBaseAddr;
@@ -140,38 +156,33 @@ namespace hook_utils
 		ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 		si.cb = sizeof(STARTUPINFO);
 
-		char sCurrDir[MAX_PATH];
+		char sHookPath[MAX_PATH];
+		internal::GetHookDllPath(sHookPath);
 
-		GetCurrentDirectory(MAX_PATH, sCurrDir);
-
-		CString sHookDllPath;
-
-#ifdef _DEBUG
-		sHookDllPath.Format("%s\\%s", sCurrDir, "SystemHookD.dll");
-#else
-		sHookDllPath.Format("%s\\%s", sCurrDir, "SystemHook.dll");
-#endif
-
-		CString sDetourPath;
-		sDetourPath.Format("%s\\%s", sCurrDir, "detoured.dll");
+		char sFullDetoursPath[MAX_PATH];
+		internal::GetDetourDllPath(sFullDetoursPath);
 
 		DetourCreateProcessWithDll(sRunExe, NULL, NULL,
 								   NULL, TRUE, CREATE_DEFAULT_ERROR_MODE,
 								   NULL, NULL, &si, &pi,
-								   sDetourPath, sHookDllPath, NULL);
+								   sFullDetoursPath, sHookPath, NULL);
 	}
 
 	void GlobalHook()
 	{
 		PROCESSENTRY32 entry;
-		entry.dwFlags = sizeof(PROCESSENTRY32);
+		entry.dwSize = sizeof(PROCESSENTRY32);
 
 		HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+		if(INVALID_HANDLE_VALUE == snapshot)
+		{
+			return;
+		}
 
 		if(TRUE == Process32First(snapshot, &entry))
 		{
 			internal::EnableDebugPriv();
-
 			while(TRUE == Process32Next(snapshot, &entry))
 			{
 				if(GetCurrentProcessId() != entry.th32ProcessID)
@@ -190,24 +201,24 @@ namespace hook_utils
 	void GlobalUnHook()
 	{
 		PROCESSENTRY32 entry;
-		entry.dwFlags = sizeof(PROCESSENTRY32);
+		entry.dwSize = sizeof(PROCESSENTRY32);
 
 		HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+		if(INVALID_HANDLE_VALUE == snapshot)
+		{
+			return;
+		}
 
 		if(TRUE == Process32First(snapshot, &entry))
 		{
 			internal::EnableDebugPriv();
-			char sCurrDir[MAX_PATH];
-			GetCurrentDirectory(MAX_PATH, sCurrDir);
-			char sFullDetoursPath[MAX_PATH];
-			sprintf(sFullDetoursPath, "%s\\detoured.dll", sCurrDir);
 
 			char sHookPath[MAX_PATH];
-		#ifdef _DEBUG
-			sprintf(sHookPath, "%s\\SystemHookD.dll", sCurrDir);
-		#else
-			sprintf(sHookPath, "%s\\SystemHook.dll", sCurrDir);
-		#endif
+			internal::GetHookDllPath(sHookPath);
+
+			char sFullDetoursPath[MAX_PATH];
+			internal::GetDetourDllPath(sFullDetoursPath);
 
 			while(TRUE == Process32Next(snapshot, &entry))
 			{
