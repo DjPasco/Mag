@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "hook.h"
 #include "detours.h"
-
+#include "Psapi.h"
 #include <tlhelp32.h>
 #include <iostream>
 
@@ -61,21 +61,29 @@ namespace hook_utils
 			CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
 		}
 
-		void Inject(PROCESSENTRY32 &entry)
+		bool ExistsModule(DWORD dwProcID, char *sDLLPath)
 		{
-			char sHookPath[MAX_PATH];
-			internal::GetHookDllPath(sHookPath);
+			HMODULE ModDLLHandle = NULL;
+			BYTE * BytDLLBaseAdress = 0;
+			MODULEENTRY32 MOEModuleInformation = { 0 };
+			MOEModuleInformation.dwSize = sizeof(MODULEENTRY32);
 
-			char sFullDetoursPath[MAX_PATH];
-			internal::GetDetourDllPath(sFullDetoursPath);
+			HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcID);
 
-			HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, entry.th32ProcessID);
-			LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "LoadLibraryA");
+			Module32First(HanModuleSnapshot, &MOEModuleInformation);
 
-			RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sFullDetoursPath);
-			RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sHookPath);
-			
-			CloseHandle( hProcess );
+			do
+			{
+				if(!lstrcmpi(MOEModuleInformation.szExePath, sDLLPath))
+				{
+					CloseHandle(HanModuleSnapshot);
+					return true;
+				}
+			} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
+
+			CloseHandle(HanModuleSnapshot);
+
+			return false;
 		}
 
 		bool NeedHook(LPCSTR sExeName)
@@ -168,7 +176,20 @@ namespace hook_utils
 								   sFullDetoursPath, sHookPath, NULL);
 	}
 
-	void GlobalHook()
+	int GetProcessCount()
+	{
+		PERFORMACE_INFORMATION pi;
+		if(GetPerformanceInfo(&pi, sizeof(PERFORMACE_INFORMATION)))
+		{
+			return pi.ProcessCount;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	void GlobalHook(bool bInitial)
 	{
 		PROCESSENTRY32 entry;
 		entry.dwSize = sizeof(PROCESSENTRY32);
@@ -182,14 +203,24 @@ namespace hook_utils
 
 		if(TRUE == Process32First(snapshot, &entry))
 		{
+			LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "LoadLibraryA");
 			internal::EnableDebugPriv();
 			while(TRUE == Process32Next(snapshot, &entry))
 			{
 				if(GetCurrentProcessId() != entry.th32ProcessID)
 				{
-					if(internal::NeedHook(entry.szExeFile))
+					char sHookPath[MAX_PATH];
+					internal::GetHookDllPath(sHookPath);
+
+					if(bInitial || !internal::ExistsModule(entry.th32ProcessID, sHookPath))
 					{
-						internal::Inject(entry);
+						char sFullDetoursPath[MAX_PATH];
+						internal::GetDetourDllPath(sFullDetoursPath);
+
+						HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, entry.th32ProcessID);
+						internal::RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sFullDetoursPath);
+						internal::RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sHookPath);
+						CloseHandle(hProcess);
 					}
 				}
 			}
@@ -224,7 +255,7 @@ namespace hook_utils
 			{
 				if(GetCurrentProcessId() != entry.th32ProcessID)
 				{
-					if(internal::NeedHook(entry.szExeFile))
+					//if(internal::NeedHook(entry.szExeFile))
 					{
 						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath);
 						internal::EjectDLL(entry.th32ProcessID, sHookPath);

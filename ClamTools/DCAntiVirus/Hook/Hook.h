@@ -5,8 +5,9 @@
 namespace hook_utils
 {
 	void StartExeWithHookDll(LPCSTR sRunExe);
-	void GlobalHook();
+	void GlobalHook(bool bInitial = false);
 	void GlobalUnHook();
+	int GetProcessCount();
 }
 
 #endif

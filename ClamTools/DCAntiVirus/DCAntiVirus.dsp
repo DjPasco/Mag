@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 DCSanner.lib detours.lib detoured.lib libeay32.lib /nologo /subsystem:windows /machine:I386 /out:"../Bin/DCAntiVirus.exe" /libpath:"../Bin" /libpath:"../../Detours/Detours/lib" /libpath:"../Third/openssl/lib"
+# ADD LINK32 DCSanner.lib detours.lib detoured.lib libeay32.lib psapi.lib /nologo /subsystem:windows /machine:I386 /out:"../Bin/DCAntiVirus.exe" /libpath:"../Bin" /libpath:"../../Detours/Detours/lib" /libpath:"../Third/openssl/lib"
 
 !ELSEIF  "$(CFG)" == "DCAntiVirus - Win32 Debug"
 
@@ -79,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 DCSannerD.lib detours.lib detoured.lib libeay32.lib /nologo /subsystem:windows /pdb:"../Bin/DCAntiVirusD.pdb" /debug /machine:I386 /out:"../Bin/DCAntiVirusD.exe" /pdbtype:sept /libpath:"../Bin" /libpath:"../../Detours/Detours/lib" /libpath:"../Third/openssl/lib"
+# ADD LINK32 DCSannerD.lib detours.lib detoured.lib libeay32.lib psapi.lib /nologo /subsystem:windows /pdb:"../Bin/DCAntiVirusD.pdb" /debug /machine:I386 /out:"../Bin/DCAntiVirusD.exe" /pdbtype:sept /libpath:"../Bin" /libpath:"../../Detours/Detours/lib" /libpath:"../Third/openssl/lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 

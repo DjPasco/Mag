@@ -21,11 +21,15 @@ protected:
 	virtual BOOL OnInitDialog();
 	void OnPaint();
 	HCURSOR OnQueryDragIcon();
+	void OnTimer(UINT nIDEvent);
 	DECLARE_MESSAGE_MAP()
 
 private:
 	CScanner			*m_pScanner;
 	CDCAntivirusScanDlg	*m_pScanDlg;
+
+	int m_nProcCount;
+	UINT_PTR m_nTimer;
 };
 
 #endif

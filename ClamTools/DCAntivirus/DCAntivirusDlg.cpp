@@ -10,6 +10,7 @@
 
 #define WM_LOAD_DB		WM_USER+1
 #define WM_HOOK_SYSTEM	WM_LOAD_DB+1
+#define WM_IDLE			WM_HOOK_SYSTEM + 1
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -17,11 +18,13 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent /*=NULL*/)
+CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 	: CDialog(IDD_DCANTIVIRUS_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_pScanner = new CScanner;
+
+	m_nProcCount = hook_utils::GetProcessCount();
 }
 
 CDCAntiVirusDlg::~CDCAntiVirusDlg()
@@ -33,6 +36,7 @@ CDCAntiVirusDlg::~CDCAntiVirusDlg()
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CDialog)
 	ON_WM_PAINT()
+	ON_WM_TIMER()
 	ON_WM_QUERYDRAGICON()
 	ON_MESSAGE(WM_COPYDATA, OnCopyData)
 	ON_MESSAGE(WM_LOAD_DB, OnLoadDB)
@@ -53,6 +57,8 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 	m_pScanDlg->ShowWindow(SW_HIDE);
 
 	this->PostMessage(WM_HOOK_SYSTEM);
+
+	SetTimer(m_nTimer, 1000, NULL);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -106,7 +112,20 @@ LRESULT CDCAntiVirusDlg::OnLoadDB(WPARAM wParam, LPARAM lParam)
 
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
-	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
-	hook_utils::GlobalHook();
+	hook_utils::GlobalHook(true);
+
 	return 0;
 }
+
+void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
+{
+	int nNewCount = hook_utils::GetProcessCount();
+	if(m_nProcCount != nNewCount)
+	{
+		m_nProcCount = nNewCount;
+		hook_utils::GlobalHook(false);
+	}
+
+	CDialog::OnTimer(nIDEvent);
+}
+
