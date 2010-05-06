@@ -8,6 +8,7 @@
 
 class CScannedFileMap;
 class CDCScanner;
+class CScanValidatorObs;
 
 class CScanner  
 {
@@ -18,6 +19,8 @@ public:
 public:
 	bool LoadDatabases();
 	bool ScanFile(LPCSTR sFile, CString &sVirus);
+
+	void ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs);
 	
 private:
 	void Init();

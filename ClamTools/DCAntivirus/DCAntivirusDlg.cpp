@@ -113,6 +113,7 @@ LRESULT CDCAntiVirusDlg::OnLoadDB(WPARAM wParam, LPARAM lParam)
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
 	hook_utils::GlobalHook(true);
+	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 
 	return 0;
 }

@@ -58,7 +58,8 @@ namespace hook_utils
 		{
 			LPVOID LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sDLLPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 			WriteProcessMemory(hProcess, LLParam, sDLLPath, strlen(sDLLPath), NULL);
-			CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
+			HANDLE hLoadLibrary = CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
+			WaitForSingleObject(hLoadLibrary, INFINITE);
 		}
 
 		bool ExistsModule(DWORD dwProcID, char *sDLLPath)

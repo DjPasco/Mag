@@ -2,9 +2,14 @@
 #include "Scanner.h"
 
 #include "DCSanner\DCSanner.h"
+#include "ScanValidatorObs.h"
+
 #include <stdio.h>
 #include <hash_map>
+#include <map>
+#include <vector>
 #include <string>
+#include <algorithm>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -12,12 +17,14 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-#ifndef _DEBUG
-	//#define LOAD_MAIN_DB
-#endif
+//#ifndef _DEBUG
+	#define LOAD_MAIN_DB
+//#endif
 
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
+
+typedef std::vector<unsigned char> CDCHash;
 
 class CFileInfo
 {
@@ -28,7 +35,13 @@ public:
 	CString m_sFilePath;
 };
 
-class CScannedFileMap : public std::hash_map<std::string, CFileInfo, std::hash<std::string> >
+class CFileInfoEx: public CFileInfo
+{
+public:
+	CDCHash m_Hash;
+};
+
+class CScannedFileMap : public std::map<CDCHash, CFileInfo/*, std::hash<unsigned char> */>
 {
 public:
 	CScannedFileMap() { };
@@ -38,17 +51,17 @@ public:
 typedef CScannedFileMap::const_iterator CMapI;
 typedef CScannedFileMap::iterator CMapEditI;
 
-#ifdef _DEBUG
-	CString gsDataFile = _T("PassDataD.dat");
-#else
+//#ifdef _DEBUG
+//	CString gsDataFile = _T("PassDataD.dat");
+//#else
 	CString gsDataFile = _T("PassData.dat");
-#endif
+//#endif
 
 namespace file_utils
 {
 	namespace internal
 	{
-		bool GetFileHash(LPCSTR sFile, std::string &hash, const EVP_MD *pMD5)
+		bool GetFileHash(LPCSTR sFile, CDCHash &hash, const EVP_MD *pMD5)
 		{
 			FILE *pFile = fopen(sFile, "rb");
 			if(NULL == pFile)
@@ -97,7 +110,7 @@ namespace file_utils
 	bool FileExistsInInternalDB(LPCSTR sFile,
 								CScannedFileMap *pMapFiles,
 								const EVP_MD *pMD5,
-								std::string &hash,
+								CDCHash &hash,
 								unsigned int nMainDBVersion,
 								unsigned int nDailyDBVersion)
 	{
@@ -121,25 +134,23 @@ namespace file_utils
 		return false;
 	}
 
-	void AddFileHash(CScannedFileMap *pMapFiles, std::string &hash, CFileInfo &info)
+	void AddFileHash(CScannedFileMap *pMapFiles, CDCHash &hash, CFileInfo &info)
 	{
 		(*pMapFiles)[hash] = info;
 	}
 
-	bool ReadHash(FILE *pFile, std::string &hash)
+	bool ReadHash(FILE *pFile, CDCHash &hash)
 	{
-		char sHashBuffer[DC_HASH_SIZE];
-		int nRead = fread(sHashBuffer, sizeof(char), DC_HASH_SIZE, pFile); 
-		if(0 == nRead || DC_HASH_SIZE != nRead)
-		{
-			return false;
-		}
-		
 		hash.resize(DC_HASH_SIZE);
-		
+		unsigned char pt = 0;
 		for(int i = 0; i < DC_HASH_SIZE; ++i)
 		{
-			hash[i] = sHashBuffer[i];
+			if(1 != fscanf(pFile, "%x", &pt))//Error.
+			{
+				return false;
+			}
+
+			hash[i] = pt;
 		}
 
 		return true;
@@ -179,7 +190,7 @@ namespace file_utils
 
 		while(!feof(pFile))
 		{
-			std::string hash;
+			CDCHash hash;
 			if(!ReadHash(pFile, hash))
 			{
 				break;
@@ -208,29 +219,28 @@ namespace file_utils
 			return;
 		}
 
-		std::string sHash;
+		CDCHash hash;
 		CFileInfo info;
 		CMapI begin = pMapFiles->begin();
 		CMapI end = pMapFiles->end();
 		for(CMapI it = begin; it != end; ++it)
 		{
-			sHash	= it->first;
+			hash	= it->first;
 			info	= it->second;
 
-			int nHashSize = sHash.size();
+			int nHashSize = hash.size();
 			
 			if(DC_HASH_SIZE != nHashSize)
 			{
-				continue;//Corrupted data.
-			}
-				
-			for(int i = 0; i < nHashSize; ++i)
-			{
-				unsigned char ps(sHash[i]);
-				fwrite(&ps, sizeof(unsigned char), 1, pFile);
+				continue;//Corrupted record.
 			}
 
-			fprintf(pFile, " %u %u %u %s\n", info.m_nMainDBVersion, info.m_nDailyDBVersion, info.m_nCount, info.m_sFilePath);
+			for(int i = 0; i < DC_HASH_SIZE; ++i)
+			{
+				fprintf(pFile, "%02x ", hash[i]);//8 ouputs like 08.
+			}
+
+			fprintf(pFile, "%u %u %u %s\n", info.m_nMainDBVersion, info.m_nDailyDBVersion, info.m_nCount, info.m_sFilePath);
 		}
 
 		fclose(pFile);
@@ -250,6 +260,11 @@ namespace file_utils
 		}
 
 		return false;
+	}
+
+	bool SortFilesByUsage(const CFileInfoEx &file1, const CFileInfoEx &file2)
+	{
+		return file1.m_nCount > file2.m_nCount;
 	}
 }
 
@@ -312,8 +327,7 @@ void CScanner::Init()
 void CScanner::Free()
 {
 #ifdef LOAD_MAIN_DB
-	m_pMainScan->FreeEngine();
-	
+	m_pMainScan->FreeEngine();	
 #endif
 	m_pDailyScan->FreeEngine();
 	
@@ -328,7 +342,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 		return true;
 	}
 
-	std::string hash;
+	CDCHash hash;
 	if(file_utils::FileExistsInInternalDB(sFile,
 										  m_pFilesMap,
 										  m_pMD5,
@@ -345,14 +359,14 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	if(m_pMainScan->ScanFile(sFile, sVirname))
 	{
 		sVirus.Format("&s", sVirname);
-		return true;
+		return false;
 	}
 #endif
 
 	if(m_pDailyScan->ScanFile(sFile, sVirname))
 	{
 		sVirus.Format("&s", sVirname);
-		return true;
+		return false;
 	}
 
 	CFileInfo info;
@@ -363,5 +377,62 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	file_utils::AddFileHash(m_pFilesMap, hash, info);
 
 	sVirus.Empty();
-	return false;
+	return true;
+}
+
+void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
+{
+	std::vector<CFileInfoEx> arrFiles;
+
+	CFileInfoEx infoEx;
+	CFileInfo info;
+	CDCHash hash;
+
+	CMapI begin = m_pFilesMap->begin();
+	CMapI end = m_pFilesMap->end();
+	for(CMapI it = begin; it != end; ++it)
+	{
+		hash	= it->first;
+		info	= it->second;
+
+		infoEx.m_Hash				= hash;
+		infoEx.m_nCount				= info.m_nCount;
+		infoEx.m_nDailyDBVersion	= info.m_nDailyDBVersion;
+		infoEx.m_nMainDBVersion		= info.m_nMainDBVersion;
+		infoEx.m_sFilePath			= info.m_sFilePath;
+
+		arrFiles.push_back(infoEx);
+	}
+
+	if(!pValidatorsObs->ContinueScan())
+	{
+		return;
+	}
+
+	std::sort(arrFiles.begin(), arrFiles.end(), file_utils::SortFilesByUsage);
+
+	if(!pValidatorsObs->ContinueScan())
+	{
+		return;
+	}
+
+	CString sVirus;
+	typedef std::vector<CFileInfoEx>::const_iterator CIt;
+	CIt f_end = arrFiles.end();
+	for(CIt f_it = arrFiles.begin(); f_it != f_end; ++f_it)
+	{
+		infoEx = (*f_it);
+
+		ScanFile(infoEx.m_sFilePath, sVirus);
+
+		if(!pValidatorsObs->ContinueScan())
+		{
+			break;
+		}
+
+		if(20 < pValidatorsObs->GetCPUUsage())
+		{
+			Sleep(10);
+		}
+	}
 }
