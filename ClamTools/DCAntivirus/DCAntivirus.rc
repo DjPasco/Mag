@@ -80,7 +80,6 @@ CAPTION "DCAntiVirus"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,260,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,260,23,50,14
     GROUPBOX        "Signatures Database",IDC_STATIC_DB,7,7,175,50
     LTEXT           "Database status:",IDC_STATIC_DB_STATUS,13,21,61,8
     EDITTEXT        IDC_EDIT_DB_STATUS,77,18,98,14,ES_CENTER | 

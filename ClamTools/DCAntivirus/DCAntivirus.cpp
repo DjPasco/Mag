@@ -18,8 +18,9 @@ BOOL CDCAntiVirusApp::InitInstance()
 	Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
 
-	CDCAntiVirusDlg dlg;
-	m_pMainWnd = &dlg;
-	dlg.DoModal();
+	CDCAntiVirusDlg *pDlg = new CDCAntiVirusDlg;
+	m_pMainWnd = pDlg;
+	pDlg->DoModal();
+	delete pDlg;
 	return FALSE;
 }

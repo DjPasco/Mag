@@ -21,6 +21,8 @@ public:
 	bool ScanFile(LPCSTR sFile, CString &sVirus);
 
 	void ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs);
+
+	void ClearAndSave();
 	
 private:
 	void Init();
