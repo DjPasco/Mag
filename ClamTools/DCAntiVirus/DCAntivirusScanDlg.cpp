@@ -30,6 +30,7 @@ CDCAntivirusScanDlg::CDCAntivirusScanDlg(CScanner *pScanner)
 
 CDCAntivirusScanDlg::~CDCAntivirusScanDlg()
 {
+	//delete m_pScanner;
 	IdleTrackerTerm();
 }
 
@@ -38,7 +39,7 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 	IdleTrackerInit();
 	
-	SetTimer(m_nTimer, 5000, NULL);
+	SetTimer(m_nTimer, 300000, NULL);
 
 	m_hQuery = NULL;
 	m_hCounter = NULL;
@@ -121,11 +122,10 @@ long CDCAntivirusScanDlg::GetCPUUsage()
 bool CDCAntivirusScanDlg::TimeForScan()
 {
 	UINT timeDuration = (UINT)(GetTickCount() - IdleTrackerGetLastTickCount());
-	if(timeDuration > 3000)
+	if(timeDuration > 600000)
 	{
 		return true;
 	}
 
 	return false;
 }
-
