@@ -50,12 +50,12 @@ Detours/Detours/
 !libclamav.pdb
 !libclamav.lib
 
-!stlportd.5.1.dll
-!stlportd.5.1.pdb
-!stlportd.5.1.lib
+!stlportd.5.2.dll
+!stlportd.5.2.pdb
+!stlportd.5.2.lib
 
-!stlport.5.1.dll
-!stlport.5.1.pdb
-!stlport.5.1.lib
+!stlport.5.2.dll
+!stlport.5.2.pdb
+!stlport.5.2.lib
 
 !LibClamAV*/
