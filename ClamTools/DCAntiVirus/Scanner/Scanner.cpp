@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Scanner.h"
 
-#include "DCSanner\DCSanner.h"
+#include "../../DCSanner/DCSanner.h"
 #include "ScanValidatorObs.h"
 
 #include <stdio.h>
@@ -107,7 +107,7 @@ namespace file_utils
 				return false;//Wrong data
 			}
 			pathHash.resize(DC_HASH_SIZE);
-			for(i = 0; i < md_len; ++i)
+			for(unsigned int i = 0; i < md_len; ++i)
 			{
 				pathHash[i] = md_value[i];
 			}
@@ -158,7 +158,7 @@ namespace file_utils
 	bool ReadHash(FILE *pFile, CDCHash &hash)
 	{
 		hash.resize(DC_HASH_SIZE);
-		unsigned char pt = 0;
+		int pt = 0;
 		for(int i = 0; i < DC_HASH_SIZE; ++i)
 		{
 			if(1 != fscanf(pFile, "%x", &pt))//Error.
@@ -275,7 +275,7 @@ namespace file_utils
 				fprintf(pFile, "%02x ", hash[i]);//8 ouputs like 08.
 			}
 
-			for(i = 0; i < DC_HASH_SIZE; ++i)
+			for(int i = 0; i < DC_HASH_SIZE; ++i)
 			{
 				fprintf(pFile, "%02x ", info.m_fileHash[i]);//8 ouputs like 08.
 			}

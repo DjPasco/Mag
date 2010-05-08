@@ -1,9 +1,9 @@
 #include "stdafx.h"
-#include "Resource.h"
+#include "DCAntiVirus.h"
 #include "DCAntiVirusDlg.h"
 
 #include "DCAntivirusScanDlg.h"
-#include "../Detours/Utils/SendObj.h"
+#include "../Utils/SendObj.h"
 #include "Scanner/Scanner.h"
 #include "Hook/Hook.h"
 #include <vector>
@@ -14,9 +14,8 @@
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
 #endif
+
 
 CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 	: CDialog(IDD_DCANTIVIRUS_DIALOG, pParent)
@@ -27,6 +26,7 @@ CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 	m_nProcCount = hook_utils::GetProcessCount();
 }
 
+
 CDCAntiVirusDlg::~CDCAntiVirusDlg()
 {
 	hook_utils::GlobalUnHook();
@@ -36,9 +36,8 @@ CDCAntiVirusDlg::~CDCAntiVirusDlg()
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CDialog)
 	ON_WM_PAINT()
-	ON_WM_TIMER()
 	ON_WM_QUERYDRAGICON()
-	ON_MESSAGE(WM_COPYDATA, OnCopyData)
+	ON_WM_TIMER()
 	ON_MESSAGE(WM_LOAD_DB, OnLoadDB)
 	ON_MESSAGE(WM_HOOK_SYSTEM, OnHookSystem)
 END_MESSAGE_MAP()
@@ -47,6 +46,8 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	// Set the icon for this dialog.  The framework does this automatically
+	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
@@ -63,13 +64,13 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-void CDCAntiVirusDlg::OnPaint() 
+void CDCAntiVirusDlg::OnPaint()
 {
 	if (IsIconic())
 	{
 		CPaintDC dc(this); // device context for painting
 
-		SendMessage(WM_ICONERASEBKGND, (WPARAM) dc.GetSafeHdc(), 0);
+		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// Center icon in client rectangle
 		int cxIcon = GetSystemMetrics(SM_CXICON);
@@ -90,7 +91,7 @@ void CDCAntiVirusDlg::OnPaint()
 
 HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 {
-	return (HCURSOR) m_hIcon;
+	return static_cast<HCURSOR>(m_hIcon);
 }
 
 LRESULT CDCAntiVirusDlg::OnLoadDB(WPARAM wParam, LPARAM lParam)

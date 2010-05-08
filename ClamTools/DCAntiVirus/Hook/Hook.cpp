@@ -87,22 +87,22 @@ namespace hook_utils
 			return false;
 		}
 
-		bool NeedHook(LPCSTR sExeName)
-		{
-			if(NULL != strstr(sExeName, "exe") || NULL != strstr(sExeName, "EXE"))
-			{
-//				if(0 == lstrcmpi(sExeName, "notepad.exe"))
+//		bool NeedHook(LPCSTR sExeName)
+//		{
+//			if(NULL != strstr(sExeName, "exe") || NULL != strstr(sExeName, "EXE"))
+//			{
+////				if(0 == lstrcmpi(sExeName, "notepad.exe"))
+////				{
+////					return true;
+////				}
+//				/*else */if(0 == stricmp(sExeName, "TOTALCMD.EXE"))
 //				{
 //					return true;
 //				}
-				/*else */if(0 == stricmp(sExeName, "TOTALCMD.EXE"))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
+//			}
+//
+//			return false;
+//		}
 
 		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath)
 		{

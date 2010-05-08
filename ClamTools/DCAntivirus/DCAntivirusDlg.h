@@ -1,7 +1,4 @@
-#ifndef _DC_ANTI_VIRUS_DLG_H__
-#define _DC_ANTI_VIRUS_DLG_H__
 #pragma once
-
 class CScanner;
 class CDCAntivirusScanDlg;
 
@@ -15,21 +12,19 @@ protected:
 	LRESULT OnLoadDB(WPARAM wParam, LPARAM lParam);
 	LRESULT OnHookSystem(WPARAM wParam, LPARAM lParam);
 
-// Implementation
-protected:
-	HICON m_hIcon;
+
 	virtual BOOL OnInitDialog();
 	void OnPaint();
-	HCURSOR OnQueryDragIcon();
 	void OnTimer(UINT nIDEvent);
+	HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
 private:
+	HICON m_hIcon;
+
 	CScanner			*m_pScanner;
 	CDCAntivirusScanDlg	*m_pScanDlg;
 
 	int m_nProcCount;
 	UINT_PTR m_nTimer;
 };
-
-#endif

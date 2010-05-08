@@ -2,8 +2,8 @@
 #include "Resource.h"
 #include "DCAntivirusScanDlg.h"
 
-#include "IdleTracker/IdleTracker.h"
-#include "Utils/SendObj.h"
+#include "../IdleTracker/IdleTracker.h"
+#include "../Utils/SendObj.h"
 #include "Scanner/Scanner.h"
 
 #ifdef _DEBUG
@@ -15,6 +15,8 @@ static char THIS_FILE[] = __FILE__;
 static LPCTSTR gszProcessorTime="\\Processor(_Total)\\% Processor Time";
 
 #define MAX_LOAD 10
+#define IDL_TIME 5000
+#define CHECH_IDLE 3000
 
 
 BEGIN_MESSAGE_MAP(CDCAntivirusScanDlg, CDialog)
@@ -30,7 +32,6 @@ CDCAntivirusScanDlg::CDCAntivirusScanDlg(CScanner *pScanner)
 
 CDCAntivirusScanDlg::~CDCAntivirusScanDlg()
 {
-	//delete m_pScanner;
 	IdleTrackerTerm();
 }
 
@@ -39,7 +40,7 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 	IdleTrackerInit();
 	
-	SetTimer(m_nTimer, 300000, NULL);
+	SetTimer(m_nTimer, CHECH_IDLE, NULL);
 
 	m_hQuery = NULL;
 	m_hCounter = NULL;
@@ -122,7 +123,7 @@ long CDCAntivirusScanDlg::GetCPUUsage()
 bool CDCAntivirusScanDlg::TimeForScan()
 {
 	UINT timeDuration = (UINT)(GetTickCount() - IdleTrackerGetLastTickCount());
-	if(timeDuration > 600000)
+	if(timeDuration > IDL_TIME)
 	{
 		return true;
 	}
