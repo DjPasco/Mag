@@ -7,7 +7,7 @@
 #endif
 
 #ifndef _SCAN_VALIDATOR_OBS_H__
-	#include "Scanner/ScanValidatorObs.h"
+	#include "../Utils/Scanner/ScanValidatorObs.h"
 #endif
 
 

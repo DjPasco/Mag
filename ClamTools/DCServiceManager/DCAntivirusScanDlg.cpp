@@ -4,7 +4,7 @@
 
 #include "../IdleTracker/IdleTracker.h"
 #include "../Utils/SendObj.h"
-#include "Scanner/Scanner.h"
+#include "../Utils/Scanner/Scanner.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -59,6 +59,8 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 
 LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 {
+	UNREFERENCED_PARAMETER(wParam);
+
 	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
 	CString sFile = ((CSendObj *)(copy->lpData))->m_sPath;
 	CString sVirusName;

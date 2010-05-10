@@ -1,28 +1,18 @@
 #include "stdafx.h"
 #include "DCAntiVirus.h"
 #include "DCAntiVirusDlg.h"
-
-#include "DCAntivirusScanDlg.h"
-#include "../Utils/SendObj.h"
-#include "Scanner/Scanner.h"
 #include "Hook/Hook.h"
-#include <vector>
 
-#define WM_LOAD_DB		WM_USER+1
-#define WM_HOOK_SYSTEM	WM_LOAD_DB+1
-#define WM_IDLE			WM_HOOK_SYSTEM + 1
+#define WM_HOOK_SYSTEM	WM_USER+1
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-
 CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
-	: CDialog(IDD_DCANTIVIRUS_DIALOG, pParent)
+	: CTrayDialog(IDD_DCANTIVIRUS_DIALOG, pParent)
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	m_pScanner = new CScanner;
-
+	m_hIcon = AfxGetApp()->LoadIcon(IDI_SHIELD_FRAME);
 	m_nProcCount = hook_utils::GetProcessCount();
 }
 
@@ -30,37 +20,33 @@ CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 CDCAntiVirusDlg::~CDCAntiVirusDlg()
 {
 	hook_utils::GlobalUnHook();
-	delete m_pScanner;
-	delete m_pScanDlg;
 }
 
-BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CDialog)
+BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_TIMER()
-	ON_MESSAGE(WM_LOAD_DB, OnLoadDB)
 	ON_MESSAGE(WM_HOOK_SYSTEM, OnHookSystem)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CTrayDialog::OnInitDialog();
 
 	// Set the icon for this dialog.  The framework does this automatically
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	this->PostMessage(WM_LOAD_DB);
+	TraySetIcon(IDI_SHIELD_FRAME);
+    TraySetToolTip("DCAntiVirus");
+    TraySetMenu(IDR_MENU1);
 
-	m_pScanDlg = new CDCAntivirusScanDlg(m_pScanner);
-	m_pScanDlg->Create(IDD_SCAN_DLG, this);
-	m_pScanDlg->ShowWindow(SW_HIDE);
+	TraySetMinimizeToTray(TRUE);
+	TrayShow();
 
-	this->PostMessage(WM_HOOK_SYSTEM);
-
+	this->SendMessage(WM_HOOK_SYSTEM);
 	SetTimer(m_nTimer, 1000, NULL);
-
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -85,30 +71,13 @@ void CDCAntiVirusDlg::OnPaint()
 	}
 	else
 	{
-		CDialog::OnPaint();
+		CTrayDialog::OnPaint();
 	}
 }
 
 HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
-}
-
-LRESULT CDCAntiVirusDlg::OnLoadDB(WPARAM wParam, LPARAM lParam)
-{
-	this->GetDlgItem(IDC_EDIT_DB_STATUS)->SetWindowText("Loading...");
-	this->GetDlgItem(IDC_EDIT_DB_STATUS)->UpdateWindow();
-
-	if(m_pScanner->LoadDatabases())
-	{
-		this->GetDlgItem(IDC_EDIT_DB_STATUS)->SetWindowText("Database loaded.");
-	}
-	else
-	{
-		this->GetDlgItem(IDC_EDIT_DB_STATUS)->SetWindowText("Invalid database.");
-	}
-
-	return 0;
 }
 
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
@@ -128,6 +97,5 @@ void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 		hook_utils::GlobalHook(false);
 	}
 
-	CDialog::OnTimer(nIDEvent);
+	CTrayDialog::OnTimer(nIDEvent);
 }
-

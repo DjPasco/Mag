@@ -87,22 +87,20 @@ namespace hook_utils
 			return false;
 		}
 
-//		bool NeedHook(LPCSTR sExeName)
-//		{
-//			if(NULL != strstr(sExeName, "exe") || NULL != strstr(sExeName, "EXE"))
-//			{
-////				if(0 == lstrcmpi(sExeName, "notepad.exe"))
-////				{
-////					return true;
-////				}
-//				/*else */if(0 == stricmp(sExeName, "TOTALCMD.EXE"))
-//				{
-//					return true;
-//				}
-//			}
-//
-//			return false;
-//		}
+		bool NeedHook(LPCSTR sExeName)
+		{
+			if(0 == lstrcmpi(sExeName, "DCService.exe"))
+			{
+				return false;
+			}
+
+			if(NULL != strstr(sExeName, "exe") || NULL != strstr(sExeName, "EXE"))
+			{
+				return true;
+			}
+
+			return false;
+		}
 
 		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath)
 		{
@@ -208,7 +206,7 @@ namespace hook_utils
 			internal::EnableDebugPriv();
 			while(TRUE == Process32Next(snapshot, &entry))
 			{
-				if(GetCurrentProcessId() != entry.th32ProcessID)
+				if(GetCurrentProcessId() != entry.th32ProcessID && internal::NeedHook(entry.szExeFile))
 				{
 					char sHookPath[MAX_PATH];
 					internal::GetHookDllPath(sHookPath);
@@ -256,7 +254,7 @@ namespace hook_utils
 			{
 				if(GetCurrentProcessId() != entry.th32ProcessID)
 				{
-					//if(internal::NeedHook(entry.szExeFile))
+					if(internal::NeedHook(entry.szExeFile))
 					{
 						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath);
 						internal::EjectDLL(entry.th32ProcessID, sHookPath);

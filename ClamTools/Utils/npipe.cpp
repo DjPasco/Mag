@@ -2,36 +2,143 @@
 Module : NPIPE.CPP
 Purpose: Defines the implementation for an MFC wrapper class
          for Win32 named Pipes
-Created: PJN / 2-08-1998
-History: None
+Created: PJN / 02-08-1998
+History: PJN / 21-02-2002 1. Updated copyright message in source code and documentation
+                          2. Fixed a bug in Close method where the handle value was not being reset to INVALID_HANDLE_VALUE.
+                          3. Tidied up the TRACE code
+                          4. Tidied up build configurations for sample apps
+         PJN / 28-07-2002 1. Updated sample server app to do Flush of the pipe before we disconnect the client. Thanks to 
+                          "Martin" for spotting this problem.
+         PJN / 09-11-2002 1. ConnectClient now returns TRUE if the last error returns ERROR_PIPE_CONNECTED which indicates 
+                          that a client is already connected before we make the call. Thanks to Metrich Frederic for 
+                          reporting this.
+         PJN / 05-03-2003 1. Changed the class to use exceptions rather than SDK style return values
+         PJN / 12-11-2003 1. Attach now includes an AutoClose parameter. This allows control over whether the pipe handle
+                          should be closed when the pipe object goes out of scope or CNamedPipe::Close is called. Thanks
+                          to Metrich Frederic for reporting this issue.
+         PJN / 19-12-2003 1. Fixed ASSERT's at the start of most CNamedPipe functions which verify that the pipe handle 
+                          is valid. Thanks to Metrich Frederic for reporting this issue.
+         PJN / 15-07-2006 1. Updated copyright details.
+                          2. Renamed AfxThrowNamedPipeException to ThrowNamedPipeException and made it part of the 
+                          CNamedPipe class.
+                          3. CNamedPipe is no longer derived from CObject as it was not really required.
+                          4. Optimized CNamedPipe constructor code.
+                          5. Code now uses new C++ style casts rather than old style C casts where necessary. 
+                          6. Optimized CNamedPipeException constructor code
+                          7. Removed the unnecessary CNamedPipeException destructor
+                          8. Removed some unreferenced variables in the sample app.
+                          9. Updated the code to clean compile on VC 2005
+                          10. Updated documentation to use the same style as the web site.
+                          11. Addition of a CNAMEDPIPE_EXT_CLASS macro to allow the classes to be easily added to an 
+                          extension dll.
+         PJN / 28-12-2007 1. Updated copyright details.
+                          2. Updated the sample apps to clean compile on VC 2005
+                          3. Sample client app now defaults to "." (meaning the current machine) as the server to connect to.
+                          4. CNamedPipeException::GetErrorMessage now uses the FORMAT_MESSAGE_IGNORE_INSERTS flag. For more 
+                          information please see Raymond Chen's blog at 
+                          http://blogs.msdn.com/oldnewthing/archive/2007/11/28/6564257.aspx. Thanks to Alexey Kuznetsov for 
+                          reporting this issue.
+                          5. CAppSettingsException::GetErrorMessage now uses Checked::tcsncpy_s if compiled using VC 2005 or 
+                          later.
+                          6. Provision of new overloaded versions of the Peek, Write and Read methods which allows the 
+                          dwBytesRead/dwBytesWritten parameters to be returned as an output parameter as opposed to the return 
+                          value of the method. This helps resolve a situation where the underlying WriteFile / ReadFile call 
+                          fails but some data has actually been written / read from the pipe. Thanks to Gintautas Kisonas for 
+                          reporting this issue.
+                          7. dwBytesRead, dwTotalBytesAvail and dwBytesLeftThisMessage parameters to Peek are now pointers rather
+                          than references. Thanks to Gintautas Kisonas for reporting this issue.
+         PJN / 30-12-2007 1. Updated the sample apps to clean compile on VC 2008
+         PJN / 12-07-2008 1. Updated copyright details.
+                          2. Updated sample app to clean compile on VC 2008
+                          3. The code has now been updated to support VC 2005 or later only. 
+                          4. Code now compiles cleanly using Code Analysis (/analyze)
+                          5. Removed the m_bAutoClose member variable and concept from class
 
-Copyright (c) 1998 by PJ Naughter.  
+Copyright (c) 1998 - 2007 by PJ Naughter (Web: www.naughter.com, Email: pjna@naughter.com)
+
 All rights reserved.
+
+Copyright / Usage Details:
+
+You are allowed to include the source code in any product (commercial, shareware, freeware or otherwise) 
+when your product is released in binary form. You are allowed to modify the source code in any way you want 
+except you cannot modify the copyright details at the top of each module. If you want to distribute source 
+code with your application, then you are only allowed to distribute versions released by the author. This is 
+to maintain a single distribution point for the source code. 
 
 */
 
 
 /////////////////////////////////  Includes  //////////////////////////////////
+
 #include "stdafx.h"
 #include "npipe.h"
 
 
+///////////////////////////////// Macros / Defines ////////////////////////////
 
 #ifdef _DEBUG
-#undef THIS_FILE
-static char BASED_CODE THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
 
+////////////////////////////////// Implementation /////////////////////////////
 
-////////////////////////////////// CNamedPipe Implementation //////////////////
-
-IMPLEMENT_DYNAMIC(CNamedPipe, CObject)
-
-CNamedPipe::CNamedPipe()
+BOOL CNamedPipeException::GetErrorMessage(LPTSTR pstrError, UINT nMaxError, PUINT pnHelpContext)
 {
-  m_hPipe = INVALID_HANDLE_VALUE;
+  //Validate our parameters
+	ASSERT(pstrError != NULL && AfxIsValidString(pstrError, nMaxError));
+
+	if (pnHelpContext != NULL)
+		*pnHelpContext = 0;
+
+  //What will be the return value from this function (assume the worst)
+  BOOL bSuccess = FALSE;
+
+	LPTSTR lpBuffer;
+	DWORD dwReturn = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			                           NULL,  m_dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_SYS_DEFAULT),
+			                           reinterpret_cast<LPTSTR>(&lpBuffer), 0, NULL);
+	if (dwReturn == 0)
+		*pstrError = _T('\0');
+	else
+	{
+    bSuccess = TRUE;
+    Checked::tcsncpy_s(pstrError, nMaxError, lpBuffer, _TRUNCATE);
+		LocalFree(lpBuffer);
+	}
+
+	return bSuccess;
+}
+
+CString CNamedPipeException::GetErrorMessage()
+{
+  CString rVal;
+  LPTSTR pstrError = rVal.GetBuffer(4096);
+  GetErrorMessage(pstrError, 4096, NULL);
+  rVal.ReleaseBuffer();
+  return rVal;
+}
+
+CNamedPipeException::CNamedPipeException(DWORD dwError) : m_dwError(dwError)
+{
+}
+
+IMPLEMENT_DYNAMIC(CNamedPipeException, CException)
+
+#ifdef _DEBUG
+void CNamedPipeException::Dump(CDumpContext& dc) const
+{
+  //Let the base class do its thing
+	CObject::Dump(dc);
+
+	dc << _T("m_dwError = ") << m_dwError << _T("\n");
+}
+#endif
+
+
+CNamedPipe::CNamedPipe() : m_hPipe(INVALID_HANDLE_VALUE)
+{
 }
 
 CNamedPipe::~CNamedPipe()
@@ -39,33 +146,28 @@ CNamedPipe::~CNamedPipe()
   Close();
 }
 
-BOOL CNamedPipe::Create(LPCTSTR lpszName, DWORD dwOpenMode, DWORD dwPipeMode, 
-                        DWORD dwMaxInstances, DWORD dwOutBufferSize, 
-                        DWORD dwInBufferSize, DWORD dwDefaultTimeOut, 
-                        LPSECURITY_ATTRIBUTES lpSecurityAttributes)
+void CNamedPipe::Create(LPCTSTR lpszName, DWORD dwOpenMode, DWORD dwPipeMode, DWORD dwMaxInstances, DWORD dwOutBufferSize, 
+                        DWORD dwInBufferSize, DWORD dwDefaultTimeOut, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
 {
+  //Validate our parameters
   ASSERT(!IsOpen());
   ASSERT(_tcslen(lpszName));
 
   //the class encapsulates creating the pipe name, all that is required is
-  //a simple name for the mailslot e.g. lpName = PJPIPE will create the pipe
-  //name \\.\pipe\PJPIPE
-  TCHAR pszPipeName[_MAX_PATH];
-  _tcscpy(pszPipeName, _T("\\\\.\\PIPE\\"));
-  _tcscat(pszPipeName, lpszName);
+  //a simple name for the pipe e.g. lpName = PJPIPE will create the pipe
+  //name "\\.\PIPE\PJPIPE"
+  CString sPipeName;
+  sPipeName.Format(_T("\\\\.\\PIPE\\%s"), lpszName);
 
-  m_hPipe = ::CreateNamedPipe(pszPipeName, dwOpenMode, dwPipeMode, dwMaxInstances, 
-                            dwOutBufferSize, dwInBufferSize, dwDefaultTimeOut, lpSecurityAttributes);
+  m_hPipe = ::CreateNamedPipe(sPipeName, dwOpenMode, dwPipeMode, dwMaxInstances, dwOutBufferSize, dwInBufferSize, dwDefaultTimeOut, lpSecurityAttributes);
   if (m_hPipe == INVALID_HANDLE_VALUE)
-    TRACE1("CNamedPipe::Create() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return (m_hPipe != INVALID_HANDLE_VALUE);
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Open(LPCTSTR lpszServerName, LPCTSTR lpszPipeName, DWORD dwDesiredAccess, 
-                      DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, 
-                      DWORD dwFlagsAndAttributes)
+void CNamedPipe::Open(LPCTSTR lpszServerName, LPCTSTR lpszPipeName, DWORD dwDesiredAccess, DWORD dwShareMode, 
+                      LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwFlagsAndAttributes)
 {
+  //Validate our parameters
   ASSERT(!IsOpen());
   ASSERT(_tcslen(lpszServerName));
   ASSERT(_tcslen(lpszPipeName));
@@ -74,22 +176,15 @@ BOOL CNamedPipe::Open(LPCTSTR lpszServerName, LPCTSTR lpszPipeName, DWORD dwDesi
   CString sPipeName;
   sPipeName.Format(_T("\\\\%s\\PIPE\\%s"), lpszServerName, lpszPipeName);
 
-  m_hPipe = CreateFile(sPipeName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, 
-                       OPEN_EXISTING, dwFlagsAndAttributes, NULL);
-
+  m_hPipe = CreateFile(sPipeName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, OPEN_EXISTING, dwFlagsAndAttributes, NULL);
   if (m_hPipe == INVALID_HANDLE_VALUE)
-    TRACE1("CNamedPipe::Open() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return (m_hPipe != INVALID_HANDLE_VALUE);
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Attach(HANDLE hPipe)
+void CNamedPipe::Attach(HANDLE hPipe)
 {
-  if (m_hPipe != hPipe)
-    Close();
-
+  Close();
   m_hPipe = hPipe;
-  return TRUE;
 }
 
 HANDLE CNamedPipe::Detach()
@@ -99,312 +194,284 @@ HANDLE CNamedPipe::Detach()
   return hReturn;
 }
 
-BOOL CNamedPipe::Close()
+void CNamedPipe::Close()
 {
-  BOOL bSuccess = TRUE;
   if (IsOpen())
   {
-    bSuccess = ::CloseHandle(m_hPipe);
-    if (!bSuccess)
-      TRACE1("CNamedPipe::Close() failed, GetLastError returned %d\n", ::GetLastError());
+    ::CloseHandle(m_hPipe);
+    m_hPipe = INVALID_HANDLE_VALUE;
   }
-
-  return bSuccess;
 }
 
-BOOL CNamedPipe::ConnectClient(LPOVERLAPPED lpOverlapped)
+void CNamedPipe::ThrowNamedPipeException(DWORD dwError)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
-#ifdef _DEBUG
-  BOOL bServerPipe;
-#endif
-  ASSERT(IsServerPipe(bServerPipe));
-  ASSERT(bServerPipe);     //Must be called from the server side
+	if (dwError == 0)
+		dwError = ::GetLastError();
 
-  BOOL bSuccess = ::ConnectNamedPipe(m_hPipe, lpOverlapped);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::ConnectClient() failed, GetLastError returned %d\n", ::GetLastError());
+	CNamedPipeException* pException = new CNamedPipeException(dwError);
 
-  return bSuccess;
+	TRACE(_T("Warning: throwing CNamedPipeException for error %d\n"), dwError);
+	THROW(pException);
 }
 
-BOOL CNamedPipe::DisconnectClient()
+void CNamedPipe::ConnectClient(LPOVERLAPPED lpOverlapped)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
-#ifdef _DEBUG
-  BOOL bServerPipe;
-#endif
-  ASSERT(IsServerPipe(bServerPipe));
-  ASSERT(bServerPipe);     //Must be called from the server side
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+  ASSERT(IsServerPipe()); //Must be called from the server side
 
-  BOOL bSuccess = ::DisconnectNamedPipe(m_hPipe);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::DisconnectClient() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::ConnectNamedPipe(m_hPipe, lpOverlapped))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Flush()
+void CNamedPipe::DisconnectClient()
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+  ASSERT(IsServerPipe()); //Must be called from the server side
 
-  BOOL bSuccess = ::FlushFileBuffers(m_hPipe);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Flush() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::DisconnectNamedPipe(m_hPipe))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToWrite, 
-                       DWORD& dwNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
+void CNamedPipe::Flush()
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  BOOL bSuccess = ::WriteFile(m_hPipe, lpBuffer, dwNumberOfBytesToWrite, 
-                              &dwNumberOfBytesWritten, lpOverlapped);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Write() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::FlushFileBuffers(m_hPipe))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToWrite, 
-                       LPOVERLAPPED lpOverlapped, LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
+DWORD CNamedPipe::Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToWrite, LPOVERLAPPED lpOverlapped)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  BOOL bSuccess = ::WriteFileEx(m_hPipe, lpBuffer, dwNumberOfBytesToWrite, 
-                                lpOverlapped, lpCompletionRoutine);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Write() failed, GetLastError returned %d\n", ::GetLastError());
+  DWORD dwNumberOfBytesWritten = 0;
+  if (!::WriteFile(m_hPipe, lpBuffer, dwNumberOfBytesToWrite, &dwNumberOfBytesWritten, lpOverlapped))
+    ThrowNamedPipeException();
 
-  return bSuccess;
+  return dwNumberOfBytesWritten;
 }
 
-BOOL CNamedPipe::Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead, 
-                      DWORD& dwNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+void CNamedPipe::Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToWrite, DWORD& dwNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  BOOL bSuccess = ::ReadFile(m_hPipe, lpBuffer, dwNumberOfBytesToRead, 
-                             &dwNumberOfBytesRead, lpOverlapped);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Read() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::WriteFile(m_hPipe, lpBuffer, dwNumberOfBytesToWrite, &dwNumberOfBytesWritten, lpOverlapped))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead, 
-                      LPOVERLAPPED lpOverlapped,  LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
+void CNamedPipe::Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToWrite, LPOVERLAPPED lpOverlapped, LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  BOOL bSuccess = ::ReadFileEx(m_hPipe, lpBuffer, dwNumberOfBytesToRead, 
-                               lpOverlapped, lpCompletionRoutine);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Read() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::WriteFileEx(m_hPipe, lpBuffer, dwNumberOfBytesToWrite, lpOverlapped, lpCompletionRoutine))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Peek(LPVOID lpBuffer, DWORD dwBufferSize, DWORD& dwBytesRead, 
-                      DWORD& dwTotalBytesAvail, DWORD& dwBytesLeftThisMessage)
+DWORD CNamedPipe::Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead, LPOVERLAPPED lpOverlapped)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  BOOL bSuccess = ::PeekNamedPipe(m_hPipe, lpBuffer, dwBufferSize, &dwBytesRead, 
-                                  &dwTotalBytesAvail, &dwBytesLeftThisMessage);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Peek() failed, GetLastError returned %d\n", ::GetLastError());
+  DWORD dwNumberOfBytesRead = 0;
+  if (!::ReadFile(m_hPipe, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesRead, lpOverlapped))
+    ThrowNamedPipeException();
 
-  return bSuccess;
+  return dwNumberOfBytesRead;
 }
 
-BOOL CNamedPipe::Transact(LPVOID lpInBuffer, DWORD dwInBufferSize, LPVOID lpOutBuffer,
-                          DWORD dwOutBufferSize, DWORD& dwBytesRead, LPOVERLAPPED lpOverlapped)
+void CNamedPipe::Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead, DWORD& dwNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  BOOL bSuccess = ::TransactNamedPipe(m_hPipe, lpInBuffer, dwInBufferSize, lpOutBuffer, 
-                                      dwOutBufferSize, &dwBytesRead, lpOverlapped);
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Transact() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::ReadFile(m_hPipe, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesRead, lpOverlapped))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::IsBlockingPipe(BOOL& bIsBlocking) const
+void CNamedPipe::Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead, LPOVERLAPPED lpOverlapped, LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  DWORD dwState;
-  BOOL bSuccess = ::GetNamedPipeHandleState(m_hPipe, &dwState, NULL, NULL, NULL, NULL, 0);
+  if (!::ReadFileEx(m_hPipe, lpBuffer, dwNumberOfBytesToRead, lpOverlapped, lpCompletionRoutine))
+    ThrowNamedPipeException();
+}
+
+DWORD CNamedPipe::Peek(LPVOID lpBuffer, DWORD dwBufferSize, DWORD* lpdwTotalBytesAvail, DWORD* lpdwBytesLeftThisMessage)
+{
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+
+  DWORD dwBytesRead = 0;
+  if (!::PeekNamedPipe(m_hPipe, lpBuffer, dwBufferSize, &dwBytesRead, lpdwTotalBytesAvail, lpdwBytesLeftThisMessage))
+    ThrowNamedPipeException();
+
+  return dwBytesRead;
+}
+
+void CNamedPipe::Peek(LPVOID lpBuffer, DWORD dwBufferSize, DWORD* lpdwBytesRead, DWORD* lpdwTotalBytesAvail, DWORD* lpdwBytesLeftThisMessage)
+{
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+
+  if (!::PeekNamedPipe(m_hPipe, lpBuffer, dwBufferSize, lpdwBytesRead, lpdwTotalBytesAvail, lpdwBytesLeftThisMessage))
+    ThrowNamedPipeException();
+}
+
+void CNamedPipe::Transact(LPVOID lpInBuffer, DWORD dwInBufferSize, LPVOID lpOutBuffer, DWORD dwOutBufferSize, DWORD& dwBytesRead, LPOVERLAPPED lpOverlapped)
+{
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+
+  if (!::TransactNamedPipe(m_hPipe, lpInBuffer, dwInBufferSize, lpOutBuffer, dwOutBufferSize, &dwBytesRead, lpOverlapped))
+    ThrowNamedPipeException();
+}
+
+BOOL CNamedPipe::IsBlockingPipe() const
+{
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+
+  DWORD dwState = 0;
+  if (!::GetNamedPipeHandleState(m_hPipe, &dwState, NULL, NULL, NULL, NULL, 0))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::IsBlockingPipe() failed, GetLastError returned %d\n", ::GetLastError());
-  else
-    bIsBlocking = ((dwState & PIPE_NOWAIT) == 0);
-
-  return bSuccess;
+  return ((dwState & PIPE_NOWAIT) == 0);
 }
 
-BOOL CNamedPipe::IsClientPipe(BOOL& bClientPipe) const
+BOOL CNamedPipe::IsClientPipe() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  DWORD dwFlags;
-  BOOL bSuccess = ::GetNamedPipeInfo(m_hPipe, &dwFlags, NULL, NULL, NULL);
+  DWORD dwFlags = 0;
+  if (!::GetNamedPipeInfo(m_hPipe, &dwFlags, NULL, NULL, NULL))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::IsClientPipe() failed, GetLastError returned %d\n", ::GetLastError());
-  else
-    bClientPipe = ((dwFlags & PIPE_CLIENT_END) != 0);
-
-  return bSuccess;
+  return ((dwFlags & PIPE_CLIENT_END) != 0);
 }
 
-BOOL CNamedPipe::IsServerPipe(BOOL& bServerPipe) const
+BOOL CNamedPipe::IsServerPipe() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  DWORD dwFlags;
-  BOOL bSuccess = ::GetNamedPipeInfo(m_hPipe, &dwFlags, NULL, NULL, NULL);
+  DWORD dwFlags = 0;
+  if (!::GetNamedPipeInfo(m_hPipe, &dwFlags, NULL, NULL, NULL))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::IsServerPipe() failed, GetLastError returned %d\n", ::GetLastError());
-  else
-    bServerPipe = ((dwFlags & PIPE_SERVER_END) != 0);
-
-  return bSuccess;
+  return ((dwFlags & PIPE_SERVER_END) != 0);
 }
 
-BOOL CNamedPipe::IsMessagePipe(BOOL& bMessagePipe) const
+BOOL CNamedPipe::IsMessagePipe() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
-  DWORD dwState;
-  BOOL bSuccess = ::GetNamedPipeHandleState(m_hPipe, &dwState, NULL, NULL, NULL, NULL, 0);
+  DWORD dwState = 0;
+  if (!::GetNamedPipeHandleState(m_hPipe, &dwState, NULL, NULL, NULL, NULL, 0))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::IsMessagePipe() failed, GetLastError returned %d\n", ::GetLastError());
-  else
-    bMessagePipe = ((dwState & PIPE_READMODE_MESSAGE) != 0);
-
-  return bSuccess;
+  return ((dwState & PIPE_READMODE_MESSAGE) != 0);
 }
 
 DWORD CNamedPipe::GetCurrentInstances() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
   DWORD dwCurInstances = 0;
-  BOOL bSuccess = ::GetNamedPipeHandleState(m_hPipe, NULL, &dwCurInstances, NULL, NULL, NULL, 0);
+  if (!::GetNamedPipeHandleState(m_hPipe, NULL, &dwCurInstances, NULL, NULL, NULL, 0))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::GetCurrentInstances() failed, GetLastError returned %d\n", ::GetLastError());
-
   return dwCurInstances;
 }
 
 DWORD CNamedPipe::GetMaxCollectionCount() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
-#ifdef _DEBUG
-  BOOL bClientPipe;
-#endif
-  ASSERT(IsClientPipe(bClientPipe));
-  ASSERT(bClientPipe);     //Must be called from the client side
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+  ASSERT(IsClientPipe()); //Must be called from the client side
 
   DWORD dwMaxCollectionCount = 0;
-  BOOL bSuccess = ::GetNamedPipeHandleState(m_hPipe, NULL, NULL, &dwMaxCollectionCount, NULL, NULL, 0);
+  if (!::GetNamedPipeHandleState(m_hPipe, NULL, NULL, &dwMaxCollectionCount, NULL, NULL, 0))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::GetMaxCollectionCount() failed, GetLastError returned %d\n", ::GetLastError());
-
   return dwMaxCollectionCount;
 }
 
 DWORD CNamedPipe::GetCollectionTimeout() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
-#ifdef _DEBUG
-  BOOL bClientPipe;
-#endif
-  ASSERT(IsClientPipe(bClientPipe));
-  ASSERT(bClientPipe);     //Must be called from the client side
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+  ASSERT(IsClientPipe()); //Must be called from the client side
 
   DWORD dwCollectDataTimeout = 0;
-  BOOL bSuccess = ::GetNamedPipeHandleState(m_hPipe, NULL, NULL, NULL, &dwCollectDataTimeout, NULL, 0);
+  if (!::GetNamedPipeHandleState(m_hPipe, NULL, NULL, NULL, &dwCollectDataTimeout, NULL, 0))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::GetCollectionTimeout() failed, GetLastError returned %d\n", ::GetLastError());
-
   return dwCollectDataTimeout;
 }
 
 DWORD CNamedPipe::GetOutboundBufferSize() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
   DWORD dwOutBufferSize = 0;
-  BOOL bSuccess = ::GetNamedPipeInfo(m_hPipe, NULL, &dwOutBufferSize, NULL, NULL);
+  if (!::GetNamedPipeInfo(m_hPipe, NULL, &dwOutBufferSize, NULL, NULL))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::GetOutboundBufferSize() failed, GetLastError returned %d\n", ::GetLastError());
-
   return dwOutBufferSize;
 }
 
 DWORD CNamedPipe::GetInboundBufferSize() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
   DWORD dwInBufferSize = 0;
-  BOOL bSuccess = ::GetNamedPipeInfo(m_hPipe, NULL, NULL, &dwInBufferSize, NULL);
+  if (!::GetNamedPipeInfo(m_hPipe, NULL, NULL, &dwInBufferSize, NULL))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::GetInboundBufferSize() failed, GetLastError returned %d\n", ::GetLastError());
-
   return dwInBufferSize;
 }
 
 CString CNamedPipe::GetClientUserName() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
-#ifdef _DEBUG
-  BOOL bServerPipe;
-#endif
-  ASSERT(IsServerPipe(bServerPipe));
-  ASSERT(bServerPipe);     //Must be called from the server side
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+  ASSERT(IsServerPipe()); //Must be called from the server side
 
   TCHAR pszUserName[_MAX_PATH];
-  BOOL bSuccess = ::GetNamedPipeHandleState(m_hPipe, NULL, NULL, NULL, NULL, pszUserName, _MAX_PATH);
+  if (!::GetNamedPipeHandleState(m_hPipe, NULL, NULL, NULL, NULL, pszUserName, _MAX_PATH))
+    ThrowNamedPipeException();
   
-  CString sName;
-  if (!bSuccess)
-    TRACE1("CNamedPipe::GetClientUserName() failed, GetLastError returned %d\n", ::GetLastError());
-  else
-    sName = pszUserName;
-
-  return sName;
+  return pszUserName;
 }
 
 DWORD CNamedPipe::GetMaxInstances() const
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
   DWORD dwMaxInstances = 0;
-  BOOL bSuccess = ::GetNamedPipeInfo(m_hPipe, NULL, NULL, NULL, &dwMaxInstances);
+  if (!::GetNamedPipeInfo(m_hPipe, NULL, NULL, NULL, &dwMaxInstances))
+    ThrowNamedPipeException();
                                       
-  if (!bSuccess)
-    TRACE1("CNamedPipe::GetMaxInstances() failed, GetLastError returned %d\n", ::GetLastError());
-
   return dwMaxInstances;
 }
 
-BOOL CNamedPipe::SetMode(BOOL bByteMode, BOOL bBlockingMode)
+void CNamedPipe::SetMode(BOOL bByteMode, BOOL bBlockingMode)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
 
   DWORD dwMode;
   if (bByteMode)
@@ -422,99 +489,51 @@ BOOL CNamedPipe::SetMode(BOOL bByteMode, BOOL bBlockingMode)
       dwMode = PIPE_READMODE_MESSAGE | PIPE_NOWAIT;
   }
 
-  BOOL bSuccess = ::SetNamedPipeHandleState(m_hPipe, &dwMode, NULL, NULL);
-                                      
-  if (!bSuccess)
-    TRACE1("CNamedPipe::SetMode() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::SetNamedPipeHandleState(m_hPipe, &dwMode, NULL, NULL))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::SetMaxCollectionCount(DWORD dwCollectionCount)
+void CNamedPipe::SetMaxCollectionCount(DWORD dwCollectionCount)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
-#ifdef _DEBUG
-  BOOL bClientPipe;
-#endif
-  ASSERT(IsClientPipe(bClientPipe));
-  ASSERT(bClientPipe);     //Must be called from the client side
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+  ASSERT(IsClientPipe()); //Must be called from the client side
 
-  BOOL bSuccess = ::SetNamedPipeHandleState(m_hPipe, NULL, &dwCollectionCount, NULL);
-                                      
-  if (!bSuccess)
-    TRACE1("CNamedPipe::SetMaxCollectionCount() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::SetNamedPipeHandleState(m_hPipe, NULL, &dwCollectionCount, NULL))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::SetCollectionTimeout(DWORD dwDataTimeout)
+void CNamedPipe::SetCollectionTimeout(DWORD dwDataTimeout)
 {
-  ASSERT(m_hPipe != NULL); //Pipe must be open
-#ifdef _DEBUG
-  BOOL bClientPipe;
-#endif
-  ASSERT(IsClientPipe(bClientPipe));
-  ASSERT(bClientPipe);     //Must be called from the client side
+  //Validate our parameters
+  ASSERT(IsOpen()); //Pipe must be open
+  ASSERT(IsClientPipe()); //Must be called from the client side
 
-  BOOL bSuccess = ::SetNamedPipeHandleState(m_hPipe, NULL, NULL, &dwDataTimeout);
-                                      
-  if (!bSuccess)
-    TRACE1("CNamedPipe::SetCollectionTimeout() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::SetNamedPipeHandleState(m_hPipe, NULL, NULL, &dwDataTimeout))
+    ThrowNamedPipeException();
 }
 
-BOOL CNamedPipe::Call(LPCTSTR lpszServerName, LPCTSTR lpszPipeName, LPVOID lpInBuffer, 
-                      DWORD dwInBufferSize, LPVOID lpOutBuffer, DWORD dwOutBufferSize, 
-                      DWORD& dwBytesRead, DWORD dwTimeOut)
+DWORD CNamedPipe::Call(LPCTSTR lpszServerName, LPCTSTR lpszPipeName, LPVOID lpInBuffer, DWORD dwInBufferSize, LPVOID lpOutBuffer, DWORD dwOutBufferSize, DWORD dwTimeOut)
+{
+  //What will be the return value
+  DWORD dwBytesRead = 0;
+
+  //Construct the canonical pipe name
+  CString sPipeName;
+  sPipeName.Format(_T("\\\\%s\\PIPE\\%s"), lpszServerName, lpszPipeName);
+
+  if (!::CallNamedPipe(sPipeName, lpInBuffer, dwInBufferSize, lpOutBuffer, dwOutBufferSize, &dwBytesRead, dwTimeOut))
+    ThrowNamedPipeException();
+
+  return dwBytesRead;
+}
+
+void CNamedPipe::ServerAvailable(LPCTSTR lpszServerName, LPCTSTR lpszPipeName, DWORD dwTimeOut)
 {
   //Construct the canonical pipe name
   CString sPipeName;
   sPipeName.Format(_T("\\\\%s\\PIPE\\%s"), lpszServerName, lpszPipeName);
 
-  BOOL bSuccess = ::CallNamedPipe(sPipeName, lpInBuffer, dwInBufferSize, lpOutBuffer, 
-                                  dwOutBufferSize, &dwBytesRead, dwTimeOut);
-
-  if (!bSuccess)
-    TRACE1("CNamedPipe::Call() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
+  if (!::WaitNamedPipe(sPipeName, dwTimeOut))
+    ThrowNamedPipeException();
 }
-
-BOOL CNamedPipe::ServerAvailable(LPCTSTR lpszServerName, LPCTSTR lpszPipeName, DWORD dwTimeOut)
-{
-  //Construct the canonical pipe name
-  CString sPipeName;
-  sPipeName.Format(_T("\\\\%s\\PIPE\\%s"), lpszServerName, lpszPipeName);
-
-  BOOL bSuccess = ::WaitNamedPipe(sPipeName, dwTimeOut);
-
-  if (!bSuccess)
-    TRACE1("CNamedPipe::ServerAvailable() failed, GetLastError returned %d\n", ::GetLastError());
-
-  return bSuccess;
-}
-
-#ifdef _DEBUG
-void CNamedPipe::AssertValid() const
-{
-  CObject::AssertValid();
-  ASSERT(IsOpen());
-}
-#endif
-
-#ifdef _DEBUG
-void CNamedPipe::Dump(CDumpContext& dc) const
-{
-  CObject::Dump(dc);
-
-  CString sText;
-  sText.Format(_T("Open=%d, m_hPipe=%x\n"), IsOpen(), m_hPipe);
-  dc << sText;
-}
-#endif
-
-
-
-
-
