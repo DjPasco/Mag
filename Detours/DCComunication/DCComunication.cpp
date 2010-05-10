@@ -51,7 +51,7 @@ namespace pipe_utils
 	static bool Execute(LPCWSTR sFile)
 	{
 		BOOL bResult = FALSE;
-	if(NULL == hPipe)
+	//if(NULL == hPipe)
 	{
 		while (TRUE) 
 		{
@@ -161,16 +161,16 @@ namespace pipe_utils
 	// Close the pipe.
 	// 
 
-//	CloseHandle(hPipe); 
+	CloseHandle(hPipe); 
 	}
 };
 
 bool CDCClient::Execute(LPCWSTR sFile)
 {
 	//return socket_utils::SendFile(sFile);
-	return wnd_utils::Execute(sFile);
+	//return wnd_utils::Execute(sFile);
 
-	//return pipe_utils::Execute(sFile);
+	return pipe_utils::Execute(sFile);
 }
 
 

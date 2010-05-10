@@ -207,14 +207,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DCAntivirusScanDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\DCAntivirusScanDlg.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Resource.h"
 				>
 			</File>
@@ -246,20 +238,12 @@
 				RelativePath=".\targetver.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Scanner"
-			>
 			<File
-				RelativePath=".\Scanner\Scanner.cpp"
+				RelativePath=".\TrayDialog.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Scanner\Scanner.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Scanner\ScanValidatorObs.h"
+				RelativePath=".\TrayDialog.h"
 				>
 			</File>
 		</Filter>
@@ -269,15 +253,15 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\res\DCAntiVirus.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\DCAntiVirus.rc"
 				>
 			</File>
 			<File
 				RelativePath=".\res\DCAntiVirus.rc2"
+				>
+			</File>
+			<File
+				RelativePath=".\res\shield.ico"
 				>
 			</File>
 		</Filter>
@@ -293,10 +277,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 		<Global

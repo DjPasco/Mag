@@ -49,7 +49,7 @@ public:
 typedef CScannedFileMap::const_iterator CMapI;
 typedef CScannedFileMap::iterator CMapEditI;
 
-CString gsDataFile = _T("PassData.dat");
+CString gsDataFile = _T("c:\\MAG_REPO\\ClamTools\\Bin\\PassData.dat");
 
 namespace file_utils
 {
@@ -229,19 +229,11 @@ namespace file_utils
 			(*pMapFiles)[hash] = info;
 		}
 
-		int nSize = pMapFiles->size();
-		CString sSize;
-		sSize.Format("%d", nSize);
-		MessageBox(NULL, sSize, "Dydis", MB_OKCANCEL);
-
-
 		fclose(pFile);
 	}
 
 	void WritePassData(CScannedFileMap *pMapFiles)
 	{
-		MessageBox(NULL, "Atejo", "Dydis", MB_OKCANCEL);
-
 		FILE *pFile = fopen(gsDataFile, "wb");
 		if(NULL == pFile)
 		{
@@ -252,11 +244,6 @@ namespace file_utils
 		CFileInfo info;
 		CMapI begin = pMapFiles->begin();
 		CMapI end = pMapFiles->end();
-
-		int nSize = pMapFiles->size();
-		CString sSize;
-		sSize.Format("%d", nSize);
-		MessageBox(NULL, sSize, "Dydis", MB_OKCANCEL);
 
 		for(CMapI it = begin; it != end; ++it)
 		{

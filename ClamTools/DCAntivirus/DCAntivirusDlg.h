@@ -1,15 +1,16 @@
 #pragma once
-class CScanner;
-class CDCAntivirusScanDlg;
 
-class CDCAntiVirusDlg : public CDialog
+#ifndef _TRAY_DIALOG_H__
+	#include "TrayDialog.h"
+#endif
+
+class CDCAntiVirusDlg : public CTrayDialog
 {
 public:
 	CDCAntiVirusDlg(CWnd* pParent = NULL);	// standard constructor
 	virtual ~CDCAntiVirusDlg();
 
 protected:
-	LRESULT OnLoadDB(WPARAM wParam, LPARAM lParam);
 	LRESULT OnHookSystem(WPARAM wParam, LPARAM lParam);
 
 
@@ -21,9 +22,6 @@ protected:
 
 private:
 	HICON m_hIcon;
-
-	CScanner			*m_pScanner;
-	CDCAntivirusScanDlg	*m_pScanDlg;
 
 	int m_nProcCount;
 	UINT_PTR m_nTimer;

@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\Bin"
+			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="detours.lib detoured.lib DCComunicationD.lib"
+				AdditionalDependencies="detours.lib detoured.lib"
 				OutputFile="$(OutDir)\SystemHookD.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\MAG_REPO\Bin;C:\MAG_REPO\Detours\Detours\lib"
@@ -93,7 +93,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\Bin"
+			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -207,6 +207,10 @@
 						CompileAsManaged="0"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\Utils\HookUtils.h"
+				>
 			</File>
 			<File
 				RelativePath=".\stdafx.cpp"

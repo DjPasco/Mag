@@ -1,33 +1,46 @@
 #include "stdafx.h"
 #include "SystemHook.h"
-#include "DCComunication/DCComunication.h"
 
-#include "../../detours/include/detours.h"
+#include "../Utils/SendObj.h"
 
 #include <stdio.h>
+#include <tchar.h>
 
-namespace path_utils
+static HWND g_Hwnd = NULL;
+namespace wnd_utils
 {
-	void GetHookDllPath(char *sHookPath)
+	static bool Execute(LPCSTR sFile)
 	{
-		char dirPath[MAX_PATH];
-		GetCurrentDirectory(MAX_PATH, dirPath);
+		if(NULL == g_Hwnd)
+		{
+			HWND hwnd = NULL;
+			hwnd = FindWindow(NULL, "DCAntiVirusScan");
 
-	#ifdef _DEBUG
-		sprintf_s(sHookPath, MAX_PATH, "%s\\SystemHookD.dll", dirPath);
-	#else
-		sprintf_s(sHookPath, MAX_PATH, "%s\\SystemHook.dll", dirPath);
-	#endif
+			if(NULL != hwnd)
+			{
+				g_Hwnd = hwnd;
+			}
+		}
+		else
+		{
+			CSendObj obj;
+			strcpy_s(obj.m_sPath, MAX_PATH, sFile);
+			COPYDATASTRUCT copy;
+
+			copy.dwData = 1;
+			copy.cbData = sizeof(obj);
+			copy.lpData = &obj;
+
+			LRESULT result = SendMessage(g_Hwnd,
+										 WM_COPYDATA,
+										 0,
+										 (LPARAM) (LPVOID) &copy);
+
+		}
+
+		return true;
 	}
-
-	void GetDetourDllPath(char *sDetourPath)
-	{
-		char dirPath[MAX_PATH];
-		GetCurrentDirectory(MAX_PATH, dirPath);
-
-		sprintf_s(sDetourPath, MAX_PATH, "%s\\detoured.dll", dirPath);
-	}
-}
+};
 
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
 										  DWORD dwDesiredAccess,
@@ -50,7 +63,8 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 
 	if(NULL == strstr(sPath, "\\\\.\\"))//Named Pipe
 	{
-		bool bFileOK = CDCClient::Execute(lpFileName);
+		//MessageBox(NULL, sPath, "Dydis", MB_OKCANCEL);	
+		bool bFileOK = wnd_utils::Execute(sPath);
 	}
 
 	return pTrueCreateFileW(lpFileName,
@@ -109,18 +123,30 @@ BOOL WINAPI TransCreateProcessW(LPCWSTR lpszImageName,
 								LPSTARTUPINFOW lpsiStartInfo,
 								LPPROCESS_INFORMATION lppiProcInfo)
 {
-	MessageBox(NULL, "W", "w", MB_ICONHAND);
-
-	char sHookPath[MAX_PATH];
-	path_utils::GetHookDllPath(sHookPath);
-
-	char sFullDetoursPath[MAX_PATH];
-	path_utils::GetDetourDllPath(sFullDetoursPath);
-
-	return DetourCreateProcessWithDllW(lpszImageName, lpszCmdLine, lpsaProcess,
+	BOOL bRet =  pTrueCreateProcessW(lpszImageName, lpszCmdLine, lpsaProcess,
 							   lpsaThread, fInheritHandles, fdwCreate,
-							   lpvEnvironment, lpszCurDir, lpsiStartInfo, lppiProcInfo,
-							   sFullDetoursPath, sHookPath, NULL);
+							   lpvEnvironment, lpszCurDir, lpsiStartInfo, lppiProcInfo);
+
+	//if(bRet)
+	//{
+	//	char sDetoursPath[MAX_PATH];
+	//	path_utils::GetDetourDllPath(sDetoursPath);
+
+	//	//hook_utils_main::DebugMessage(sDetoursPath);
+
+	//	char sHookPath[MAX_PATH];
+	//	path_utils::GetHookDllPath(sHookPath);
+
+	//	LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), _T("LoadLibraryW"));
+
+	//	hook_utils_main::RunLoadLibraryInProcess(lppiProcInfo->hProcess, LoadLibraryAddr, sDetoursPath);
+	//	//hook_utils_main::DebugMessage("Deours");
+
+	//	hook_utils_main::RunLoadLibraryInProcess(lppiProcInfo->hProcess, LoadLibraryAddr, sHookPath);
+	//	//hook_utils_main::DebugMessage("hook");
+	//}
+
+	return bRet;
 
 }
 
@@ -146,28 +172,9 @@ BOOL WINAPI TransCreateProcessA(LPCSTR lpApplicationName,
 								   LPSTARTUPINFOA lpStartupInfo,
 								   LPPROCESS_INFORMATION lpProcessInformation)
 {
-	MessageBox(NULL, "A", "a", MB_ICONHAND);
-	char sHookPath[MAX_PATH];
-	path_utils::GetHookDllPath(sHookPath);
-
-	char sFullDetoursPath[MAX_PATH];
-	path_utils::GetDetourDllPath(sFullDetoursPath);
-
-	return DetourCreateProcessWithDllA(lpApplicationName, lpCommandLine, lpProcessAttributes,
+	return pTrueCreateProcessA(lpApplicationName, lpCommandLine, lpProcessAttributes,
 							   lpThreadAttributes, bInheritHandles, dwCreate,
-							   lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation,
-							   sFullDetoursPath, sHookPath, NULL);
-	//return 
-	//return pTrueCreateProcessA(lpApplicationName,
-	//							   lpCommandLine,
-	//							   lpProcessAttributes,
-	//							   lpThreadAttributes,
-	//							   bInheritHandles,
-	//							   dwCreate,
-	//							   lpEnvironment,
-	//							   lpCurrentDirectory,
-	//							   lpStartupInfo,
-	//							   lpProcessInformation);
+							   lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
 }
 
 
