@@ -16,7 +16,6 @@ CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 	m_nProcCount = hook_utils::GetProcessCount();
 }
 
-
 CDCAntiVirusDlg::~CDCAntiVirusDlg()
 {
 	hook_utils::GlobalUnHook();
@@ -52,10 +51,10 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 
 void CDCAntiVirusDlg::OnPaint()
 {
+	CPaintDC dc(this); // device context for painting
+
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // device context for painting
-
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// Center icon in client rectangle
@@ -82,7 +81,7 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
-	hook_utils::GlobalHook(true);
+	//hook_utils::GlobalHook(true);
 	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 
 	return 0;
@@ -94,7 +93,7 @@ void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 	if(m_nProcCount != nNewCount)
 	{
 		m_nProcCount = nNewCount;
-		hook_utils::GlobalHook(false);
+		//hook_utils::GlobalHook(false);
 	}
 
 	CTrayDialog::OnTimer(nIDEvent);
