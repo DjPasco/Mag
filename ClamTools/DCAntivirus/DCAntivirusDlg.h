@@ -12,13 +12,16 @@ public:
 
 protected:
 	LRESULT OnHookSystem(WPARAM wParam, LPARAM lParam);
-
+	LRESULT OnCopyData(WPARAM wParam, LPARAM lParam);
 
 	virtual BOOL OnInitDialog();
 	void OnPaint();
 	void OnTimer(UINT nIDEvent);
 	HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+
+private:
+	void RequestData();
 
 private:
 	HICON m_hIcon;

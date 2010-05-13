@@ -25,6 +25,7 @@ namespace wnd_utils
 		{
 			CSendObj obj;
 			strcpy_s(obj.m_sPath, MAX_PATH, sFile);
+			obj.m_bReQuestData = false;
 			COPYDATASTRUCT copy;
 
 			copy.dwData = 1;

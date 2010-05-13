@@ -10,7 +10,7 @@ CDCAntiVirusApp theApp;
 BOOL CDCAntiVirusApp::InitInstance()
 {
 	CWinApp::InitInstance();
-	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+	SetRegistryKey(_T("DCAntivirus"));
 
 	CDCAntiVirusDlg dlg;
 	m_pMainWnd = &dlg;

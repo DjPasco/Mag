@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "Scanner.h"
 
-#include "../../DCSanner/DCSanner.h"
+#include "CLScanner.h"
 #include "ScanValidatorObs.h"
+#include "../TraySendObj.h"
 
 #include <stdio.h>
 #include <hash_map>
@@ -297,6 +298,8 @@ namespace file_utils
 
 CScanner::CScanner()
 {
+	m_TrayHwnd = NULL;
+
 	Init();
 	
 	m_pMD5 = EVP_md5();
@@ -322,24 +325,34 @@ void CScanner::ClearAndSave()
 bool CScanner::LoadDatabases()
 {
 #ifdef LOAD_MAIN_DB
-	if(m_pMainScan->LoadDatabase("c:\\MAG_REPO\\LibClamAV\\main.cvd"))
-#endif
+	if(!m_pMainScan->LoadDatabase("c:\\MAG_REPO\\LibClamAV\\main.cvd"))
 	{
-		if(m_pDailyScan->LoadDatabase("c:\\MAG_REPO\\LibClamAV\\daily.cvd"))
-		{
-			return true;
-		}
-
 		return false;
 	}
 
-	return false;
+	m_pMainScan->GetInfo(m_pMainDBInfo);
+#endif
+
+	if(!m_pDailyScan->LoadDatabase("c:\\MAG_REPO\\LibClamAV\\daily.cvd"))
+	{
+		return false;
+	}
+
+	m_pDailyScan->GetInfo(m_pDailyDBInfo);
+
+
+	SendInfoToTray(false, m_pDailyDBInfo);
+
+	return true;
 }
 
 void CScanner::Init()
 {
-	m_pMainScan		= new CDCScanner;
-	m_pDailyScan	= new CDCScanner;
+	m_pMainScan		= new CCLScanner;
+	m_pDailyScan	= new CCLScanner;
+
+	m_pMainDBInfo	= new CDBInfo;
+	m_pDailyDBInfo	= new CDBInfo;
 
 #ifdef LOAD_MAIN_DB
 	if(m_pMainScan->Init())
@@ -362,7 +375,10 @@ void CScanner::Free()
 	m_pDailyScan->FreeEngine();
 	
 	delete m_pMainScan;
+	delete m_pMainDBInfo;
+
 	delete m_pDailyScan;
+	delete m_pDailyDBInfo;
 }
 
 bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
@@ -382,8 +398,8 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 										  m_pMD5,
 										  hash,
 										  pathHash,
-										  m_pMainScan->GetDBVersion(),
-										  m_pDailyScan->GetDBVersion()))
+										  m_pMainDBInfo->m_nVersion,
+										  m_pDailyDBInfo->m_nVersion))
 	{
 		return true;
 	}
@@ -406,11 +422,13 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 
 	CFileInfo info;
 	info.m_nCount = 1;
-	info.m_nMainDBVersion = m_pMainScan->GetDBVersion();
-	info.m_nDailyDBVersion = m_pDailyScan->GetDBVersion();
+	info.m_nMainDBVersion = m_pMainDBInfo->m_nVersion;
+	info.m_nDailyDBVersion = m_pDailyDBInfo->m_nVersion;
 	info.m_sFilePath = sFilePath.c_str();
 	info.m_fileHash = hash;
 	file_utils::AddFileHash(m_pFilesMap, pathHash, info);
+
+	SendFileToTray(sFile);
 
 	sVirus.Empty();
 	return true;
@@ -472,4 +490,64 @@ void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
 			Sleep(10);
 		}
 	}
+}
+
+void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
+{
+	if(NULL == m_TrayHwnd)
+	{
+		m_TrayHwnd = FindWindow(NULL, "DCAntiVirus");
+	}
+
+	if(NULL == m_TrayHwnd)
+	{
+		return;
+	}
+
+	CTraySendObj obj;
+	obj.m_nType = EData;
+	obj.m_bMain = bMain;
+	strcpy_s(obj.m_sText, MAX_PATH, pDBInfo->m_sTime);
+	obj.m_nVersion = pDBInfo->m_nVersion;
+	obj.m_nSigs = pDBInfo->m_nSigs;
+
+	COPYDATASTRUCT copy;
+	copy.dwData = 1;
+	copy.cbData = sizeof(obj);
+	copy.lpData = &obj;
+
+	SendMessage(m_TrayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+}
+
+void CScanner::SendFileToTray(LPCSTR sFile)
+{
+	if(NULL == m_TrayHwnd)
+	{
+		m_TrayHwnd = FindWindow(NULL, "DCAntiVirus");
+	}
+
+	if(NULL == m_TrayHwnd)
+	{
+		return;
+	}
+
+	CTraySendObj obj;
+	obj.m_nType = EFile;
+	strcpy_s(obj.m_sText, MAX_PATH, sFile);
+
+	COPYDATASTRUCT copy;
+	copy.dwData = 1;
+	copy.cbData = sizeof(obj);
+	copy.lpData = &obj;
+
+	SendMessage(m_TrayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+}
+
+void CScanner::RequestData()
+{
+#ifdef LOAD_MAIN_DB
+	SendInfoToTray(true, m_pMainDBInfo);
+#endif
+
+	SendInfoToTray(false, m_pDailyDBInfo);
 }

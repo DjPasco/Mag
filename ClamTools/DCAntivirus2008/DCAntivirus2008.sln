@@ -1,13 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DCSanner", "..\DCSanner\DCSanner.vcproj", "{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemHook", "..\SystemHook\ForceVersionDLL.vcproj", "{0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DCAntiVirus", "..\DCAntiVirus\DCAntiVirus.vcproj", "{FF588D58-179D-4057-8FBE-E8CD90FE61E1}"
 	ProjectSection(ProjectDependencies) = postProject
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8} = {E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}
 		{BCE4944F-0666-4011-8A03-F6A7C6970E89} = {BCE4944F-0666-4011-8A03-F6A7C6970E89}
 	EndProjectSection
 EndProject
@@ -23,14 +20,6 @@ Global
 		Unicode Release|Win32 = Unicode Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Debug|Win32.ActiveCfg = Debug|Win32
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Debug|Win32.Build.0 = Debug|Win32
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Release|Win32.ActiveCfg = Release|Win32
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Release|Win32.Build.0 = Release|Win32
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Unicode Debug|Win32.ActiveCfg = Debug|Win32
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Unicode Debug|Win32.Build.0 = Debug|Win32
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Unicode Release|Win32.ActiveCfg = Release|Win32
-		{E7AA1D4C-E3CE-419C-A9AD-D7B9F26E00A8}.Unicode Release|Win32.Build.0 = Release|Win32
 		{0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF}.Debug|Win32.ActiveCfg = Debug|Win32
 		{0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF}.Debug|Win32.Build.0 = Debug|Win32
 		{0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF}.Release|Win32.ActiveCfg = Release|Win32

@@ -1,12 +1,12 @@
 #include "stdafx.h"
-#include "DCSanner.h"
+#include "CLScanner.h"
 #include "../ClamInclude/clamav.h"
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
 
-bool CDCScanner::Init()
+bool CCLScanner::Init()
 {
 	int nRet = cl_init(CL_INIT_DEFAULT);
 	if(CL_SUCCESS != nRet)
@@ -17,7 +17,7 @@ bool CDCScanner::Init()
 	return true;
 }
 
-bool CDCScanner::CreateEngine()
+bool CCLScanner::CreateEngine()
 {
 	if(NULL != m_pEngine)
 	{
@@ -33,7 +33,7 @@ bool CDCScanner::CreateEngine()
 	return true;
 }
 
-bool CDCScanner::FreeEngine()
+bool CCLScanner::FreeEngine()
 {
 	if(NULL == m_pEngine)
 	{
@@ -46,16 +46,14 @@ bool CDCScanner::FreeEngine()
 		return false;
 	}
 
+	cl_cvdfree(m_pDBInfo);
+
 	return true;
 }
 
-bool CDCScanner::LoadDatabase(LPCSTR sDBPath)
+bool CCLScanner::LoadDatabase(LPCSTR sDBPath)
 {
-	cl_cvd *dbInfo = cl_cvdhead(sDBPath);
-	
-	m_nDBVersion = dbInfo->version;
-	cl_cvdfree(dbInfo);
-
+	m_pDBInfo = cl_cvdhead(sDBPath);
 	unsigned int nSignCount = 0;
 	int nRet = cl_load(sDBPath, m_pEngine, &nSignCount, CL_DB_BYTECODE);
 
@@ -73,7 +71,7 @@ bool CDCScanner::LoadDatabase(LPCSTR sDBPath)
 	return true;
 }
 
-bool CDCScanner::ScanFile(LPCSTR sFile, const char *sVirname)
+bool CCLScanner::ScanFile(LPCSTR sFile, const char *sVirname)
 {
 	unsigned long lScanned;
 	int nRet = cl_scanfile(sFile, &sVirname, &lScanned, m_pEngine, CL_SCAN_STDOPT);
@@ -86,7 +84,14 @@ bool CDCScanner::ScanFile(LPCSTR sFile, const char *sVirname)
 	return false;
 }
 
-unsigned int CDCScanner::GetDBVersion()
+void CCLScanner::GetInfo(CDBInfo *pInfo)
 {
-	return m_nDBVersion;
+	if(NULL == m_pDBInfo || NULL == pInfo)
+	{
+		return;
+	}
+
+	pInfo->m_sTime		= m_pDBInfo->time;
+	pInfo->m_nVersion	= m_pDBInfo->version;
+	pInfo->m_nSigs		= m_pDBInfo->sigs;
 }

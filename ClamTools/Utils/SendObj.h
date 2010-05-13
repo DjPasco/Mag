@@ -5,6 +5,7 @@ class CSendObj
 {
 public:
 	char m_sPath[MAX_PATH];
+	bool m_bReQuestData;
 };
 
 #endif

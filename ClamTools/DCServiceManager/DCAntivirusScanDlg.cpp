@@ -16,7 +16,7 @@ static LPCTSTR gszProcessorTime="\\Processor(_Total)\\% Processor Time";
 
 #define MAX_LOAD 10
 #define IDL_TIME 5000
-#define CHECH_IDLE 3000
+#define CHECK_IDLE 3000
 
 
 BEGIN_MESSAGE_MAP(CDCAntivirusScanDlg, CDialog)
@@ -40,7 +40,7 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 	IdleTrackerInit();
 	
-	SetTimer(m_nTimer, CHECH_IDLE, NULL);
+	SetTimer(m_nTimer, CHECK_IDLE, NULL);
 
 	m_hQuery = NULL;
 	m_hCounter = NULL;
@@ -62,10 +62,25 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 	UNREFERENCED_PARAMETER(wParam);
 
 	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
-	CString sFile = ((CSendObj *)(copy->lpData))->m_sPath;
-	CString sVirusName;
-	m_pScanner->ScanFile(sFile, sVirusName);
-	return 0;
+	CSendObj *pData = NULL;
+	pData = (CSendObj *)copy->lpData; 
+
+	if(NULL == pData)
+	{
+		return 1;
+	}
+	
+	if(pData->m_bReQuestData)
+	{
+		m_pScanner->RequestData();
+	}
+	else
+	{
+		CString sFile = pData->m_sPath;
+		CString sVirusName;
+		m_pScanner->ScanFile(sFile, sVirusName);
+	}
+	return 1;
 }
 
 LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)

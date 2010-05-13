@@ -3,7 +3,12 @@
 #include "DCAntiVirusDlg.h"
 #include "Hook/Hook.h"
 
+#include "../Utils/TraySendObj.h"
+#include "../Utils/SendObj.h"
+
 #define WM_HOOK_SYSTEM	WM_USER+1
+
+//#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -18,7 +23,9 @@ CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 
 CDCAntiVirusDlg::~CDCAntiVirusDlg()
 {
+#ifndef IGNORE_HOOK
 	hook_utils::GlobalUnHook();
+#endif
 }
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
@@ -26,6 +33,7 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_TIMER()
 	ON_MESSAGE(WM_HOOK_SYSTEM, OnHookSystem)
+	ON_MESSAGE(WM_COPYDATA, OnCopyData)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusDlg::OnInitDialog()
@@ -43,6 +51,8 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 
 	TraySetMinimizeToTray(TRUE);
 	TrayShow();
+
+	RequestData();
 
 	this->SendMessage(WM_HOOK_SYSTEM);
 	SetTimer(m_nTimer, 1000, NULL);
@@ -81,20 +91,95 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
+#ifndef IGNORE_HOOK
 	//hook_utils::GlobalHook(true);
-	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+	hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+#endif
 
 	return 0;
 }
 
 void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 {
+#ifndef IGNORE_HOOK
 	int nNewCount = hook_utils::GetProcessCount();
 	if(m_nProcCount != nNewCount)
 	{
 		m_nProcCount = nNewCount;
 		//hook_utils::GlobalHook(false);
 	}
+#endif
 
 	CTrayDialog::OnTimer(nIDEvent);
+}
+
+LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(wParam);
+
+	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
+
+	CTraySendObj *pData = NULL;
+	pData = (CTraySendObj *)copy->lpData;
+
+	EInfoType type = (EInfoType)pData->m_nType;
+	switch(type)
+	{
+	case EData:
+		{
+			CString sVersion, sSigs, sTime;
+			sVersion.Format("%d", pData->m_nVersion);
+			sSigs.Format("%d", pData->m_nSigs);
+			sTime.Format("%s", pData->m_sText);
+			
+			if(pData->m_bMain)
+			{
+				GetDlgItem(IDC_EDIT_MAIN_DB_VERSION)->SetWindowText(sVersion);
+				GetDlgItem(IDC_EDIT_MAIN_DB_TIME)->SetWindowText(sTime);
+				GetDlgItem(IDC_EDIT_MAIN_DB_SIG)->SetWindowText(sSigs);
+			}
+			else
+			{
+				GetDlgItem(IDC_EDIT_DAILY_DB_VERSION)->SetWindowText(sVersion);
+				GetDlgItem(IDC_EDIT_DAILY_DB_TIME)->SetWindowText(sTime);
+				GetDlgItem(IDC_EDIT_DAILY_DB_SIG)->SetWindowText(sSigs);
+			}
+		}
+		break;
+	case EFile:
+		{
+			CString sFile;
+			sFile.Format("%s", pData->m_sText);
+			GetDlgItem(IDC_LAST_FILE_EDIT)->SetWindowText(sFile);
+		}
+		break;
+	default:
+		{
+			ASSERT(FALSE);
+		}
+		break;
+	}
+
+	return 0;
+}
+
+void CDCAntiVirusDlg::RequestData()
+{
+	HWND hwnd = NULL;
+	hwnd = ::FindWindow(NULL, "DCAntiVirusScan");
+
+	if(NULL == hwnd)
+	{
+		return;
+	}
+
+	CSendObj obj;
+	obj.m_bReQuestData = true;
+
+	COPYDATASTRUCT copy;
+	copy.dwData = 1;
+	copy.cbData = sizeof(obj);
+	copy.lpData = &obj;
+
+	::SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
 }

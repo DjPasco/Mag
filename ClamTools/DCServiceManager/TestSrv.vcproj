@@ -267,11 +267,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libeay32.lib DCSanner.lib IdleTrac.lib pdh.lib"
+				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamav.lib"
 				OutputFile="../Bin/DCService.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\MAG_REPO\ClamTools\Bin"
+				AdditionalLibraryDirectories="C:\MAG_REPO\ClamTools\Bin;C:\MAG_REPO\ClamTools\ClamInclude"
 				ProgramDatabaseFile=".\Release/TestSrv.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -362,11 +362,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libeay32.lib DCSannerD.lib IdleTrac.lib pdh.lib"
+				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamavd.lib"
 				OutputFile="../Bin/DCServiceD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\MAG_REPO\ClamTools\Bin"
+				AdditionalLibraryDirectories="C:\MAG_REPO\ClamTools\Bin;C:\MAG_REPO\ClamTools\ClamInclude"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/TestSrv.pdb"
 				SubSystem="2"
@@ -626,12 +626,40 @@
 		<Filter
 			Name="Utils"
 			>
+			<File
+				RelativePath="..\Utils\TraySendObj.h"
+				>
+			</File>
 			<Filter
 				Name="Scanner"
 				>
 				<File
+					RelativePath="..\Utils\Scanner\CLScanner.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\Utils\Scanner\CLScanner.h"
+					>
+				</File>
+				<File
 					RelativePath="..\Utils\Scanner\Scanner.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="1"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Utils\Scanner\Scanner.h"
