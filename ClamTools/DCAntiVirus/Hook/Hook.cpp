@@ -190,6 +190,14 @@ namespace hook_utils
 
 	void GlobalHook(bool bInitial)
 	{
+		HWND hwnd = NULL;
+		hwnd = ::FindWindow(NULL, "DCAntiVirusScan");
+
+		if(NULL == hwnd)
+		{
+			return;
+		}
+
 		PROCESSENTRY32 entry;
 		entry.dwSize = sizeof(PROCESSENTRY32);
 

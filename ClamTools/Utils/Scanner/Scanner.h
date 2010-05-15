@@ -23,8 +23,6 @@ public:
 
 	void ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs);
 
-	void ClearAndSave();
-
 	void RequestData();
 	
 private:
@@ -43,8 +41,6 @@ private:
 
 	CScannedFileMap *m_pFilesMap;
 	const EVP_MD *m_pMD5;
-
-	HWND m_TrayHwnd;
 };
 
 #endif

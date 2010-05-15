@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="detoured.lib detours.lib Psapi.lib IdleTrac.lib pdh.lib"
+				AdditionalDependencies="detoured.lib detours.lib Psapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)D.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../Bin"
@@ -150,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="detoured.lib detours.lib Psapi.lib IdleTrac.lib pdh.lib"
+				AdditionalDependencies="detoured.lib detours.lib Psapi.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../Bin"
 				GenerateDebugInformation="true"

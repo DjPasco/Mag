@@ -5,6 +5,7 @@
 #include "DCAntivirusScanDlg.h"
 #include "../Utils/Scanner/Scanner.h"
 
+#define _TEST_
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -19,7 +20,9 @@ UINT ScanDlg(LPVOID pParam)
 		CScanner *pScanner = (CScanner *)pParam;
 		CDCAntivirusScanDlg scanDlg(pScanner);
 		scanDlg.Create(IDD_SCAN_DLG);
+#ifndef _TEST
 		scanDlg.ShowWindow(SW_HIDE);
+#endif
 		scanDlg.RunModalLoop();
 	}
 	return 0;
@@ -37,13 +40,24 @@ BOOL CALLBACK EnumServices(DWORD /*dwData*/, ENUM_SERVICE_STATUS& Service)
   return TRUE; //continue enumeration
 }
 
-
 BOOL CApp::InitInstance()
 {
+#ifdef _TEST_
+	CScanner *pScanner = new CScanner;
+	pScanner->LoadDatabases();
+	AfxBeginThread(ScanDlg, (LPVOID)pScanner);
+
+	while (true)
+	{
+		Sleep(10000);
+	}
+#else
 	CNTServiceCommandLineInfo cmdInfo;
 	CMyService Service;
 	Service.ParseCommandLine(cmdInfo);
 	Service.ProcessShellCommand(cmdInfo);
+#endif
+
 	return FALSE;
 }
 

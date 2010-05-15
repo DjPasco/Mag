@@ -6,38 +6,30 @@
 #include <stdio.h>
 #include <tchar.h>
 
-static HWND g_Hwnd = NULL;
 namespace wnd_utils
 {
 	static bool Execute(LPCSTR sFile)
 	{
-		if(NULL == g_Hwnd)
+		HWND hwnd = NULL;
+		hwnd = FindWindow(NULL, "DCAntiVirusScan");
+
+		if(NULL != hwnd)
 		{
-			HWND hwnd = NULL;
-			hwnd = FindWindow(NULL, "DCAntiVirusScan");
-
-			if(NULL != hwnd)
-			{
-				g_Hwnd = hwnd;
-			}
+			return true;
 		}
-		else
-		{
-			CSendObj obj;
-			strcpy_s(obj.m_sPath, MAX_PATH, sFile);
-			obj.m_bReQuestData = false;
-			COPYDATASTRUCT copy;
+		CSendObj obj;
+		strcpy_s(obj.m_sPath, MAX_PATH, sFile);
+		obj.m_bReQuestData = false;
 
-			copy.dwData = 1;
-			copy.cbData = sizeof(obj);
-			copy.lpData = &obj;
+		COPYDATASTRUCT copy;
+		copy.dwData = 1;
+		copy.cbData = sizeof(obj);
+		copy.lpData = &obj;
 
-			LRESULT result = SendMessage(g_Hwnd,
-										 WM_COPYDATA,
-										 0,
-										 (LPARAM) (LPVOID) &copy);
-
-		}
+		LRESULT result = SendMessage(hwnd,
+									 WM_COPYDATA,
+									 0,
+									 (LPARAM) (LPVOID) &copy);
 
 		return true;
 	}

@@ -15,8 +15,8 @@ static char THIS_FILE[] = __FILE__;
 static LPCTSTR gszProcessorTime="\\Processor(_Total)\\% Processor Time";
 
 #define MAX_LOAD 10
-#define IDL_TIME 5000
-#define CHECK_IDLE 3000
+#define IDL_TIME 100000
+#define CHECK_IDLE 30000
 
 
 BEGIN_MESSAGE_MAP(CDCAntivirusScanDlg, CDialog)

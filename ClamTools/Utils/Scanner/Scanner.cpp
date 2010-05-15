@@ -18,7 +18,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-//#define LOAD_MAIN_DB
+#define LOAD_MAIN_DB
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
 
@@ -298,8 +298,6 @@ namespace file_utils
 
 CScanner::CScanner()
 {
-	m_TrayHwnd = NULL;
-
 	Init();
 	
 	m_pMD5 = EVP_md5();
@@ -316,10 +314,6 @@ CScanner::~CScanner()
 	m_pFilesMap->clear();
 
 	delete m_pFilesMap;
-}
-
-void CScanner::ClearAndSave()
-{
 }
 
 bool CScanner::LoadDatabases()
@@ -494,12 +488,9 @@ void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
 
 void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
 {
-	if(NULL == m_TrayHwnd)
-	{
-		m_TrayHwnd = FindWindow(NULL, "DCAntiVirus");
-	}
+	HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
 
-	if(NULL == m_TrayHwnd)
+	if(NULL == trayHwnd)
 	{
 		return;
 	}
@@ -516,17 +507,14 @@ void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
 	copy.cbData = sizeof(obj);
 	copy.lpData = &obj;
 
-	SendMessage(m_TrayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+	SendMessage(trayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
 }
 
 void CScanner::SendFileToTray(LPCSTR sFile)
 {
-	if(NULL == m_TrayHwnd)
-	{
-		m_TrayHwnd = FindWindow(NULL, "DCAntiVirus");
-	}
+	HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
 
-	if(NULL == m_TrayHwnd)
+	if(NULL == trayHwnd)
 	{
 		return;
 	}
@@ -540,7 +528,7 @@ void CScanner::SendFileToTray(LPCSTR sFile)
 	copy.cbData = sizeof(obj);
 	copy.lpData = &obj;
 
-	SendMessage(m_TrayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+	SendMessage(trayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
 }
 
 void CScanner::RequestData()
