@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemHook", "..\SystemHook\ForceVersionDLL.vcproj", "{0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DCAntiVirus", "..\DCAntiVirus\DCAntiVirus.vcproj", "{FF588D58-179D-4057-8FBE-E8CD90FE61E1}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89} = {BCE4944F-0666-4011-8A03-F6A7C6970E89}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IdleTracker", "..\IdleTracker\IdleTracker.vcproj", "{BCE4944F-0666-4011-8A03-F6A7C6970E89}"
 EndProject

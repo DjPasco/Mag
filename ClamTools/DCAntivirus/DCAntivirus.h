@@ -4,13 +4,10 @@
 	#error "include 'stdafx.h' before including this file for PCH"
 #endif
 
-#include "resource.h"
-
-
 class CDCAntiVirusApp : public CWinApp
 {
 public:
-	CDCAntiVirusApp(){};
+	CDCAntiVirusApp(LPCTSTR lpszAppName = NULL);
 
 public:
 	virtual BOOL InitInstance();

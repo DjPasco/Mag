@@ -207,7 +207,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DCAntiVirusSchedDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntiVirusSchedDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntiVirusSettingsDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntiVirusSettingsDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ScheduledTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ScheduledTask.h"
 				>
 			</File>
 			<File

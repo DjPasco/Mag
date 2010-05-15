@@ -6,11 +6,20 @@
 	#define new DEBUG_NEW
 #endif
 
-CDCAntiVirusApp theApp;
+CDCAntiVirusApp theApp("DCAntivirus");
+
+CDCAntiVirusApp::CDCAntiVirusApp(LPCTSTR lpszAppName)
+: CWinApp(lpszAppName)
+{
+	//
+}
+
 BOOL CDCAntiVirusApp::InitInstance()
 {
 	CWinApp::InitInstance();
 	SetRegistryKey(_T("DCAntivirus"));
+
+	CoInitialize(NULL);//For task scheduler
 
 	CDCAntiVirusDlg dlg;
 	m_pMainWnd = &dlg;

@@ -1,6 +1,8 @@
 #include "stdafx.h"
-#include "DCAntiVirus.h"
+#include "resource.h"
 #include "DCAntiVirusDlg.h"
+
+#include "DCAntiVirusSettingsDlg.h"
 #include "Hook/Hook.h"
 
 #include "../Utils/TraySendObj.h"
@@ -8,7 +10,7 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-//#define IGNORE_HOOK
+#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -34,6 +36,7 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_WM_TIMER()
 	ON_MESSAGE(WM_HOOK_SYSTEM, OnHookSystem)
 	ON_MESSAGE(WM_COPYDATA, OnCopyData)
+	ON_BN_CLICKED(IDC_BUTTON3, &CDCAntiVirusDlg::OnSettings)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusDlg::OnInitDialog()
@@ -182,4 +185,10 @@ void CDCAntiVirusDlg::RequestData()
 	copy.lpData = &obj;
 
 	::SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+}
+
+void CDCAntiVirusDlg::OnSettings()
+{
+	CDCAntiVirusSettingsDlg dlgSettings;
+	dlgSettings.DoModal();
 }

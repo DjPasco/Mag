@@ -28,4 +28,6 @@ private:
 
 	int m_nProcCount;
 	UINT_PTR m_nTimer;
+public:
+	afx_msg void OnSettings();
 };
