@@ -4,6 +4,7 @@
 #include "CLScanner.h"
 #include "ScanValidatorObs.h"
 #include "../TraySendObj.h"
+#include "../Registry.h"
 
 #include <stdio.h>
 #include <hash_map>
@@ -18,7 +19,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-//#define LOAD_MAIN_DB
+#define LOAD_MAIN_DB
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
 
@@ -49,8 +50,6 @@ public:
 
 typedef CScannedFileMap::const_iterator CMapI;
 typedef CScannedFileMap::iterator CMapEditI;
-
-CString gsDataFile = _T("c:\\MAG_REPO\\ClamTools\\Bin\\PassData.dat");
 
 namespace file_utils
 {
@@ -196,7 +195,7 @@ namespace file_utils
 
 	void ReadPassData(CScannedFileMap *pMapFiles)
 	{
-		FILE *pFile = fopen(gsDataFile, "rb");
+		FILE *pFile = fopen(path_utils::GetDataFilePath(), "rb");
 		if(NULL == pFile)
 		{
 			return;
@@ -235,7 +234,7 @@ namespace file_utils
 
 	void WritePassData(CScannedFileMap *pMapFiles)
 	{
-		FILE *pFile = fopen(gsDataFile, "wb");
+		FILE *pFile = fopen(path_utils::GetDataFilePath(), "wb");
 		if(NULL == pFile)
 		{
 			return;
@@ -319,7 +318,7 @@ CScanner::~CScanner()
 bool CScanner::LoadDatabases()
 {
 #ifdef LOAD_MAIN_DB
-	if(!m_pMainScan->LoadDatabase("c:\\MAG_REPO\\LibClamAV\\main.cvd"))
+	if(!m_pMainScan->LoadDatabase(path_utils::GetMainDBPath()))
 	{
 		return false;
 	}
@@ -327,7 +326,7 @@ bool CScanner::LoadDatabases()
 	m_pMainScan->GetInfo(m_pMainDBInfo);
 #endif
 
-	if(!m_pDailyScan->LoadDatabase("c:\\MAG_REPO\\LibClamAV\\daily.cvd"))
+	if(!m_pDailyScan->LoadDatabase(path_utils::GetDailyDBPath()))
 	{
 		return false;
 	}

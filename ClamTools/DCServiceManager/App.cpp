@@ -5,7 +5,7 @@
 #include "DCAntivirusScanDlg.h"
 #include "../Utils/Scanner/Scanner.h"
 
-#define _TEST_
+//#define _TEST_
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

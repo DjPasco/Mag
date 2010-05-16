@@ -8,18 +8,13 @@
 	#define new DEBUG_NEW
 #endif
 
-CDCAntiVirusApp theApp(sgAppName);
-
-CDCAntiVirusApp::CDCAntiVirusApp(LPCTSTR lpszAppName)
-: CWinApp(lpszAppName)
-{
-	//
-}
+CDCAntiVirusApp theApp;
 
 BOOL CDCAntiVirusApp::InitInstance()
 {
+	registry_utils::CheckBaseDir();
+
 	CWinApp::InitInstance();
-	SetRegistryKey(sgAppName);
 
 	CoInitialize(NULL);//For task scheduler
 

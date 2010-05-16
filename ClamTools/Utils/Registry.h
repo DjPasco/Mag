@@ -13,6 +13,16 @@ static const char *sgShedUpdTaskInfo = "SheduledUpdateInfo";
 
 static const char *sgAppName = "DCAntiVirus";
 
+static const char *sgBaseDir = "DCAntiVirusBaseDir";
+
+static const char *sgDBDir		= "DB";
+static const char *sgDBMain		= "main.cvd";
+static const char *sgDBDaily	= "daily.cvd";
+
+static const char *sgDataFile	= "PassData.dat";
+
+static const char *sgFreshClam	= "freshclam.exe";
+
 namespace registry_utils
 {
 	namespace internal 
@@ -123,4 +133,59 @@ namespace registry_utils
 		}
 		return lResult == ERROR_SUCCESS;
 	};
+
+	static void CheckBaseDir()
+	{
+		CString sBaseDir = GetProfileString(sgSection, sgBaseDir, "");
+		if(sBaseDir.IsEmpty())
+		{
+			char dirPath[MAX_PATH];
+			GetCurrentDirectory(MAX_PATH, dirPath);
+			WriteProfileString(sgSection, sgBaseDir, dirPath);
+		}
+	}
+}
+
+namespace path_utils
+{
+	static CString GetDailyDBPath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s\\%s", sBaseDir, sgDBDir, sgDBDaily);
+		return sPath;
+	}
+
+	static CString GetMainDBPath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s\\%s", sBaseDir, sgDBDir, sgDBMain);
+		return sPath;
+	}
+
+	static CString GetDataFilePath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s", sBaseDir, sgDataFile);
+		return sPath;
+	}
+
+	static CString GetDBDir()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s", sBaseDir, sgDBDir);
+		return sPath;
+	}
+
+	static CString GetFreshClamPath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s", sBaseDir, sgFreshClam);
+		return sPath;
+	}
+
 }

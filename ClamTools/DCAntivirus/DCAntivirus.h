@@ -7,7 +7,7 @@
 class CDCAntiVirusApp : public CWinApp
 {
 public:
-	CDCAntiVirusApp(LPCTSTR lpszAppName = NULL);
+	CDCAntiVirusApp() { };
 
 public:
 	virtual BOOL InitInstance();

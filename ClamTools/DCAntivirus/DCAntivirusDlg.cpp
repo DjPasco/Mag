@@ -165,7 +165,6 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			CString sVirus;
 			sVirus.Format("%s", pData->m_sText2);
 			GetDlgItem(IDC_EDIT_VIRUS_NAME)->SetWindowText(sVirus);
-
 			
 			CString sCount;
 			sCount.Format("%d", pData->m_nFilesCount);
