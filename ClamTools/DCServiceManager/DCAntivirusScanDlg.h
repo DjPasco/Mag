@@ -12,7 +12,6 @@
 
 
 class CScanner;
-
 class CDCAntivirusScanDlg : public CDialog,
 							public CScanValidatorObs
 {
@@ -22,7 +21,7 @@ public:
 
 public:
 	virtual bool ContinueScan();
-	virtual long GetCPUUsage();
+	virtual bool IsCPULoaded();
 
 protected:
 	LRESULT OnCopyData(WPARAM wParam, LPARAM lParam);
@@ -35,12 +34,22 @@ protected:
 	bool TimeForScan();
 
 private:
+	void ReloadSettings();
+
+private:
 	CScanner *m_pScanner;
 	UINT_PTR m_nTimer;
 
 	HQUERY		m_hQuery;
 	HCOUNTER	m_hCounter;
 	bool		m_bCounterInit;
+
+	BOOL m_bIdleScan;
+	int m_nMaxCPULoad;
+	int m_nIdleTime;//must be miliseconds
+	
+	BOOL m_bScan;
+	BOOL m_bDeny;
 };
 
 #endif

@@ -5,19 +5,13 @@
 #include "DCAntiVirusSchedDlg.h"
 #include "ScheduledTask.h"
 
+#include "../Utils/Registry.h"
+#include "../Utils/Settings.h"
+#include "../Utils/SendObj.h"
+
 #include <string>
 
-const char *sgSettingsWriteTemplate = "%d %d %d %d %d %d %d %d %d %d";
-const char *sgSettingsReadTemplate = "%d%d%d%d%d%d%d%d%d%d";
-const char *sgSection = "Setting";
-const char *sgUserEntry = "User";
-
-const char *sgShedScanTaskName = "DCAntiVirusScan";
-const char *sgShedScanTaskInfo = "SheduledScanInfo";
-
-const char *sgShedUpdTaskName = "DCAntiVirusUpdate";
-const char *sgShedUpdTaskInfo = "SheduledUpdateInfo";
-
+const char *sgNoTask = "\nNo task defined\n";
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -49,29 +43,30 @@ BOOL CDCAntiVirusSettingsDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	LoadRegistryData();
+	LoadShedInfo();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
 void CDCAntiVirusSettingsDlg::UpdateOnAccessControls()
 {
-	BOOL bEnable = ((CButton *)this->GetDlgItem(IDC_CHECK_ENABLE_SCAN))->GetCheck();
+	BOOL bEnable = ((CButton *)GetDlgItem(IDC_CHECK_ENABLE_SCAN))->GetCheck();
 
-	this->GetDlgItem(IDC_RADIO_ASK)			->EnableWindow(bEnable);
-	this->GetDlgItem(IDC_RADIO_DENNY)		->EnableWindow(bEnable);
-	this->GetDlgItem(IDC_CHECK_DEEP_SCANN)	->EnableWindow(bEnable);
-	this->GetDlgItem(IDC_CHECK_OFFICE)		->EnableWindow(bEnable);
-	this->GetDlgItem(IDC_CHECK_ARCHIVE)		->EnableWindow(bEnable);
-	this->GetDlgItem(IDC_CHECK_PDF)			->EnableWindow(bEnable);
-	this->GetDlgItem(IDC_CHECK_HTML)		->EnableWindow(bEnable);
+	GetDlgItem(IDC_RADIO_ASK)		->EnableWindow(bEnable);
+	GetDlgItem(IDC_RADIO_DENNY)		->EnableWindow(bEnable);
+	GetDlgItem(IDC_CHECK_DEEP_SCANN)->EnableWindow(bEnable);
+	GetDlgItem(IDC_CHECK_OFFICE)	->EnableWindow(bEnable);
+	GetDlgItem(IDC_CHECK_ARCHIVE)	->EnableWindow(bEnable);
+	GetDlgItem(IDC_CHECK_PDF)		->EnableWindow(bEnable);
+	GetDlgItem(IDC_CHECK_HTML)		->EnableWindow(bEnable);
 }
 
 void CDCAntiVirusSettingsDlg::UpdateIdleScanControls()
 {
-	BOOL bEnable = ((CButton *)this->GetDlgItem(IDC_CHECK_ENABLE_IDLE_SCAN))->GetCheck();
+	BOOL bEnable = ((CButton *)GetDlgItem(IDC_CHECK_ENABLE_IDLE_SCAN))->GetCheck();
 
-	this->GetDlgItem(IDC_EDIT_IDLE_TIME)	->EnableWindow(bEnable);
-	this->GetDlgItem(IDC_EDIT_LOAD)			->EnableWindow(bEnable);
+	GetDlgItem(IDC_EDIT_IDLE_TIME)	->EnableWindow(bEnable);
+	GetDlgItem(IDC_EDIT_LOAD)			->EnableWindow(bEnable);
 }
 
 void CDCAntiVirusSettingsDlg::OnCheckEnableScan()
@@ -86,25 +81,12 @@ void CDCAntiVirusSettingsDlg::OnCheckEnableIdleScan()
 
 void CDCAntiVirusSettingsDlg::LoadRegistryData()
 {
-	CString sSettings = AfxGetApp()->GetProfileString(sgSection, sgUserEntry, "");
-
-	if(sSettings.IsEmpty())
+	CSettingsInfo info;
+	if(!settings_utils::Load(info))
 	{
 		UpdateAllControls();
 		return;
 	}
-
-	CSettingsInfo info;
-	sscanf(sSettings, sgSettingsReadTemplate, &info.m_bScan,
-											  &info.m_bDeny,
-											  &info.m_bDeep,
-											  &info.m_bOffice,
-											  &info.m_bArchives,
-											  &info.m_bPDF,
-											  &info.m_bHTML,
-											  &info.m_bIdle,
-											  &info.m_nIdleTime,
-											  &info.m_nCPULoad);
 
 	SetData(info);
 	UpdateAllControls();
@@ -113,21 +95,8 @@ void CDCAntiVirusSettingsDlg::LoadRegistryData()
 void CDCAntiVirusSettingsDlg::SaveRegistryData()
 {
 	CSettingsInfo info;
-	GetData(info);
-	
-	CString sData;
-	sData.Format(sgSettingsWriteTemplate, info.m_bScan,
-										  info.m_bDeny,
-										  info.m_bDeep,
-										  info.m_bOffice,
-										  info.m_bArchives,
-										  info.m_bPDF,
-										  info.m_bHTML,
-										  info.m_bIdle,
-										  info.m_nIdleTime,
-										  info.m_nCPULoad);
-
-	AfxGetApp()->WriteProfileString(sgSection, sgUserEntry, sData);
+	GetData(info);	
+	settings_utils::Save(info);
 }
 
 void CDCAntiVirusSettingsDlg::OnBnClickedOk()
@@ -135,6 +104,22 @@ void CDCAntiVirusSettingsDlg::OnBnClickedOk()
 	SaveRegistryData();
 
 	CDialog::OnOK();
+
+	HWND hwnd = NULL;
+	hwnd = ::FindWindow(NULL, "DCAntiVirusScan");
+
+	if(NULL != hwnd)
+	{
+		CSendObj obj;
+		obj.m_nType = EReloadSettings;
+
+		COPYDATASTRUCT copy;
+		copy.dwData = 1;
+		copy.cbData = sizeof(obj);
+		copy.lpData = &obj;
+
+		::SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+	}
 }
 
 void CDCAntiVirusSettingsDlg::GetData(CSettingsInfo &info)
@@ -160,17 +145,17 @@ void CDCAntiVirusSettingsDlg::GetIdleData(CSettingsInfo &info)
 	info.m_bIdle = ControlChecked(IDC_CHECK_ENABLE_IDLE_SCAN);
 
 	CString sTime;
-	this->GetDlgItem(IDC_EDIT_IDLE_TIME)->GetWindowText(sTime);
+	GetDlgItem(IDC_EDIT_IDLE_TIME)->GetWindowText(sTime);
 	info.m_nIdleTime = atoi(sTime);
 
 	CString sLoad;
-	this->GetDlgItem(IDC_EDIT_LOAD)->GetWindowText(sLoad);
+	GetDlgItem(IDC_EDIT_LOAD)->GetWindowText(sLoad);
 	info.m_nCPULoad = atoi(sLoad);
 }
 
 bool CDCAntiVirusSettingsDlg::ControlChecked(UINT ID)
 {
-	if(((CButton *)this->GetDlgItem(ID))->GetCheck())
+	if(((CButton *)GetDlgItem(ID))->GetCheck())
 	{
 		return true;
 	}	
@@ -210,16 +195,16 @@ void CDCAntiVirusSettingsDlg::SetIdleData(const CSettingsInfo &info)
 
 	CString sTime;
 	sTime.Format("%d", info.m_nIdleTime);
-	this->GetDlgItem(IDC_EDIT_IDLE_TIME)->SetWindowText(sTime);
+	GetDlgItem(IDC_EDIT_IDLE_TIME)->SetWindowText(sTime);
 
 	CString sLoad;
 	sLoad.Format("%d", info.m_nCPULoad);
-	this->GetDlgItem(IDC_EDIT_LOAD)->SetWindowText(sLoad);
+	GetDlgItem(IDC_EDIT_LOAD)->SetWindowText(sLoad);
 }
 
 void CDCAntiVirusSettingsDlg::CheckControl(UINT ID, BOOL bSheck)
 {
-	((CButton *)this->GetDlgItem(ID))->SetCheck(bSheck);
+	((CButton *)GetDlgItem(ID))->SetCheck(bSheck);
 }
 
 void CDCAntiVirusSettingsDlg::UpdateAllControls()
@@ -242,7 +227,7 @@ void CDCAntiVirusSettingsDlg::OnChangeSchedScan()
 		//pTask->SetComment     ("Comment");
 		if(S_OK == pTask->SaveTask(sgShedScanTaskName, false))
 		{
-			AfxGetApp()->WriteProfileString(sgSection, sgShedScanTaskInfo, "Duomenys");
+			SetTaskInfo(pTask, IDC_STATIC_SCAN_SHED, sgShedScanTaskInfo);
 		}
 	}
 
@@ -254,8 +239,7 @@ void CDCAntiVirusSettingsDlg::OnDeleteSchedScan()
     if(S_OK == CScheduledTask::DeleteTask(sgShedScanTaskName))
     {
 		MessageBox("Scan task deleted.", 0, MB_ICONINFORMATION);
-		AfxGetApp()->WriteProfileString(sgSection, sgShedScanTaskInfo, "");
-		SetTaskInfo(NULL, IDC_STATIC_SCAN_SHED);
+		SetTaskInfo(NULL, IDC_STATIC_SCAN_SHED, sgShedScanTaskInfo);
     }
 }
 
@@ -273,7 +257,7 @@ void CDCAntiVirusSettingsDlg::OnChangeUpd()
 		//pTask->SetComment     ("Comment");
 		if(S_OK == pTask->SaveTask(sgShedUpdTaskName, false))
 		{
-			AfxGetApp()->WriteProfileString(sgSection, sgShedUpdTaskInfo, "Duomenys");
+			SetTaskInfo(pTask, IDC_STATIC_UPD_SHED, sgShedUpdTaskInfo);
 		}
 	}
 
@@ -285,21 +269,71 @@ void CDCAntiVirusSettingsDlg::OnDeleteUpd()
     if(S_OK == CScheduledTask::DeleteTask(sgShedUpdTaskName))
     {
 		MessageBox("Update task deleted.", 0, MB_ICONINFORMATION);
-		AfxGetApp()->WriteProfileString(sgSection, sgShedUpdTaskInfo, "");
-		SetTaskInfo(NULL, IDC_STATIC_UPD_SHED);
+		SetTaskInfo(NULL, IDC_STATIC_UPD_SHED, sgShedUpdTaskInfo);
     }
 }
 
-void CDCAntiVirusSettingsDlg::SetTaskInfo(CScheduledTask *pTask, UINT ID)
+void CDCAntiVirusSettingsDlg::SetTaskInfo(CScheduledTask *pTask, UINT ID, LPCSTR sEntry)
 {
 	if(NULL == pTask)
 	{
-		this->GetDlgItem(ID)->SetWindowText("");
+		GetDlgItem(ID)->SetWindowText(sgNoTask);
+		registry_utils::WriteProfileString(sgSection, sEntry, sgNoTask);
 	}
 	else
 	{
 		CString sTaskText;
-		sTaskText;
+		CTime time;
+		pTask->GetStartDateTime(time);
+		sTaskText = time.Format("Start date: %Y:%m:%d\n");
+		sTaskText += time.Format("Start time: %H:%M\n");
+		sTaskText += "Frequency: ";
+		switch(pTask->GetFrequency())
+		{
+		case CScheduledTask::freqDaily :
+			{
+				sTaskText += "Daily";
+			}
+			break;
+		case CScheduledTask::freqWeekly :
+			{
+				sTaskText += "Weekly";
+			}
+			break;
+		case CScheduledTask::freqMonthly :
+			{
+				sTaskText += "Monthly";
+			}
+			break;
+		}
+
+		GetDlgItem(ID)->SetWindowText(sTaskText);
+		registry_utils::WriteProfileString(sgSection, sEntry, sTaskText);
+	}
+}
+
+void CDCAntiVirusSettingsDlg::LoadShedInfo()
+{
+	CString sScan = registry_utils::GetProfileString(sgSection, sgShedScanTaskInfo, "");
+	if(sScan.IsEmpty())
+	{
+		registry_utils::WriteProfileString(sgSection, sgShedScanTaskInfo, sgNoTask);
+		GetDlgItem(IDC_STATIC_SCAN_SHED)->SetWindowText(sgNoTask);
+	}
+	else
+	{
+		GetDlgItem(IDC_STATIC_SCAN_SHED)->SetWindowText(sScan);
+	}
+
+	CString sUpdate = registry_utils::GetProfileString(sgSection, sgShedUpdTaskInfo, "");
+	if(sUpdate.IsEmpty())
+	{
+		registry_utils::WriteProfileString(sgSection, sgShedUpdTaskInfo, sgNoTask);
+		GetDlgItem(IDC_STATIC_UPD_SHED)->SetWindowText(sgNoTask);
+	}
+	else
+	{
+		GetDlgItem(IDC_STATIC_UPD_SHED)->SetWindowText(sUpdate);
 	}
 }
 

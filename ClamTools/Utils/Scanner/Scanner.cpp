@@ -18,7 +18,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-#define LOAD_MAIN_DB
+//#define LOAD_MAIN_DB
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
 
@@ -404,6 +404,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	if(m_pMainScan->ScanFile(sFilePath.c_str(), sVirname))
 	{
 		sVirus.Format("&s", sVirname);
+		SendFileToTray(sFile, sVirname);
 		return false;
 	}
 #endif
@@ -411,6 +412,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	if(m_pDailyScan->ScanFile(sFilePath.c_str(), sVirname))
 	{
 		sVirus.Format("&s", sVirname);
+		SendFileToTray(sFile, sVirname);
 		return false;
 	}
 
@@ -422,7 +424,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	info.m_fileHash = hash;
 	file_utils::AddFileHash(m_pFilesMap, pathHash, info);
 
-	SendFileToTray(sFile);
+	SendFileToTray(sFile, NULL);
 
 	sVirus.Empty();
 	return true;
@@ -479,7 +481,7 @@ void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
 			break;
 		}
 
-		if(20 < pValidatorsObs->GetCPUUsage())
+		if(pValidatorsObs->IsCPULoaded())
 		{
 			Sleep(10);
 		}
@@ -501,6 +503,7 @@ void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
 	strcpy_s(obj.m_sText, MAX_PATH, pDBInfo->m_sTime);
 	obj.m_nVersion = pDBInfo->m_nVersion;
 	obj.m_nSigs = pDBInfo->m_nSigs;
+	obj.m_nFilesCount = m_pFilesMap->size();
 
 	COPYDATASTRUCT copy;
 	copy.dwData = 1;
@@ -510,7 +513,7 @@ void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
 	SendMessage(trayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
 }
 
-void CScanner::SendFileToTray(LPCSTR sFile)
+void CScanner::SendFileToTray(LPCSTR sFile, LPCSTR sVirus)
 {
 	HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
 
@@ -522,6 +525,16 @@ void CScanner::SendFileToTray(LPCSTR sFile)
 	CTraySendObj obj;
 	obj.m_nType = EFile;
 	strcpy_s(obj.m_sText, MAX_PATH, sFile);
+	if(NULL != sVirus)
+	{
+		strcpy_s(obj.m_sText2, MAX_PATH, sVirus);
+	}
+	else
+	{
+		strcpy_s(obj.m_sText2, MAX_PATH, "File is clean.");
+	}
+
+	obj.m_nFilesCount = m_pFilesMap->size();
 
 	COPYDATASTRUCT copy;
 	copy.dwData = 1;
@@ -538,4 +551,13 @@ void CScanner::RequestData()
 #endif
 
 	SendInfoToTray(false, m_pDailyDBInfo);
+}
+
+void CScanner::SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML)
+{
+#ifdef LOAD_MAIN_DB
+	m_pMainScan->SetScanSettings(bDeep, bOffice, bArchives, bPDF, bHTML);
+#endif
+
+	m_pDailyScan->SetScanSettings(bDeep, bOffice, bArchives, bPDF, bHTML);
 }

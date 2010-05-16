@@ -10,7 +10,7 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-#define IGNORE_HOOK
+//#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -34,9 +34,9 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_TIMER()
-	ON_MESSAGE(WM_HOOK_SYSTEM, OnHookSystem)
-	ON_MESSAGE(WM_COPYDATA, OnCopyData)
-	ON_BN_CLICKED(IDC_BUTTON3, &CDCAntiVirusDlg::OnSettings)
+	ON_MESSAGE(WM_HOOK_SYSTEM,	OnHookSystem)
+	ON_MESSAGE(WM_COPYDATA,		OnCopyData)
+	ON_BN_CLICKED(IDC_BUTTON3,	OnSettings)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusDlg::OnInitDialog()
@@ -59,6 +59,9 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 
 	this->SendMessage(WM_HOOK_SYSTEM);
 	SetTimer(m_nTimer, 1000, NULL);
+
+	GetDlgItem(IDC_EDIT11)->SetWindowPos(NULL, 0, 0, 1, 20, SWP_NOMOVE|SWP_NOOWNERZORDER);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -147,6 +150,10 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 				GetDlgItem(IDC_EDIT_DAILY_DB_TIME)->SetWindowText(sTime);
 				GetDlgItem(IDC_EDIT_DAILY_DB_SIG)->SetWindowText(sSigs);
 			}
+
+			CString sCount;
+			sCount.Format("%d", pData->m_nFilesCount);
+			GetDlgItem(IDC_EDIT_FILES_COUNT)->SetWindowText(sCount);
 		}
 		break;
 	case EFile:
@@ -154,6 +161,15 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			CString sFile;
 			sFile.Format("%s", pData->m_sText);
 			GetDlgItem(IDC_LAST_FILE_EDIT)->SetWindowText(sFile);
+
+			CString sVirus;
+			sFile.Format("%s", pData->m_sText2);
+			GetDlgItem(IDC_EDIT_VIRUS_NAME)->SetWindowText(sVirus);
+
+			
+			CString sCount;
+			sCount.Format("%d", pData->m_nFilesCount);
+			GetDlgItem(IDC_EDIT_FILES_COUNT)->SetWindowText(sCount);
 		}
 		break;
 	default:
@@ -173,11 +189,14 @@ void CDCAntiVirusDlg::RequestData()
 
 	if(NULL == hwnd)
 	{
+		GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Stopped!");
 		return;
 	}
 
+	GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Running");
+
 	CSendObj obj;
-	obj.m_bReQuestData = true;
+	obj.m_nType = ERequest;
 
 	COPYDATASTRUCT copy;
 	copy.dwData = 1;

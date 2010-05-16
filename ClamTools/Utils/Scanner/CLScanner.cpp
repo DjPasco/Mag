@@ -6,6 +6,11 @@
 	#define new DEBUG_NEW
 #endif
 
+CCLScanner::CCLScanner(): m_pEngine(NULL), m_pDBInfo(NULL), m_nScanOptions(CL_SCAN_RAW)
+{
+	//
+}
+
 bool CCLScanner::Init()
 {
 	int nRet = cl_init(CL_INIT_DEFAULT);
@@ -74,7 +79,7 @@ bool CCLScanner::LoadDatabase(LPCSTR sDBPath)
 bool CCLScanner::ScanFile(LPCSTR sFile, const char *sVirname)
 {
 	unsigned long lScanned;
-	int nRet = cl_scanfile(sFile, &sVirname, &lScanned, m_pEngine, CL_SCAN_STDOPT);
+	int nRet = cl_scanfile(sFile, &sVirname, &lScanned, m_pEngine, m_nScanOptions);
 
 	if(CL_VIRUS == nRet)
 	{
@@ -94,4 +99,24 @@ void CCLScanner::GetInfo(CDBInfo *pInfo)
 	pInfo->m_sTime		= m_pDBInfo->time;
 	pInfo->m_nVersion	= m_pDBInfo->version;
 	pInfo->m_nSigs		= m_pDBInfo->sigs;
+}
+
+void CCLScanner::SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML)
+{
+	m_nScanOptions = CL_SCAN_RAW;
+
+	if(bDeep)
+		m_nScanOptions |= CL_SCAN_PE;
+
+	if(bOffice)
+		m_nScanOptions |= CL_SCAN_OLE2;
+
+	if(bArchives)
+		m_nScanOptions |= CL_SCAN_ARCHIVE;
+
+	if(bPDF)
+		m_nScanOptions |= CL_SCAN_PDF;
+
+	if(bHTML)
+		m_nScanOptions |= CL_SCAN_HTML;
 }

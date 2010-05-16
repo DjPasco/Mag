@@ -4,6 +4,7 @@
 
 #include "../IdleTracker/IdleTracker.h"
 #include "../Utils/SendObj.h"
+#include "../Utils/Settings.h"
 #include "../Utils/Scanner/Scanner.h"
 
 #ifdef _DEBUG
@@ -25,9 +26,14 @@ BEGIN_MESSAGE_MAP(CDCAntivirusScanDlg, CDialog)
 END_MESSAGE_MAP()
 
 CDCAntivirusScanDlg::CDCAntivirusScanDlg(CScanner *pScanner)
-	: m_pScanner(pScanner)
+	: m_pScanner(pScanner),
+	  m_bScan(true),
+	  m_bDeny(true),
+	  m_bIdleScan(true),
+	  m_nMaxCPULoad(20),
+	  m_nIdleTime(900000)
 {
-	//
+	ReloadSettings();
 }
 
 CDCAntivirusScanDlg::~CDCAntivirusScanDlg()
@@ -69,17 +75,42 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 	{
 		return 1;
 	}
+
+	switch(pData->m_nType)
+	{
+	case EScan:
+		{
+			if(m_bScan)
+			{
+				CString sFile = pData->m_sPath;
+				CString sVirusName;
+				if(!m_pScanner->ScanFile(sFile, sVirusName))
+				{
+					if(m_bDeny)
+					{
+						return 0;
+					}
+					else
+					{
+						//Ask User
+						return 1;
+					}
+				}
+			}
+		}
+		break;
+	case ERequest:
+		{
+			m_pScanner->RequestData();
+		}
+		break;
+	case EReloadSettings:
+		{
+			ReloadSettings();	
+		}
+		break;
+	}
 	
-	if(pData->m_bReQuestData)
-	{
-		m_pScanner->RequestData();
-	}
-	else
-	{
-		CString sFile = pData->m_sPath;
-		CString sVirusName;
-		m_pScanner->ScanFile(sFile, sVirusName);
-	}
 	return 1;
 }
 
@@ -110,6 +141,11 @@ LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)
 
 void CDCAntivirusScanDlg::OnTimer(UINT nIDEvent)
 {
+	if(!m_bIdleScan)
+	{
+		return;
+	}
+
 	if(m_bCounterInit && TimeForScan())
 	{
 		long lLoad = GetCPUCycle(m_hQuery, m_hCounter);
@@ -127,23 +163,40 @@ bool CDCAntivirusScanDlg::ContinueScan()
 	return TimeForScan();
 }
 
-long CDCAntivirusScanDlg::GetCPUUsage()
+bool CDCAntivirusScanDlg::IsCPULoaded()
 {
 	if(m_bCounterInit)
 	{
-		return GetCPUCycle(m_hQuery, m_hCounter);
+		long lCPULoad = GetCPUCycle(m_hQuery, m_hCounter);
+		return m_nMaxCPULoad < lCPULoad;
 	}
 
-	return 0;
+	return false;
 }
 
 bool CDCAntivirusScanDlg::TimeForScan()
 {
 	UINT timeDuration = (UINT)(GetTickCount() - IdleTrackerGetLastTickCount());
-	if(timeDuration > IDL_TIME)
+	if(timeDuration > (UINT)m_nIdleTime)
 	{
 		return true;
 	}
 
 	return false;
+}
+
+void CDCAntivirusScanDlg::ReloadSettings()
+{
+	CSettingsInfo info;
+	if(settings_utils::Load(info))
+	{
+		m_bScan = info.m_bScan;
+		m_bDeny = info.m_bDeny;
+
+		m_bIdleScan		= info.m_bIdle;
+		m_nMaxCPULoad	= info.m_nCPULoad;
+		m_nIdleTime		= info.m_nIdleTime * 60000;
+
+		m_pScanner->SetScanSettings(info.m_bDeep, info.m_bOffice, info.m_bArchives, info.m_bPDF, info.m_bHTML);
+	}
 }

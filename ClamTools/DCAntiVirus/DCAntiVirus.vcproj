@@ -305,6 +305,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Utils"
+			>
+			<File
+				RelativePath="..\Utils\Registry.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Utils\Settings.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 		<Global

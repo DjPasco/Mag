@@ -14,7 +14,7 @@ public:
 class CCLScanner
 {
 public:
-	CCLScanner(): m_pEngine(NULL), m_pDBInfo(NULL){ };
+	CCLScanner();
 	virtual ~CCLScanner() { };
 	bool Init();
 	bool CreateEngine();
@@ -22,10 +22,14 @@ public:
 	bool LoadDatabase(LPCSTR sDBPath);
 	bool ScanFile(LPCSTR sFile, const char *sVirname);
 
+	void SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML);
+
 public:
 	void GetInfo(CDBInfo *pInfo);
 
 private:
 	cl_engine *m_pEngine;
 	cl_cvd *m_pDBInfo;
+
+	unsigned int m_nScanOptions;
 };

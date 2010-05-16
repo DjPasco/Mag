@@ -2,6 +2,7 @@
 #include "SystemHook.h"
 
 #include "../Utils/SendObj.h"
+#include "../Utils/HookUtils.h"
 
 #include <stdio.h>
 #include <tchar.h>
@@ -13,13 +14,16 @@ namespace wnd_utils
 		HWND hwnd = NULL;
 		hwnd = FindWindow(NULL, "DCAntiVirusScan");
 
+				hook_utils_main::DebugMessage("Rado");
+
 		if(NULL != hwnd)
 		{
 			return true;
 		}
+
 		CSendObj obj;
 		strcpy_s(obj.m_sPath, MAX_PATH, sFile);
-		obj.m_bReQuestData = false;
+		obj.m_nType = EScan;
 
 		COPYDATASTRUCT copy;
 		copy.dwData = 1;

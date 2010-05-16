@@ -24,13 +24,15 @@ public:
 	void ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs);
 
 	void RequestData();
+
+	void SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML);
 	
 private:
 	void Init();
 	void Free();
 
 	void SendInfoToTray(bool bMain, CDBInfo *pDBInfo);
-	void SendFileToTray(LPCSTR sFile);
+	void SendFileToTray(LPCSTR sFile, LPCSTR sVirus);
 
 private:
 	CCLScanner *m_pMainScan;

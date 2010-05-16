@@ -2,11 +2,13 @@
 #include "DCAntiVirus.h"
 #include "DCAntiVirusDlg.h"
 
+#include "../Utils/Registry.h"
+
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
 
-CDCAntiVirusApp theApp("DCAntivirus");
+CDCAntiVirusApp theApp(sgAppName);
 
 CDCAntiVirusApp::CDCAntiVirusApp(LPCTSTR lpszAppName)
 : CWinApp(lpszAppName)
@@ -17,7 +19,7 @@ CDCAntiVirusApp::CDCAntiVirusApp(LPCTSTR lpszAppName)
 BOOL CDCAntiVirusApp::InitInstance()
 {
 	CWinApp::InitInstance();
-	SetRegistryKey(_T("DCAntivirus"));
+	SetRegistryKey(sgAppName);
 
 	CoInitialize(NULL);//For task scheduler
 

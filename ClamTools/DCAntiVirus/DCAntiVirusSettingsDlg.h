@@ -1,35 +1,7 @@
 #pragma once
 
-class CSettingsInfo
-{
-public:
-	CSettingsInfo():
-	  m_bScan(FALSE),
-	  m_bDeny(FALSE),
-	  m_bDeep(FALSE),
-	  m_bOffice(FALSE),
-	  m_bArchives(FALSE),
-	  m_bPDF(FALSE),
-	  m_bHTML(FALSE),
-	  m_bIdle(FALSE),
-	  m_nIdleTime(0),
-	  m_nCPULoad(0){};
-
-public:
-	BOOL m_bScan;
-	BOOL m_bDeny;
-	BOOL m_bDeep;
-	BOOL m_bOffice;
-	BOOL m_bArchives;
-	BOOL m_bPDF;
-	BOOL m_bHTML;
-
-	BOOL m_bIdle;
-	int m_nIdleTime;
-	int m_nCPULoad;
-};
-
 class CScheduledTask;
+class CSettingsInfo;
 class CDCAntiVirusSettingsDlg : public CDialog
 {
 public:
@@ -59,7 +31,9 @@ private:
 	void SetIdleData(const CSettingsInfo &info);
 	void CheckControl(UINT ID, BOOL bSheck);
 
-	void SetTaskInfo(CScheduledTask *pTask, UINT ID);
+	void SetTaskInfo(CScheduledTask *pTask, UINT ID, LPCSTR sEntry = 0);
+
+	void LoadShedInfo();
 
 public:
 	void OnCheckEnableScan();

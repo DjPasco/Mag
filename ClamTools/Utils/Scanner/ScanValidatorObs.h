@@ -6,7 +6,7 @@ class CScanValidatorObs
 {
 public:
 	virtual bool ContinueScan() = 0;
-	virtual long GetCPUUsage()	= 0;
+	virtual bool IsCPULoaded()	= 0;
 };
 
 #endif

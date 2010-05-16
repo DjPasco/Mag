@@ -11,22 +11,22 @@ public:
 	CMyService();
 	virtual void WINAPI ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv);
 	virtual void OnStop();
-  virtual void OnPause();
-  virtual void OnContinue();
+	virtual void OnPause();
+	virtual void OnContinue();
 	virtual void ShowHelp();
-  virtual void OnUserDefinedRequest(DWORD dwControl);
+	virtual void OnUserDefinedRequest(DWORD dwControl);
 
 protected:
-  BOOL  m_bWantStop;
-  BOOL  m_bPaused;
-  DWORD m_dwBeepInternal;
+	BOOL  m_bWantStop;
+	BOOL  m_bPaused;
+	DWORD m_dwBeepInternal;
 };
 
 
 class CApp : public CWinApp
 {
 public:
-	CApp() {};
+	CApp(){};
 
 protected:
 	virtual BOOL InitInstance();

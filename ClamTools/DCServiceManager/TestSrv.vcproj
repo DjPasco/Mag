@@ -353,6 +353,10 @@
 			Name="Utils"
 			>
 			<File
+				RelativePath="..\Utils\SendObj.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Utils\TraySendObj.h"
 				>
 			</File>
