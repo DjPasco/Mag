@@ -20,26 +20,13 @@ UINT ScanDlg(LPVOID pParam)
 		CScanner *pScanner = (CScanner *)pParam;
 		CDCAntivirusScanDlg scanDlg(pScanner);
 		scanDlg.Create(IDD_SCAN_DLG);
-#ifndef _TEST
 		scanDlg.ShowWindow(SW_HIDE);
-#endif
 		scanDlg.RunModalLoop();
 	}
 	return 0;
 }
 
-
-//The one and only one application
 CApp theApp;
-
-BOOL CALLBACK EnumServices(DWORD /*dwData*/, ENUM_SERVICE_STATUS& Service)
-{
-  TRACE(_T("Service name is %s\n"), Service.lpServiceName);
-  TRACE(_T("Friendly name is %s\n"), Service.lpDisplayName);
-
-  return TRUE; //continue enumeration
-}
-
 BOOL CApp::InitInstance()
 {
 #ifdef _TEST_
@@ -49,8 +36,10 @@ BOOL CApp::InitInstance()
 
 	while (true)
 	{
-		Sleep(10000);
+		Sleep(1000);
 	}
+
+	delete pScanner;
 #else
 	CNTServiceCommandLineInfo cmdInfo;
 	CMyService Service;

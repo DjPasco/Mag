@@ -14,9 +14,7 @@ namespace wnd_utils
 		HWND hwnd = NULL;
 		hwnd = FindWindow(NULL, "DCAntiVirusScan");
 
-				hook_utils_main::DebugMessage("Rado");
-
-		if(NULL != hwnd)
+		if(NULL == hwnd)
 		{
 			return true;
 		}

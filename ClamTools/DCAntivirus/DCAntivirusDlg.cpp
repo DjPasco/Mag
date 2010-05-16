@@ -163,7 +163,7 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			GetDlgItem(IDC_LAST_FILE_EDIT)->SetWindowText(sFile);
 
 			CString sVirus;
-			sFile.Format("%s", pData->m_sText2);
+			sVirus.Format("%s", pData->m_sText2);
 			GetDlgItem(IDC_EDIT_VIRUS_NAME)->SetWindowText(sVirus);
 
 			
