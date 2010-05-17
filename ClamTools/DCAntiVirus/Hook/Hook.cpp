@@ -89,7 +89,7 @@ namespace hook_utils
 
 		bool NeedHook(LPCSTR sExeName)
 		{
-			if(0 == lstrcmpi(sExeName, "DCServiceD.exe"))
+			if(0 == lstrcmpi(sExeName, "DCService.exe"))
 			{
 				return false;
 			}

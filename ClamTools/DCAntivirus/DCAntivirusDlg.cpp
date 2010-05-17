@@ -10,7 +10,7 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-//#define IGNORE_HOOK
+#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -98,8 +98,8 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
 #ifndef IGNORE_HOOK
-	//hook_utils::GlobalHook(true);
-	hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+	hook_utils::GlobalHook(true);
+	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 #endif
 
 	return 0;

@@ -136,22 +136,6 @@ BOOL CTrayDialog::TrayShow()
 	return bSuccess;
 }
 
-BOOL CTrayDialog::TrayHide()
-{
-	BOOL bSuccess = FALSE;
-	if(m_bTrayIconVisible)
-	{
-		bSuccess = Shell_NotifyIcon(NIM_DELETE,&m_nidIconData);
-		if(bSuccess)
-			m_bTrayIconVisible= FALSE;
-	}
-	else
-	{
-		TRACE0("ICON ALREADY HIDDEN");
-	}
-	return bSuccess;
-}
-
 BOOL CTrayDialog::TrayUpdate()
 {
 	BOOL bSuccess = FALSE;
@@ -266,9 +250,7 @@ void CTrayDialog::OnTrayLButtonDown(CPoint pt)
 
 void CTrayDialog::OnTrayLButtonDblClk(CPoint pt)
 {
-	if(m_bMinimizeToTray)
-		if(TrayHide())
-			this->ShowWindow(SW_SHOW);
+	this->ShowWindow(SW_SHOW);
 }
 
 void CTrayDialog::OnTrayRButtonDblClk(CPoint pt)
