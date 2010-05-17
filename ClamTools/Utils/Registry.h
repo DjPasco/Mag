@@ -32,7 +32,7 @@ namespace registry_utils
 			HKEY hAppKey = NULL;
 			HKEY hSoftKey = NULL;
 			HKEY hCompanyKey = NULL;
-			if (RegOpenKeyEx(HKEY_CURRENT_USER, _T("software"), 0, KEY_WRITE|KEY_READ,
+			if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("software"), 0, KEY_WRITE|KEY_READ,
 				&hSoftKey) == ERROR_SUCCESS)
 			{
 				DWORD dw;

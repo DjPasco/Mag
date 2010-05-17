@@ -297,6 +297,8 @@ namespace file_utils
 
 CScanner::CScanner()
 {
+	m_bLoaded = false;
+
 	Init();
 	
 	m_pMD5 = EVP_md5();
@@ -326,8 +328,10 @@ bool CScanner::LoadDatabases()
 	m_pMainScan->GetInfo(m_pMainDBInfo);
 #endif
 
+		MessageBox(NULL, path_utils::GetDailyDBPath(), "Loadina", MB_OK);
 	if(!m_pDailyScan->LoadDatabase(path_utils::GetDailyDBPath()))
 	{
+		MessageBox(NULL, path_utils::GetDailyDBPath(), "Fail", MB_OK);
 		return false;
 	}
 
@@ -335,6 +339,8 @@ bool CScanner::LoadDatabases()
 
 
 	SendInfoToTray(false, m_pDailyDBInfo);
+
+	m_bLoaded = true;
 
 	return true;
 }
@@ -376,6 +382,11 @@ void CScanner::Free()
 
 bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 {
+	if(!m_bLoaded)
+	{
+		return true;
+	}
+
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
 
@@ -431,6 +442,11 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 
 void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
 {
+	if(!m_bLoaded)
+	{
+		return;
+	}
+
 	std::vector<CFileInfoEx> arrFiles;
 
 	CFileInfoEx infoEx;
@@ -545,6 +561,11 @@ void CScanner::SendFileToTray(LPCSTR sFile, LPCSTR sVirus)
 
 void CScanner::RequestData()
 {
+	if(!m_bLoaded)
+	{
+		return;
+	}
+
 #ifdef LOAD_MAIN_DB
 	SendInfoToTray(true, m_pMainDBInfo);
 #endif
@@ -554,6 +575,11 @@ void CScanner::RequestData()
 
 void CScanner::SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML)
 {
+	if(!m_bLoaded)
+	{
+		return;
+	}
+
 #ifdef LOAD_MAIN_DB
 	m_pMainScan->SetScanSettings(bDeep, bOffice, bArchives, bPDF, bHTML);
 #endif

@@ -43,6 +43,8 @@ private:
 
 	CScannedFileMap *m_pFilesMap;
 	const EVP_MD *m_pMD5;
+
+	bool m_bLoaded;
 };
 
 #endif
