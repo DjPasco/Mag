@@ -21,9 +21,10 @@ static const char *sgDBDaily	= "daily.cvd";
 
 static const char *sgDataFile	= "PassData.dat";
 
-static const char *sgFreshClam	= "freshclam.exe";
+static const char *sgFreshClam		= "freshclam.exe";
+static const char *sgFreshClamConf	= "freshclam.conf";
 
-static const char *sgServiceName = "DCAntiVirus";
+static const char *sgServiceName		= "DCAntiVirus";
 static const char *sgServiceDisplayName = "DCAntiVirus";
 static const char *sgServiceDescription = "DCAntiVirus: Protection against Virus";
 
@@ -192,4 +193,22 @@ namespace path_utils
 		return sPath;
 	}
 
+	static CString GetFreshClamConfPath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s", sBaseDir, sgFreshClamConf);
+		return sPath;
+	}
+
+	static CString GenerateFrechClamParameters()
+	{
+		CString sFreshClamPathConf	= path_utils::GetFreshClamConfPath();
+		CString sDBDir				= path_utils::GetDBDir();
+
+		CString sParameters;
+		sParameters.Format("--datadir=\"%s\" --config-file=\"%s\"", sDBDir, sFreshClamPathConf);
+
+		return sParameters;
+	}
 }

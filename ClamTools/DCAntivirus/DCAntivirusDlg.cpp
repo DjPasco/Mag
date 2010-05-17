@@ -7,6 +7,7 @@
 
 #include "../Utils/TraySendObj.h"
 #include "../Utils/SendObj.h"
+#include "../Utils/Registry.h"
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
@@ -37,6 +38,7 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_MESSAGE(WM_HOOK_SYSTEM,	OnHookSystem)
 	ON_MESSAGE(WM_COPYDATA,		OnCopyData)
 	ON_BN_CLICKED(IDC_BUTTON3,	OnSettings)
+	ON_BN_CLICKED(IDC_BUTTON_UPDATE_DB, &CDCAntiVirusDlg::OnUpdateDb)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusDlg::OnInitDialog()
@@ -209,4 +211,12 @@ void CDCAntiVirusDlg::OnSettings()
 {
 	CDCAntiVirusSettingsDlg dlgSettings;
 	dlgSettings.DoModal();
+}
+
+void CDCAntiVirusDlg::OnUpdateDb()
+{
+	CString sFreshClamPath		= path_utils::GetFreshClamPath();
+	CString sParameters = path_utils::GenerateFrechClamParameters();;
+
+	ShellExecute(this->GetSafeHwnd(), "open", sFreshClamPath, sParameters, "", SW_SHOW); 
 }

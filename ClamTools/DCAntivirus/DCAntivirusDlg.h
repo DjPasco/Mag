@@ -31,4 +31,5 @@ private:
 
 public:
 	void OnSettings();
+	afx_msg void OnUpdateDb();
 };

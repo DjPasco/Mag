@@ -251,10 +251,10 @@ void CDCAntiVirusSettingsDlg::OnChangeUpd()
 	
 	if(IDOK == dlgSched.DoModal())
 	{
-		pTask->SetProgram     ("c:\\avg_free_stf_en_90_730a1834.exe");
-		//pTask->SetParameters  ("Parameters");
-		//pTask->SetStartingDir ("StartDir");
-		//pTask->SetComment     ("Comment");
+		CString sFreshClamPath		= path_utils::GetFreshClamPath();
+		CString sParameters = path_utils::GenerateFrechClamParameters();;
+		pTask->SetProgram(sFreshClamPath);
+		pTask->SetParameters(sParameters);
 		if(S_OK == pTask->SaveTask(sgShedUpdTaskName, false))
 		{
 			SetTaskInfo(pTask, IDC_STATIC_UPD_SHED, sgShedUpdTaskInfo);

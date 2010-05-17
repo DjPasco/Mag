@@ -12,6 +12,7 @@
 #define IDC_SHEET_POSITION              1005
 #define IDC_BUTTON1                     1006
 #define IDC_STARTDATE_SHED              1006
+#define IDC_BUTTON_UPDATE_DB            1006
 #define IDC_BUTTON2                     1007
 #define IDC_STARTTIME_SHED              1007
 #define IDC_BUTTON3                     1008
