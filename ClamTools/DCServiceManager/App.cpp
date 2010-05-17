@@ -4,6 +4,7 @@
 #include "app.h"
 #include "DCAntivirusScanDlg.h"
 #include "../Utils/Scanner/Scanner.h"
+#include "../Utils/Registry.h"
 
 //#define _TEST_
 
@@ -29,6 +30,8 @@ UINT ScanDlg(LPVOID pParam)
 CApp theApp;
 BOOL CApp::InitInstance()
 {
+	registry_utils::CheckBaseDir();
+
 #ifdef _TEST_
 	CScanner *pScanner = new CScanner;
 	pScanner->LoadDatabases();
@@ -51,7 +54,7 @@ BOOL CApp::InitInstance()
 }
 
 
-CMyService::CMyService() : CNTService(_T("DCAntiVirus"), _T("DCAntiVirus service"), SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_PAUSE_CONTINUE, _T("DCAntiVirus: Protection from Virus")) 
+CMyService::CMyService() : CNTService(sgServiceName, sgServiceDisplayName, SERVICE_ACCEPT_STOP, sgServiceDescription) 
 {
 	m_bWantStop = FALSE;
 	m_bPaused = FALSE;
@@ -65,39 +68,38 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 
 	//Pretend that starting up takes some time
 	ReportStatusToSCM(SERVICE_START_PENDING, NO_ERROR, 0, 1, 0);
-	CScanner *pScanner = new CScanner;
-	pScanner->LoadDatabases();
-
-	AfxBeginThread(ScanDlg, (LPVOID)pScanner);
+		CScanner *pScanner = new CScanner;
+		pScanner->LoadDatabases();
+		AfxBeginThread(ScanDlg, (LPVOID)pScanner);
 	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
 
-  //Report to the event log that the service has started successfully
-  m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);
+	//Report to the event log that the service has started successfully
+	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);
 
 	//The tight loop which constitutes the service
-  BOOL bOldPause = m_bPaused;
+	BOOL bOldPause = m_bPaused;
 	while (!m_bWantStop)
 	{
 		//As a demo, we just do a message beep
-	  Sleep(m_dwBeepInternal);
-    //SCM has requested a Pause / Continue
-    if (m_bPaused != bOldPause)
-    {
-      if (m_bPaused)
-      {
-    	  ReportStatusToSCM(SERVICE_PAUSED, NO_ERROR, 0, 1, 0);
-        //Report to the event log that the service has paused successfully
-        m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_PAUSED, m_sDisplayName);
-      }
-      else
-      {
-        ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
-        //Report to the event log that the service has stopped continued
-        m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_CONTINUED, m_sDisplayName);
-      }
-    }
+		Sleep(m_dwBeepInternal);
+		//SCM has requested a Pause / Continue
+		if (m_bPaused != bOldPause)
+		{
+			if (m_bPaused)
+			{
+				ReportStatusToSCM(SERVICE_PAUSED, NO_ERROR, 0, 1, 0);
+				//Report to the event log that the service has paused successfully
+				m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_PAUSED, m_sDisplayName);
+			}
+			else
+			{
+				ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
+				//Report to the event log that the service has stopped continued
+				m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_CONTINUED, m_sDisplayName);
+			}
+		}
 
-    bOldPause = m_bPaused;
+		bOldPause = m_bPaused;
 	}
 
 	//Pretend that closing down takes some time
@@ -105,8 +107,8 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	delete pScanner;
 	ReportStatusToSCM(SERVICE_STOPPED, NO_ERROR, 0, 1, 0);
 
-  //Report to the event log that the service has stopped successfully
-  m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STOPPED, m_sDisplayName);
+	//Report to the event log that the service has stopped successfully
+	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STOPPED, m_sDisplayName);
 }
 
 void CMyService::OnStop()

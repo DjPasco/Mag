@@ -319,6 +319,8 @@ CScanner::~CScanner()
 
 bool CScanner::LoadDatabases()
 {
+	m_bLoaded = false;
+
 #ifdef LOAD_MAIN_DB
 	if(!m_pMainScan->LoadDatabase(path_utils::GetMainDBPath()))
 	{
@@ -328,10 +330,8 @@ bool CScanner::LoadDatabases()
 	m_pMainScan->GetInfo(m_pMainDBInfo);
 #endif
 
-		MessageBox(NULL, path_utils::GetDailyDBPath(), "Loadina", MB_OK);
 	if(!m_pDailyScan->LoadDatabase(path_utils::GetDailyDBPath()))
 	{
-		MessageBox(NULL, path_utils::GetDailyDBPath(), "Fail", MB_OK);
 		return false;
 	}
 

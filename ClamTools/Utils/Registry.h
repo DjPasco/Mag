@@ -23,6 +23,10 @@ static const char *sgDataFile	= "PassData.dat";
 
 static const char *sgFreshClam	= "freshclam.exe";
 
+static const char *sgServiceName = "DCAntiVirus";
+static const char *sgServiceDisplayName = "DCAntiVirus";
+static const char *sgServiceDescription = "DCAntiVirus: Protection against Virus";
+
 namespace registry_utils
 {
 	namespace internal 
