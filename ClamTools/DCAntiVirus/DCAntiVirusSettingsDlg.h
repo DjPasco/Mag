@@ -40,7 +40,13 @@ public:
 	void OnCheckEnableIdleScan();
 	void OnBnClickedOk();
 	void OnChangeSchedScan();
-	afx_msg void OnDeleteSchedScan();
-	afx_msg void OnChangeUpd();
-	afx_msg void OnDeleteUpd();
+	void OnDeleteSchedScan();
+	void OnChangeUpd();
+	void OnDeleteUpd();
+
+private:
+	CListCtrl m_list;
+public:
+	afx_msg void OnAdd();
+	afx_msg void OnRemove();
 };

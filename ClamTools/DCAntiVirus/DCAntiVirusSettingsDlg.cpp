@@ -36,11 +36,21 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusSettingsDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE_SCHED_SCAN, OnDeleteSchedScan)
 	ON_BN_CLICKED(IDC_BUTTON_CHANGE_UPD,		OnChangeUpd)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE_UPD,		OnDeleteUpd)
+	ON_BN_CLICKED(IDC_BUTTON_ADD, &CDCAntiVirusSettingsDlg::OnAdd)
+	ON_BN_CLICKED(IDC_BUTTON_REMOVE, &CDCAntiVirusSettingsDlg::OnRemove)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusSettingsDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+	if(!m_list.SubclassDlgItem(IDC_LIST_ITEMS, this))
+	{
+		return FALSE;
+	}
+
+	m_list.ModifyStyle(0, LVS_REPORT|LVS_SINGLESEL); 
+	m_list.InsertColumn(0, "Items", LVCFMT_LEFT, 350);
 
 	LoadRegistryData();
 	LoadShedInfo();
@@ -90,6 +100,27 @@ void CDCAntiVirusSettingsDlg::LoadRegistryData()
 
 	SetData(info);
 	UpdateAllControls();
+
+	CString sItems = registry_utils::GetProfileString(sgSection, sgShedScanItems, "");
+	if(!sItems.IsEmpty())
+	{
+		char *token;
+		char *str = sItems.GetBuffer(0);
+		token = strtok( str, "\n" );
+		if(NULL != token)
+		{
+			m_list.InsertItem(m_list.GetItemCount(), token);
+		}
+
+		while(token != NULL)
+		{
+			token = strtok( NULL, "\n" );
+			if(NULL != token)
+			{
+				m_list.InsertItem(m_list.GetItemCount(), token);
+			}
+		}
+	}
 }
 
 void CDCAntiVirusSettingsDlg::SaveRegistryData()
@@ -97,6 +128,20 @@ void CDCAntiVirusSettingsDlg::SaveRegistryData()
 	CSettingsInfo info;
 	GetData(info);	
 	settings_utils::Save(info);
+
+	sgShedScanItems;
+	CString sItems;
+	int nCount = m_list.GetItemCount();
+	for(int i = 0; i < nCount; ++i)
+	{
+		sItems += m_list.GetItemText(i, 0);
+		if(i+1 != nCount)
+		{
+			sItems += "\n";
+		}
+	}
+
+	registry_utils::WriteProfileString(sgSection, sgShedScanItems, sItems);
 }
 
 void CDCAntiVirusSettingsDlg::OnBnClickedOk()
@@ -337,3 +382,39 @@ void CDCAntiVirusSettingsDlg::LoadShedInfo()
 	}
 }
 
+void CDCAntiVirusSettingsDlg::OnAdd()
+{
+	BROWSEINFO bi = { 0 };
+    char path[MAX_PATH];
+    bi.lpszTitle = "Pick item to scan";
+    bi.pszDisplayName = path;
+	bi.ulFlags |= BIF_BROWSEINCLUDEFILES|BIF_NONEWFOLDERBUTTON|BIF_NEWDIALOGSTYLE;
+    LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+    if(NULL != pidl)
+    {
+		char sPathName[MAX_PATH]; 
+		BOOL bRet = SHGetPathFromIDList(pidl, sPathName);
+		if(bRet)
+		{
+			int nCount = m_list.GetItemCount();
+			m_list.InsertItem(nCount, sPathName);
+		}
+
+	     // free memory used
+        IMalloc *imalloc = 0;
+        if(SUCCEEDED(SHGetMalloc(&imalloc)))
+        {
+            imalloc->Free(pidl);
+            imalloc->Release();
+        }
+    }
+}
+
+void CDCAntiVirusSettingsDlg::OnRemove()
+{
+	int nSel = m_list.GetSelectionMark();
+	if(-1 != nSel)
+	{
+		m_list.DeleteItem(nSel);
+	}
+}

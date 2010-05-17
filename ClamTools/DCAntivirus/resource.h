@@ -13,6 +13,7 @@
 #define IDC_BUTTON1                     1006
 #define IDC_STARTDATE_SHED              1006
 #define IDC_BUTTON_UPDATE_DB            1006
+#define IDC_BUTTON_ADD                  1006
 #define IDC_BUTTON2                     1007
 #define IDC_STARTTIME_SHED              1007
 #define IDC_BUTTON3                     1008
@@ -67,6 +68,9 @@
 #define IDC_BUTTON_DELETE_SCHED_SCAN    1032
 #define IDC_STATIC_SCAN_SHED            1033
 #define IDC_STATIC_UPD_SHED             1034
+#define IDC_LIST_ITEMS                  1035
+#define IDC_BUTTON_REMOVE               1036
+#define IDC_LIST3                       1038
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -81,7 +85,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        141
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
