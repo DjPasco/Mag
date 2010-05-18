@@ -6,7 +6,7 @@
 #include "../Utils/Scanner/Scanner.h"
 #include "../Utils/Registry.h"
 
-//#define _TEST_
+#define _TEST_
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

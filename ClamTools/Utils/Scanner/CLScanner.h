@@ -20,7 +20,7 @@ public:
 	bool CreateEngine();
 	bool FreeEngine();
 	bool LoadDatabase(LPCSTR sDBPath);
-	bool ScanFile(LPCSTR sFile, const char *sVirname);
+	bool ScanFile(LPCSTR sFile, const char **sVirname);
 
 	void SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML);
 

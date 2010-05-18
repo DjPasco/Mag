@@ -408,20 +408,20 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 		return true;
 	}
 
-	const char *sVirname = NULL;
+	const char *sVirname;
 
 #ifdef LOAD_MAIN_DB
-	if(m_pMainScan->ScanFile(sFilePath.c_str(), sVirname))
+	if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
-		sVirus.Format("&s", sVirname);
+		sVirus.Format("%s", sVirname);
 		SendFileToTray(sFile, sVirname);
 		return false;
 	}
 #endif
 
-	if(m_pDailyScan->ScanFile(sFilePath.c_str(), sVirname))
+	if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
-		sVirus.Format("&s", sVirname);
+		sVirus.Format("%s", sVirname);
 		SendFileToTray(sFile, sVirname);
 		return false;
 	}

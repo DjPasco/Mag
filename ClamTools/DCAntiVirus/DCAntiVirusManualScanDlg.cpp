@@ -4,6 +4,7 @@
 #include "EnumerateFiles.h"
 
 #include "../Utils/SendObj.h"
+#include "../Utils/Registry.h"
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -29,17 +30,20 @@ public:
 		copy.cbData = sizeof(obj);
 		copy.lpData = &obj;
 
-		m_pDlg->OnVirus(lpzFile, "Virusas");
+		LRESULT result = SendMessage(m_hwnd,
+									 WM_COPYDATA,
+									 0,
+									 (LPARAM) (LPVOID) &copy);
 
-		//LRESULT result = SendMessage(m_hwnd,
-		//							 WM_COPYDATA,
-		//							 0,
-		//							 (LPARAM) (LPVOID) &copy);
-
-		//if(0 == result)
-		//{
-		//	//
-		//}
+		if(0 == result)
+		{
+			CString sVirus = registry_utils::GetProfileString(sgSection, sgVirusName, "");
+			if(!sVirus.IsEmpty())
+			{
+				m_pDlg->OnVirus(lpzFile, sVirus);
+				registry_utils::WriteProfileString(sgSection, sgVirusName, "");
+			}
+		}
 	}
 
 private:
@@ -241,6 +245,8 @@ void CDCAntiVirusManualScanDlg::OnScan()
 		GetDlgItem(IDC_STATIC_ACTION)->SetWindowText("Scan stoped by user.");
 
 		m_progres.SetPos(0);
+
+		GetDlgItem(IDC_EDIT1_CUR)->SetWindowText("");
 	}
 }
 
@@ -301,6 +307,8 @@ void CDCAntiVirusManualScanDlg::OnFinish()
 	EnableStartItems(TRUE);
 	EnableProgresItems(FALSE);
 	GetDlgItem(IDC_BUTTON_SCAN)->SetWindowText("Start");
+
+	GetDlgItem(IDC_EDIT1_CUR)->SetWindowText("");
 }
 
 void CDCAntiVirusManualScanDlg::OnVirus(LPCSTR sItem, LPCSTR sVirus)

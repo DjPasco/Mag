@@ -29,6 +29,8 @@ static const char *sgServiceName		= "DCAntiVirus";
 static const char *sgServiceDisplayName = "DCAntiVirus";
 static const char *sgServiceDescription = "DCAntiVirus: Protection against Virus";
 
+static const char *sgVirusName = "VirusName";
+
 namespace registry_utils
 {
 	namespace internal 

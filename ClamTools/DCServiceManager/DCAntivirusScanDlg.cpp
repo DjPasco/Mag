@@ -108,6 +108,17 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		{
 			ReloadSettings();	
 		}
+	case EManualScan:
+		{
+			registry_utils::WriteProfileString(sgSection, sgVirusName, "");
+			CString sFile = pData->m_sPath;
+			CString sVirusName;
+			if(!m_pScanner->ScanFile(sFile, sVirusName))
+			{
+				registry_utils::WriteProfileString(sgSection, sgVirusName, sVirusName);
+				return 0;
+			}
+		}
 		break;
 	}
 	

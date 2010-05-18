@@ -76,10 +76,10 @@ bool CCLScanner::LoadDatabase(LPCSTR sDBPath)
 	return true;
 }
 
-bool CCLScanner::ScanFile(LPCSTR sFile, const char *sVirname)
+bool CCLScanner::ScanFile(LPCSTR sFile, const char **sVirname)
 {
 	unsigned long lScanned;
-	int nRet = cl_scanfile(sFile, &sVirname, &lScanned, m_pEngine, m_nScanOptions);
+	int nRet = cl_scanfile(sFile, sVirname, &lScanned, m_pEngine, m_nScanOptions);
 
 	if(CL_VIRUS == nRet)
 	{
