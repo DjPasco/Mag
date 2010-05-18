@@ -3,6 +3,7 @@
 #include "DCAntiVirusDlg.h"
 
 #include "DCAntiVirusSettingsDlg.h"
+#include "DCAntiVirusManualScanDlg.h"
 #include "Hook/Hook.h"
 
 #include "../Utils/TraySendObj.h"
@@ -39,6 +40,7 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_MESSAGE(WM_COPYDATA,		OnCopyData)
 	ON_BN_CLICKED(IDC_BUTTON3,	OnSettings)
 	ON_BN_CLICKED(IDC_BUTTON_UPDATE_DB, &CDCAntiVirusDlg::OnUpdateDb)
+	ON_BN_CLICKED(IDC_BUTTON_MANUAL_SCAN, &CDCAntiVirusDlg::OnManualScan)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusDlg::OnInitDialog()
@@ -219,4 +221,10 @@ void CDCAntiVirusDlg::OnUpdateDb()
 	CString sParameters = path_utils::GenerateFrechClamParameters();;
 
 	ShellExecute(this->GetSafeHwnd(), "open", sFreshClamPath, sParameters, "", SW_SHOW); 
+}
+
+void CDCAntiVirusDlg::OnManualScan()
+{
+	CDCAntiVirusManualScanDlg dlg("Manual Scan");
+	dlg.DoModal();
 }

@@ -9,17 +9,21 @@
 #define IDB_CLAM_AV                     138
 #define IDD_SETTINGS                    139
 #define IDD_DIALOG_SHED                 140
+#define IDD_DIALOG_SCAN                 141
 #define IDC_SHEET_POSITION              1005
 #define IDC_BUTTON1                     1006
 #define IDC_STARTDATE_SHED              1006
 #define IDC_BUTTON_UPDATE_DB            1006
 #define IDC_BUTTON_ADD                  1006
+#define IDC_BUTTON_SCAN                 1006
 #define IDC_BUTTON2                     1007
 #define IDC_STARTTIME_SHED              1007
+#define IDC_BUTTON_MANUAL_SCAN          1007
 #define IDC_BUTTON3                     1008
 #define IDC_EDIT1                       1009
 #define IDC_EDIT_MAIN_DB_VERSION        1009
 #define IDC_EDIT_IDLE_TIME              1009
+#define IDC_EDIT1_CUR                   1009
 #define IDC_EDIT_LOAD                   1010
 #define IDC_EDIT3                       1011
 #define IDC_EDIT_MAIN_DB_TIME           1011
@@ -70,7 +74,16 @@
 #define IDC_STATIC_UPD_SHED             1034
 #define IDC_LIST_ITEMS                  1035
 #define IDC_BUTTON_REMOVE               1036
-#define IDC_LIST3                       1038
+#define IDC_STATIC_SCAN                 1039
+#define IDC_LIST_ITEMS_SCAN             1040
+#define IDC_BUTTON_ADD_ADD              1041
+#define IDC_BUTTON_REMOVE_SCAN          1042
+#define IDC_PROGRESS1                   1043
+#define IDC_STATIC_INFECTED             1044
+#define IDC_LIST_ITEMS_INFECTED         1045
+#define IDC_STATIC_CURRENT              1046
+#define IDC_STATIC_PROGRES              1047
+#define IDC_STATIC_ACTION               1048
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -83,9 +96,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        141
+#define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1049
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

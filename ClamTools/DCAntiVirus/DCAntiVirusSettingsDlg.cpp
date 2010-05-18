@@ -9,7 +9,7 @@
 #include "../Utils/Settings.h"
 #include "../Utils/SendObj.h"
 
-#include <string>
+//#include <string>
 
 const char *sgNoTask = "\nNo task defined\n";
 
@@ -36,8 +36,8 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusSettingsDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE_SCHED_SCAN, OnDeleteSchedScan)
 	ON_BN_CLICKED(IDC_BUTTON_CHANGE_UPD,		OnChangeUpd)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE_UPD,		OnDeleteUpd)
-	ON_BN_CLICKED(IDC_BUTTON_ADD, &CDCAntiVirusSettingsDlg::OnAdd)
-	ON_BN_CLICKED(IDC_BUTTON_REMOVE, &CDCAntiVirusSettingsDlg::OnRemove)
+	ON_BN_CLICKED(IDC_BUTTON_ADD,				OnAdd)
+	ON_BN_CLICKED(IDC_BUTTON_REMOVE,			OnRemove)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusSettingsDlg::OnInitDialog()
@@ -129,7 +129,6 @@ void CDCAntiVirusSettingsDlg::SaveRegistryData()
 	GetData(info);	
 	settings_utils::Save(info);
 
-	sgShedScanItems;
 	CString sItems;
 	int nCount = m_list.GetItemCount();
 	for(int i = 0; i < nCount; ++i)

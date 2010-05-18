@@ -207,6 +207,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DCAntiVirusManualScanDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntiVirusManualScanDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\DCAntiVirusSchedDlg.cpp"
 				>
 			</File>
@@ -223,7 +231,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EnumerateFiles.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\EnumerateFiles.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MatchFileExtension.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MatchFileExtension.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ScanEndingObs.h"
 				>
 			</File>
 			<File

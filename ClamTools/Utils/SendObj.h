@@ -6,6 +6,7 @@ enum ESendInfoType
 	EScan = 0,
 	ERequest,
 	EReloadSettings,
+	EManualScan,
 	ESendCount
 };
 

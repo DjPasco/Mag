@@ -8,12 +8,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DCAntiVirus", "..\DCAntiVir
 		{0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF} = {0CA95F37-5F04-4CD8-BAC6-7AA9D4B77CEF}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IdleTracker", "..\IdleTracker\IdleTracker.vcproj", "{BCE4944F-0666-4011-8A03-F6A7C6970E89}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DCServiceManager", "..\DCServiceManager\TestSrv.vcproj", "{5A67339F-6F2D-474E-A1B6-94F0FFACFA0D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89} = {BCE4944F-0666-4011-8A03-F6A7C6970E89}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +34,6 @@ Global
 		{FF588D58-179D-4057-8FBE-E8CD90FE61E1}.Unicode Debug|Win32.Build.0 = Debug|Win32
 		{FF588D58-179D-4057-8FBE-E8CD90FE61E1}.Unicode Release|Win32.ActiveCfg = Release|Win32
 		{FF588D58-179D-4057-8FBE-E8CD90FE61E1}.Unicode Release|Win32.Build.0 = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Debug|Win32.ActiveCfg = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Debug|Win32.Build.0 = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Release|Win32.ActiveCfg = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Release|Win32.Build.0 = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Unicode Debug|Win32.ActiveCfg = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Unicode Debug|Win32.Build.0 = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Unicode Release|Win32.ActiveCfg = Release|Win32
-		{BCE4944F-0666-4011-8A03-F6A7C6970E89}.Unicode Release|Win32.Build.0 = Release|Win32
 		{5A67339F-6F2D-474E-A1B6-94F0FFACFA0D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{5A67339F-6F2D-474E-A1B6-94F0FFACFA0D}.Debug|Win32.Build.0 = Debug|Win32
 		{5A67339F-6F2D-474E-A1B6-94F0FFACFA0D}.Release|Win32.ActiveCfg = Release|Win32

@@ -46,7 +46,8 @@ public:
 
 private:
 	CListCtrl m_list;
+
 public:
-	afx_msg void OnAdd();
-	afx_msg void OnRemove();
+	void OnAdd();
+	void OnRemove();
 };
