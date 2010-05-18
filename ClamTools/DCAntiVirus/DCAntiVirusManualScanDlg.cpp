@@ -71,8 +71,9 @@ UINT Scan(LPVOID pParam)
 		
 		pDlg->EnumerateFiles();
 
-		if(pDlg->Continue())
+		if(!pDlg->Continue())
 		{
+			pDlg->OnFinish();
 			return 0;
 		}
 		
@@ -92,8 +93,9 @@ UINT Scan(LPVOID pParam)
 			{
 				scanner.Execute((*it), "*.*", true);
 
-				if(pDlg->Continue())
+				if(!pDlg->Continue())
 				{
+					pDlg->OnFinish();
 					return 0;
 				}
 			}

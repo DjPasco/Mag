@@ -8,7 +8,8 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-CEnumerateFiles::CEnumerateFiles(CScanEndingObs *pObs)
+CEnumerateFiles::CEnumerateFiles(CScanEndingObs *pObs):
+m_pObs(pObs)
 {
 
 }
