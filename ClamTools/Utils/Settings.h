@@ -29,6 +29,8 @@ public:
 	BOOL m_bIdle;
 	int m_nIdleTime;
 	int m_nCPULoad;
+
+	CString m_sFilesTypes;
 };
 
 namespace settings_utils
@@ -53,6 +55,8 @@ namespace settings_utils
 												  &info.m_nIdleTime,
 												  &info.m_nCPULoad);
 
+		info.m_sFilesTypes = registry_utils::GetProfileString(sgSection, sgFileTypes, "");
+
 		return true;
 	};
 
@@ -71,5 +75,6 @@ namespace settings_utils
 											  info.m_nCPULoad);
 
 		registry_utils::WriteProfileString(sgSection, sgUserEntry, sData);
+		registry_utils::WriteProfileString(sgSection, sgFileTypes, info.m_sFilesTypes);
 	}
 }

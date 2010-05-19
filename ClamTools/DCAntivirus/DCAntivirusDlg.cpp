@@ -102,8 +102,8 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
 #ifndef IGNORE_HOOK
-	hook_utils::GlobalHook(true);
-	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+	//hook_utils::GlobalHook(true);
+	hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 #endif
 
 	return 0;

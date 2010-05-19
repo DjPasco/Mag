@@ -7,7 +7,8 @@ static const char *sgUserEntry = "ScanOptions";
 
 static const char *sgShedScanTaskName = "DCAntiVirusScan";
 static const char *sgShedScanTaskInfo = "SheduledScanInfo";
-static const char *sgShedScanItems = "ItemsToScan";
+static const char *sgShedScanItems	  = "ItemsToScan";
+static const char *sgFileTypes		  = "FileTypes";
 
 static const char *sgShedUpdTaskName = "DCAntiVirusUpdate";
 static const char *sgShedUpdTaskInfo = "SheduledUpdateInfo";

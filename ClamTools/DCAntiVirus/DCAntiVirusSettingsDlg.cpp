@@ -69,6 +69,8 @@ void CDCAntiVirusSettingsDlg::UpdateOnAccessControls()
 	GetDlgItem(IDC_CHECK_ARCHIVE)	->EnableWindow(bEnable);
 	GetDlgItem(IDC_CHECK_PDF)		->EnableWindow(bEnable);
 	GetDlgItem(IDC_CHECK_HTML)		->EnableWindow(bEnable);
+	GetDlgItem(IDC_STATIC_TYPES)	->EnableWindow(bEnable);
+	GetDlgItem(IDC_EDIT_TYPES)		->EnableWindow(bEnable);
 }
 
 void CDCAntiVirusSettingsDlg::UpdateIdleScanControls()
@@ -182,6 +184,8 @@ void CDCAntiVirusSettingsDlg::GetScanData(CSettingsInfo &info)
 	info.m_bArchives	= ControlChecked(IDC_CHECK_ARCHIVE);
 	info.m_bPDF			= ControlChecked(IDC_CHECK_PDF);
 	info.m_bHTML		= ControlChecked(IDC_CHECK_HTML);
+
+	GetDlgItem(IDC_EDIT_TYPES)->GetWindowText(info.m_sFilesTypes);
 }
 
 void CDCAntiVirusSettingsDlg::GetIdleData(CSettingsInfo &info)
@@ -231,6 +235,8 @@ void CDCAntiVirusSettingsDlg::SetScanData(const CSettingsInfo &info)
 	CheckControl(IDC_CHECK_ARCHIVE,		info.m_bArchives);
 	CheckControl(IDC_CHECK_PDF,			info.m_bPDF);
 	CheckControl(IDC_CHECK_HTML,		info.m_bHTML);
+
+	GetDlgItem(IDC_EDIT_TYPES)->SetWindowText(info.m_sFilesTypes);
 }
 
 void CDCAntiVirusSettingsDlg::SetIdleData(const CSettingsInfo &info)

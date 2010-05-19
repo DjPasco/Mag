@@ -35,7 +35,7 @@ public:
 									 0,
 									 (LPARAM) (LPVOID) &copy);
 
-		if(0 == result)
+		if(2 == result)
 		{
 			CString sVirus = registry_utils::GetProfileString(sgSection, sgVirusName, "");
 			if(!sVirus.IsEmpty())

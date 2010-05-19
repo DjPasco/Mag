@@ -6,6 +6,10 @@
 	#include "openssl/evp.h"
 #endif
 
+#include <vector>
+
+typedef std::vector<CString> CFilesTypes;
+
 class CScannedFileMap;
 class CCLScanner;
 class CScanValidatorObs;
@@ -26,6 +30,7 @@ public:
 	void RequestData();
 
 	void SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML);
+	void SetFilesTypes(CString sTypes);
 	
 private:
 	void Init();
@@ -44,7 +49,13 @@ private:
 	CScannedFileMap *m_pFilesMap;
 	const EVP_MD *m_pMD5;
 
+	CFilesTypes m_types;
+
 	bool m_bLoaded;
+
+	HANDLE m_hDataFile;
+	DWORD m_high;
+	DWORD m_low;
 };
 
 #endif

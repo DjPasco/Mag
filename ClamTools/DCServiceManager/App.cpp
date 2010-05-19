@@ -6,7 +6,7 @@
 #include "../Utils/Scanner/Scanner.h"
 #include "../Utils/Registry.h"
 
-#define _TEST_
+//#define _TEST_
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -69,8 +69,16 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	//Pretend that starting up takes some time
 	ReportStatusToSCM(SERVICE_START_PENDING, NO_ERROR, 0, 1, 0);
 		CScanner *pScanner = new CScanner;
+		
+		//Lock's data file
+		HANDLE hDataFile = CreateFile(path_utils::GetDataFilePath(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		DWORD low, high;
+		low = GetFileSize(hDataFile, &high);
+		LockFile(hDataFile, 0, 0, low, high);
+
 		pScanner->LoadDatabases();
 		AfxBeginThread(ScanDlg, (LPVOID)pScanner);
+
 	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
 
 	//Report to the event log that the service has started successfully
@@ -104,6 +112,11 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 
 	//Pretend that closing down takes some time
 	ReportStatusToSCM(SERVICE_STOP_PENDING, NO_ERROR, 0, 1, 0);
+	
+	//Unlock's data file
+	UnlockFile(hDataFile, 0, 0, low, high);
+	CloseHandle(hDataFile);
+
 	delete pScanner;
 	ReportStatusToSCM(SERVICE_STOPPED, NO_ERROR, 0, 1, 0);
 

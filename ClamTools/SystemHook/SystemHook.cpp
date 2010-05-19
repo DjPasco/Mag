@@ -33,6 +33,11 @@ namespace wnd_utils
 									 0,
 									 (LPARAM) (LPVOID) &copy);
 
+		if(2 == result)
+		{
+			return false;
+		}
+
 		return true;
 	}
 };
@@ -58,8 +63,11 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
 
 	if(NULL == strstr(sPath, "\\\\.\\"))//Named Pipe
 	{
-		//MessageBox(NULL, sPath, "Dydis", MB_OKCANCEL);	
-		bool bFileOK = wnd_utils::Execute(sPath);
+		if(!wnd_utils::Execute(sPath))
+		{
+			SetLastError(ERROR_ACCESS_DENIED);
+			return INVALID_HANDLE_VALUE;
+		}
 	}
 
 	return pTrueCreateFileW(lpFileName,

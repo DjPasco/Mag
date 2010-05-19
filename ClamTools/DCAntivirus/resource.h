@@ -33,6 +33,7 @@
 #define IDC_EDIT2                       1013
 #define IDC_EDIT_DAILY_DB_VERSION       1013
 #define IDC_WEEKLY_SHED                 1013
+#define IDC_EDIT_TYPES                  1013
 #define IDC_EDIT5                       1014
 #define IDC_EDIT_DAILY_DB_TIME          1014
 #define IDC_MONTHLY_SHED                1014
@@ -84,6 +85,7 @@
 #define IDC_STATIC_CURRENT              1046
 #define IDC_STATIC_PROGRES              1047
 #define IDC_STATIC_ACTION               1048
+#define IDC_STATIC_TYPES                1049
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -98,7 +100,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1049
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

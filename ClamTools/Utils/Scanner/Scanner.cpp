@@ -19,7 +19,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-#define LOAD_MAIN_DB
+//#define LOAD_MAIN_DB
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
 
@@ -273,7 +273,7 @@ namespace file_utils
 		fclose(pFile);
 	}
 
-	bool FileIsSupported(LPCSTR sFile)
+	bool FileIsSupported(LPCSTR sFile, CFilesTypes &types)
 	{
 		FILE *pFile = fopen(sFile, "rb");
 		if(NULL == pFile)
@@ -281,7 +281,17 @@ namespace file_utils
 			return false;
 		}
 
-		if(NULL == strstr(sFile, "\\\\"))//Named Pipe
+		char drive[_MAX_DRIVE];
+		char dir[_MAX_DIR];
+		char fname[_MAX_FNAME];
+		char ext[_MAX_EXT];
+
+		_splitpath(sFile, drive, dir, fname, ext);
+
+		char extension[_MAX_EXT];
+		strcpy(extension, &ext[1]);
+
+		if(types.end() != std::find(types.begin(), types.end(), extension))
 		{
 			return true;
 		}
@@ -390,7 +400,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
 
-	if(!file_utils::FileIsSupported(sFilePath.c_str()))
+	if(!file_utils::FileIsSupported(sFilePath.c_str(), m_types))
 	{
 		return true;
 	}
@@ -585,4 +595,29 @@ void CScanner::SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bP
 #endif
 
 	m_pDailyScan->SetScanSettings(bDeep, bOffice, bArchives, bPDF, bHTML);
+}
+
+void CScanner::SetFilesTypes(CString sTypes)
+{
+	if(!sTypes.IsEmpty())
+	{
+		m_types.clear();
+
+		char *token;
+		char *str = sTypes.GetBuffer(0);
+		token = strtok( str, ";" );
+		if(NULL != token)
+		{
+			m_types.push_back(_strupr(token));
+		}
+
+		while(token != NULL)
+		{
+			token = strtok( NULL, ";" );
+			if(NULL != token)
+			{
+				m_types.push_back(_strupr(token));
+			}
+		}
+	}
 }

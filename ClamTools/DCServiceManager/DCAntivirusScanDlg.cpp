@@ -16,9 +16,7 @@ static char THIS_FILE[] = __FILE__;
 static LPCTSTR gszProcessorTime="\\Processor(_Total)\\% Processor Time";
 
 #define MAX_LOAD 10
-#define IDL_TIME 100000
-#define CHECK_IDLE 30000
-
+#define CHECK_IDLE 60000 // One minute
 
 BEGIN_MESSAGE_MAP(CDCAntivirusScanDlg, CDialog)
 	ON_MESSAGE(WM_COPYDATA, OnCopyData)
@@ -31,7 +29,7 @@ CDCAntivirusScanDlg::CDCAntivirusScanDlg(CScanner *pScanner)
 	  m_bDeny(true),
 	  m_bIdleScan(true),
 	  m_nMaxCPULoad(20),
-	  m_nIdleTime(900000)
+	  m_nIdleTime(900000)// 15 minutes
 {
 	ReloadSettings();
 }
@@ -88,11 +86,17 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 				{
 					if(m_bDeny)
 					{
-						return 0;
+						return 2;
 					}
 					else
 					{
-						//Ask User
+						CString sInfo;
+						sInfo.Format("File: %s\ninfected with virus: %s\n\nAllow access to this file?", sFile, sVirusName);
+						if(IDNO == MessageBox(sInfo, "DCAntiVirus alert", MB_ICONERROR|MB_YESNO))
+						{
+							return 2;
+						}
+
 						return 1;
 					}
 				}
@@ -116,7 +120,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			if(!m_pScanner->ScanFile(sFile, sVirusName))
 			{
 				registry_utils::WriteProfileString(sgSection, sgVirusName, sVirusName);
-				return 0;
+				return 2;
 			}
 		}
 		break;
@@ -209,5 +213,6 @@ void CDCAntivirusScanDlg::ReloadSettings()
 		m_nIdleTime		= info.m_nIdleTime * 60000;
 
 		m_pScanner->SetScanSettings(info.m_bDeep, info.m_bOffice, info.m_bArchives, info.m_bPDF, info.m_bHTML);
+		m_pScanner->SetFilesTypes(info.m_sFilesTypes);
 	}
 }
