@@ -69,7 +69,8 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	//Pretend that starting up takes some time
 	ReportStatusToSCM(SERVICE_START_PENDING, NO_ERROR, 0, 1, 0);
 		CScanner *pScanner = new CScanner;
-		
+	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
+
 		//Lock's data file
 		HANDLE hDataFile = CreateFile(path_utils::GetDataFilePath(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		DWORD low, high;
@@ -78,8 +79,6 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 
 		pScanner->LoadDatabases();
 		AfxBeginThread(ScanDlg, (LPVOID)pScanner);
-
-	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
 
 	//Report to the event log that the service has started successfully
 	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);

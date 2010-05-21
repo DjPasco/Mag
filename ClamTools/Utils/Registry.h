@@ -32,6 +32,8 @@ static const char *sgServiceDescription = "DCAntiVirus: Protection against Virus
 
 static const char *sgVirusName = "VirusName";
 
+static const char *sgLogFileName = "Log.txt";
+
 namespace registry_utils
 {
 	namespace internal 
@@ -214,5 +216,13 @@ namespace path_utils
 		sParameters.Format("--datadir=\"%s\" --config-file=\"%s\"", sDBDir, sFreshClamPathConf);
 
 		return sParameters;
+	}
+
+	static CString GetLogFilePath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s", sBaseDir, sgLogFileName);
+		return sPath;
 	}
 }

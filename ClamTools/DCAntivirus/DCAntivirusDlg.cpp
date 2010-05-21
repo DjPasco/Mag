@@ -12,7 +12,7 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-#define IGNORE_HOOK
+//#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -59,7 +59,7 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 	TraySetMinimizeToTray(TRUE);
 	TrayShow();
 
-	RequestData();
+	//RequestData();
 
 	this->SendMessage(WM_HOOK_SYSTEM);
 	SetTimer(m_nTimer, 1000, NULL);

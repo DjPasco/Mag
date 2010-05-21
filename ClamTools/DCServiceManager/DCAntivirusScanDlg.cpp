@@ -112,6 +112,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		{
 			ReloadSettings();	
 		}
+		break;
 	case EManualScan:
 		{
 			registry_utils::WriteProfileString(sgSection, sgVirusName, "");

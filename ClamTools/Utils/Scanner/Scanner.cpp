@@ -5,6 +5,7 @@
 #include "ScanValidatorObs.h"
 #include "../TraySendObj.h"
 #include "../Registry.h"
+#include "../Log.h"
 
 #include <stdio.h>
 #include <hash_map>
@@ -19,7 +20,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-//#define LOAD_MAIN_DB
+#define LOAD_MAIN_DB
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
 
@@ -112,7 +113,6 @@ namespace file_utils
 				pathHash[i] = md_value[i];
 			}
 
-
 			return true;
 		}
 	};
@@ -123,7 +123,9 @@ namespace file_utils
 								CDCHash &hash,
 								CDCHash &pathHash,
 								unsigned int nMainDBVersion,
-								unsigned int nDailyDBVersion)
+								unsigned int nDailyDBVersion,
+								bool &bScanDaily,
+								bool &bScanMain)
 	{
 		hash.resize(0);
 		pathHash.resize(0);
@@ -140,19 +142,29 @@ namespace file_utils
 
 			if(info.m_fileHash == hash)
 			{
-				if(nMainDBVersion == info.m_nMainDBVersion && nDailyDBVersion == info.m_nDailyDBVersion)
+				bool bOld = false;
+				if(nMainDBVersion != info.m_nMainDBVersion)
 				{
-					return true;
+					bOld = true;
+					bScanMain = true;
 				}
+
+				if(nDailyDBVersion != info.m_nDailyDBVersion)
+				{
+					bOld = true;
+					bScanDaily = true;
+				}
+
+				if(bOld)
+				{
+					return false;
+				}
+				
+				return true;
 			}
 		}
 		
 		return false;
-	}
-
-	void AddFileHash(CScannedFileMap *pMapFiles, CDCHash &hash, CFileInfo &info)
-	{
-		(*pMapFiles)[hash] = info;
 	}
 
 	bool ReadHash(FILE *pFile, CDCHash &hash)
@@ -245,6 +257,11 @@ namespace file_utils
 		CMapI begin = pMapFiles->begin();
 		CMapI end = pMapFiles->end();
 
+		int nSize = pMapFiles->size();
+		CString s;
+		s.Format("%d", nSize);
+		MessageBox(NULL, s, "Dydi", MB_OK);
+
 		for(CMapI it = begin; it != end; ++it)
 		{
 			hash	= it->first;
@@ -270,6 +287,7 @@ namespace file_utils
 			fprintf(pFile, "%u %u %u %s\n", info.m_nMainDBVersion, info.m_nDailyDBVersion, info.m_nCount, info.m_sFilePath);
 		}
 
+		fflush(pFile);
 		fclose(pFile);
 	}
 
@@ -281,6 +299,8 @@ namespace file_utils
 			return false;
 		}
 
+		fclose(pFile);
+
 		char drive[_MAX_DRIVE];
 		char dir[_MAX_DIR];
 		char fname[_MAX_FNAME];
@@ -289,7 +309,7 @@ namespace file_utils
 		_splitpath(sFile, drive, dir, fname, ext);
 
 		char extension[_MAX_EXT];
-		strcpy(extension, &ext[1]);
+		strcpy(extension, &ext[1]);//Remowing point before extension
 
 		if(types.end() != std::find(types.begin(), types.end(), extension))
 		{
@@ -392,49 +412,69 @@ void CScanner::Free()
 
 bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 {
+	log_utils::LogData(sFile);
 	if(!m_bLoaded)
 	{
+		log_utils::LogData("Not Loaded.");
 		return true;
 	}
 
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
 
+	log_utils::LogData("Testing support.");
 	if(!file_utils::FileIsSupported(sFilePath.c_str(), m_types))
 	{
+		log_utils::LogData("Not Supported.");
 		return true;
 	}
 
 	CDCHash hash;
 	CDCHash pathHash;
+	bool bScanDaily;
+	bool bScanMain;
+	log_utils::LogData("Testing exist.");
 	if(file_utils::FileExistsInInternalDB(sFilePath.c_str(),
 										  m_pFilesMap,
 										  m_pMD5,
 										  hash,
 										  pathHash,
 										  m_pMainDBInfo->m_nVersion,
-										  m_pDailyDBInfo->m_nVersion))
+										  m_pDailyDBInfo->m_nVersion,
+										  bScanDaily,
+										  bScanMain))
 	{
+		log_utils::LogData("Already exists");
 		return true;
 	}
 
 	const char *sVirname;
 
 #ifdef LOAD_MAIN_DB
-	if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
+	if(bScanMain)
 	{
-		sVirus.Format("%s", sVirname);
-		SendFileToTray(sFile, sVirname);
-		return false;
+		log_utils::LogData("Scaning main");
+		if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
+		{
+			sVirus.Format("%s", sVirname);
+			SendFileToTray(sFile, sVirname);
+			return false;
+		}
 	}
 #endif
 
-	if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
+	if(bScanDaily)
 	{
-		sVirus.Format("%s", sVirname);
-		SendFileToTray(sFile, sVirname);
-		return false;
+		log_utils::LogData("Scaning daily");
+		if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
+		{
+			sVirus.Format("%s", sVirname);
+			SendFileToTray(sFile, sVirname);
+			return false;
+		}
 	}
+
+	log_utils::LogData("File scanned.");
 
 	CFileInfo info;
 	info.m_nCount = 1;
@@ -442,9 +482,13 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	info.m_nDailyDBVersion = m_pDailyDBInfo->m_nVersion;
 	info.m_sFilePath = sFilePath.c_str();
 	info.m_fileHash = hash;
-	file_utils::AddFileHash(m_pFilesMap, pathHash, info);
+	(*m_pFilesMap)[pathHash] = info;
+
+	log_utils::LogData("File added.");
 
 	SendFileToTray(sFile, NULL);
+
+	log_utils::LogData("File sended to tray.");
 
 	sVirus.Empty();
 	return true;

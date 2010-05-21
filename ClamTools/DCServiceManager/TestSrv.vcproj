@@ -353,6 +353,10 @@
 			Name="Utils"
 			>
 			<File
+				RelativePath="..\Utils\Log.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Utils\Registry.h"
 				>
 			</File>
