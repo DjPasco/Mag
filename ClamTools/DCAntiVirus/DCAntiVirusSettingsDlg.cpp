@@ -152,7 +152,7 @@ void CDCAntiVirusSettingsDlg::OnBnClickedOk()
 	CDialog::OnOK();
 
 	HWND hwnd = NULL;
-	hwnd = ::FindWindow(NULL, "DCAntiVirusScan");
+	hwnd = ::FindWindow(NULL, sgServerName);
 
 	if(NULL != hwnd)
 	{

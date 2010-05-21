@@ -44,6 +44,10 @@ public:
 				registry_utils::WriteProfileString(sgSection, sgVirusName, "");
 			}
 		}
+		else
+		{
+			m_pDlg->OnOK(lpzFile, "OK");
+		}
 	}
 
 private:
@@ -87,15 +91,15 @@ UINT Scan(LPVOID pParam)
 		CIt end = items.end();
 
 		HWND hwnd = NULL;
-		hwnd = ::FindWindow(NULL, "DCAntiVirusScan");
+		hwnd = ::FindWindow(NULL, sgServerName);
 
 		//if(NULL != hwnd)
 		{
 			CScanFiles scanner(hwnd, pDlg, pDlg);
-
+			CString sExt = pDlg->GetExts();
 			for(CIt it = begin; it != end; ++it)
 			{
-				scanner.Execute((*it), "*.*", true);
+				scanner.Execute((*it), sExt, true);
 
 				if(!pDlg->Continue())
 				{
@@ -148,8 +152,8 @@ BOOL CDCAntiVirusManualScanDlg::OnInitDialog()
 	}
 
 	m_listInfected.ModifyStyle(0, LVS_REPORT|LVS_SINGLESEL); 
-	m_listInfected.InsertColumn(0, "Virus name", LVCFMT_LEFT, 150);
-	m_listInfected.InsertColumn(1, "Infected item", LVCFMT_LEFT, 350);
+	m_listInfected.InsertColumn(0, "Item status", LVCFMT_LEFT, 150);
+	m_listInfected.InsertColumn(1, "Item path", LVCFMT_LEFT, 350);
 
 	if(!m_progres.SubclassDlgItem(IDC_PROGRESS1, this))
 	{
@@ -315,5 +319,25 @@ void CDCAntiVirusManualScanDlg::OnVirus(LPCSTR sItem, LPCSTR sVirus)
 {
 	int nCount = m_listInfected.GetItemCount();
 	int nIns = m_listInfected.InsertItem(nCount, sVirus);
+	m_listInfected.SetItemText(nIns, 1, sItem);
+}
+
+CString CDCAntiVirusManualScanDlg::GetExts()
+{
+	CString sExt;
+	GetDlgItem(IDC_EDIT_TYPES_TO_SCAN)->GetWindowText(sExt);
+
+	if(sExt.IsEmpty())
+	{
+		return "*.*";
+	}
+	
+	return sExt;
+}
+
+void CDCAntiVirusManualScanDlg::OnOK(LPCSTR sItem, LPCSTR sOK)
+{
+	int nCount = m_listInfected.GetItemCount();
+	int nIns = m_listInfected.InsertItem(nCount, sOK);
 	m_listInfected.SetItemText(nIns, 1, sItem);
 }

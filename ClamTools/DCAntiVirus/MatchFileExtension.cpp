@@ -15,14 +15,14 @@ bool CMatchFileExtension::IsMatchExtension(LPCTSTR lpzFile, LPCTSTR lpzExt)
 {
 	strcpy(m_ctemp,lpzExt);
 	char *token;
-	token = strtok( m_ctemp, "," );
+	token = strtok( m_ctemp, ";" );
 	
 	m_sArrayExt.RemoveAll();
 		
 	while(token!=NULL)
 	{
 		m_sArrayExt.Add(token);
-	    token = strtok( NULL,"," );
+	    token = strtok( NULL,";" );
 	}
 	bool bFound=false;
 

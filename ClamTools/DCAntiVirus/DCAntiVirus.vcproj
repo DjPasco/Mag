@@ -215,6 +215,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DCAntiVirusMemoryScanDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntiVirusMemoryScanDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\DCAntiVirusSchedDlg.cpp"
 				>
 			</File>

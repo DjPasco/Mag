@@ -24,8 +24,10 @@ public:
 	void EnumerateFiles();
 	virtual bool Continue();
 	CScanItems GetScanItems();
+	CString GetExts();
 	void ShowCurrentItem(LPCSTR sItem);
 	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
+	void OnOK(LPCSTR sItem, LPCSTR sOK);
 
 	void OnFinish();
 

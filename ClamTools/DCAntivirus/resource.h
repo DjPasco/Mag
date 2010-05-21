@@ -10,6 +10,7 @@
 #define IDD_SETTINGS                    139
 #define IDD_DIALOG_SHED                 140
 #define IDD_DIALOG_SCAN                 141
+#define IDD_DIALOG_MEMORY_SCAN          142
 #define IDC_SHEET_POSITION              1005
 #define IDC_BUTTON1                     1006
 #define IDC_STARTDATE_SHED              1006
@@ -24,7 +25,10 @@
 #define IDC_EDIT_MAIN_DB_VERSION        1009
 #define IDC_EDIT_IDLE_TIME              1009
 #define IDC_EDIT1_CUR                   1009
+#define ID_EDIT_CURRENT_MEMORY          1009
 #define IDC_EDIT_LOAD                   1010
+#define IDC_BUTTON_MANUAL_SCAN2         1010
+#define IDC_BUTTON_MEMORYL_SCAN         1010
 #define IDC_EDIT3                       1011
 #define IDC_EDIT_MAIN_DB_TIME           1011
 #define IDC_EDIT4                       1012
@@ -34,6 +38,7 @@
 #define IDC_EDIT_DAILY_DB_VERSION       1013
 #define IDC_WEEKLY_SHED                 1013
 #define IDC_EDIT_TYPES                  1013
+#define IDC_EDIT_TYPES_TO_SCAN          1013
 #define IDC_EDIT5                       1014
 #define IDC_EDIT_DAILY_DB_TIME          1014
 #define IDC_MONTHLY_SHED                1014
@@ -80,12 +85,17 @@
 #define IDC_BUTTON_ADD_ADD              1041
 #define IDC_BUTTON_REMOVE_SCAN          1042
 #define IDC_PROGRESS1                   1043
+#define ID_PROGRES_MEMORY               1043
 #define IDC_STATIC_INFECTED             1044
 #define IDC_LIST_ITEMS_INFECTED         1045
+#define ID_LOG_MEMORY                   1045
 #define IDC_STATIC_CURRENT              1046
+#define ID_STATIC_CURRENT_MEMORY        1046
 #define IDC_STATIC_PROGRES              1047
+#define ID_STATIC_PROGRES_MEMORY        1047
 #define IDC_STATIC_ACTION               1048
 #define IDC_STATIC_TYPES                1049
+#define IDC_STATIC_ACTION2              1050
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -98,7 +108,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        142
+#define _APS_NEXT_RESOURCE_VALUE        143
 #define _APS_NEXT_COMMAND_VALUE         32778
 #define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           101

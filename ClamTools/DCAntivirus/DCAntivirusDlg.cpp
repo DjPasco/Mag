@@ -4,6 +4,7 @@
 
 #include "DCAntiVirusSettingsDlg.h"
 #include "DCAntiVirusManualScanDlg.h"
+#include "DCAntiVirusMemoryScanDlg.h"
 #include "Hook/Hook.h"
 
 #include "../Utils/TraySendObj.h"
@@ -41,6 +42,7 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_BN_CLICKED(IDC_BUTTON3,	OnSettings)
 	ON_BN_CLICKED(IDC_BUTTON_UPDATE_DB, &CDCAntiVirusDlg::OnUpdateDb)
 	ON_BN_CLICKED(IDC_BUTTON_MANUAL_SCAN, &CDCAntiVirusDlg::OnManualScan)
+	ON_BN_CLICKED(IDC_BUTTON_MEMORYL_SCAN, &CDCAntiVirusDlg::OnMemoryScan)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusDlg::OnInitDialog()
@@ -59,7 +61,7 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 	TraySetMinimizeToTray(TRUE);
 	TrayShow();
 
-	//RequestData();
+	RequestData();
 
 	this->SendMessage(WM_HOOK_SYSTEM);
 	SetTimer(m_nTimer, 1000, NULL);
@@ -102,8 +104,8 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
 #ifndef IGNORE_HOOK
-	//hook_utils::GlobalHook(true);
-	hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+	hook_utils::GlobalHook(true);
+	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 #endif
 
 	return 0;
@@ -116,7 +118,7 @@ void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 	if(m_nProcCount != nNewCount)
 	{
 		m_nProcCount = nNewCount;
-		//hook_utils::GlobalHook(false);
+		hook_utils::GlobalHook(false);
 	}
 #endif
 
@@ -188,7 +190,7 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 void CDCAntiVirusDlg::RequestData()
 {
 	HWND hwnd = NULL;
-	hwnd = ::FindWindow(NULL, "DCAntiVirusScan");
+	hwnd = ::FindWindow(NULL, sgServerName);
 
 	if(NULL == hwnd)
 	{
@@ -226,5 +228,11 @@ void CDCAntiVirusDlg::OnUpdateDb()
 void CDCAntiVirusDlg::OnManualScan()
 {
 	CDCAntiVirusManualScanDlg dlg("Manual Scan");
+	dlg.DoModal();
+}
+
+void CDCAntiVirusDlg::OnMemoryScan()
+{
+	CDCAntiVirusMemoryScanDlg dlg;
 	dlg.DoModal();
 }

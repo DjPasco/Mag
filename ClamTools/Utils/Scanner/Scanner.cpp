@@ -257,11 +257,6 @@ namespace file_utils
 		CMapI begin = pMapFiles->begin();
 		CMapI end = pMapFiles->end();
 
-		int nSize = pMapFiles->size();
-		CString s;
-		s.Format("%d", nSize);
-		MessageBox(NULL, s, "Dydi", MB_OK);
-
 		for(CMapI it = begin; it != end; ++it)
 		{
 			hash	= it->first;

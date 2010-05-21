@@ -34,6 +34,8 @@ static const char *sgVirusName = "VirusName";
 
 static const char *sgLogFileName = "Log.txt";
 
+static const char *sgServerName = "DCAntiVirusScan";
+
 namespace registry_utils
 {
 	namespace internal 

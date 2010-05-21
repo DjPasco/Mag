@@ -5,6 +5,8 @@
 #include <tlhelp32.h>
 #include <iostream>
 
+#include "../../Utils/Registry.h"
+
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -17,22 +19,19 @@ namespace hook_utils
 	{
 		void GetHookDllPath(char *sHookPath)
 		{
-			char dirPath[MAX_PATH];
-			GetCurrentDirectory(MAX_PATH, dirPath);
+			CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
 
 		#ifdef _DEBUG
-			sprintf(sHookPath, "%s\\SystemHookD.dll", dirPath);
+			sprintf(sHookPath, "%s\\SystemHookD.dll", sBaseDir);
 		#else
-			sprintf(sHookPath, "%s\\SystemHook.dll", dirPath);
+			sprintf(sHookPath, "%s\\SystemHook.dll", sBaseDir);
 		#endif
 		}
 
 		void GetDetourDllPath(char *sDetourPath)
 		{
-			char dirPath[MAX_PATH];
-			GetCurrentDirectory(MAX_PATH, dirPath);
-
-			sprintf(sDetourPath, "%s\\detoured.dll", dirPath);
+			CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+			sprintf(sDetourPath, "%s\\detoured.dll", sBaseDir);
 		}
 
 		void EnableDebugPriv()
@@ -90,6 +89,11 @@ namespace hook_utils
 		bool NeedHook(LPCSTR sExeName)
 		{
 			if(0 == lstrcmpi(sExeName, "DCService.exe"))
+			{
+				return false;
+			}
+
+			if(0 == lstrcmpi(sExeName, "DCServiceD.exe"))
 			{
 				return false;
 			}
@@ -191,7 +195,7 @@ namespace hook_utils
 	void GlobalHook(bool bInitial)
 	{
 		HWND hwnd = NULL;
-		hwnd = ::FindWindow(NULL, "DCAntiVirusScan");
+		hwnd = ::FindWindow(NULL, sgServerName);
 
 		if(NULL == hwnd)
 		{
