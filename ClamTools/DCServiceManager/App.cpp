@@ -30,8 +30,6 @@ UINT ScanDlg(LPVOID pParam)
 CApp theApp;
 BOOL CApp::InitInstance()
 {
-	registry_utils::CheckBaseDir();
-
 #ifdef _TEST_
 	CScanner *pScanner = new CScanner;
 	pScanner->LoadDatabases();

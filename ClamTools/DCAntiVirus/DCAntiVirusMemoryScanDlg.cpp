@@ -20,6 +20,7 @@ static bool OnFile(LPCTSTR lpzFile)
 	CSendObj obj;
 	strcpy_s(obj.m_sPath, MAX_PATH, lpzFile);
 	obj.m_nType = EManualScan;
+	obj.m_bUseInternalDB = false;
 
 	COPYDATASTRUCT copy;
 	copy.dwData = 1;
@@ -56,8 +57,6 @@ UINT ScanMemory(LPVOID pParam)
 		{
 			return 0;
 		}
-
-		//int nCount = 0;
 
 		if(TRUE == Process32First(snapshot, &entry))
 		{
@@ -138,6 +137,7 @@ BOOL CDCAntiVirusMemoryScanDlg::OnInitDialog()
 		return FALSE;
 	}
 
+	GetDlgItem(IDOK)->EnableWindow(FALSE);
 	AfxBeginThread(ScanMemory, (LPVOID)this);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -201,20 +201,19 @@ void CDCAntiVirusMemoryScanDlg::EnumerateFiles()
 
 void CDCAntiVirusMemoryScanDlg::OnVirus(LPCSTR sItem, LPCSTR sVirus)
 {
-	int nCount = m_listLog.GetItemCount();
-	int nIns = m_listLog.InsertItem(nCount, sVirus);
+	int nIns = m_listLog.InsertItem(0, sVirus);
 	m_listLog.SetItemText(nIns, 1, sItem);
 }
 
 void CDCAntiVirusMemoryScanDlg::OnOK(LPCSTR sItem, LPCSTR sOK)
 {
-	int nCount = m_listLog.GetItemCount();
-	int nIns = m_listLog.InsertItem(nCount, sOK);
+	int nIns = m_listLog.InsertItem(0, sOK);
 	m_listLog.SetItemText(nIns, 1, sItem);
 }
 
 void CDCAntiVirusMemoryScanDlg::OnFinish()
 {
+	GetDlgItem(IDOK)->EnableWindow(TRUE);
 	m_progres.SetPos(0);
 	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText("Scan completed.");
 	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText("");

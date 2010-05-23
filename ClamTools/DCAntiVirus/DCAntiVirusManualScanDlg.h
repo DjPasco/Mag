@@ -28,6 +28,7 @@ public:
 	void ShowCurrentItem(LPCSTR sItem);
 	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
 	void OnOK(LPCSTR sItem, LPCSTR sOK);
+	bool GetUseInternalDB();
 
 	void OnFinish();
 

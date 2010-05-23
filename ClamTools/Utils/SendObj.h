@@ -15,6 +15,7 @@ class CSendObj
 public:
 	char m_sPath[MAX_PATH];
 	int  m_nType;
+	bool m_bUseInternalDB;
 };
 
 #endif

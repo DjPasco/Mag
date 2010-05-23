@@ -82,7 +82,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			{
 				CString sFile = pData->m_sPath;
 				CString sVirusName;
-				if(!m_pScanner->ScanFile(sFile, sVirusName))
+				if(!m_pScanner->ScanFile(sFile, sVirusName, true))
 				{
 					if(m_bDeny)
 					{
@@ -118,7 +118,17 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			registry_utils::WriteProfileString(sgSection, sgVirusName, "");
 			CString sFile = pData->m_sPath;
 			CString sVirusName;
-			if(!m_pScanner->ScanFile(sFile, sVirusName))
+			bool bClean(true);
+			if(pData->m_bUseInternalDB)
+			{
+				bClean = m_pScanner->ScanFile(sFile, sVirusName, false); 
+			}
+			else
+			{
+				bClean = m_pScanner->ScanFileNoIntDB(sFile, sVirusName); 
+			}
+
+			if(!bClean)
 			{
 				registry_utils::WriteProfileString(sgSection, sgVirusName, sVirusName);
 				return 2;

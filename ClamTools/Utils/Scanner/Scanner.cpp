@@ -355,13 +355,15 @@ bool CScanner::LoadDatabases()
 	m_pMainScan->GetInfo(m_pMainDBInfo);
 #endif
 
-	if(!m_pDailyScan->LoadDatabase(path_utils::GetDailyDBPath()))
+	if(!m_pDailyScan->LoadDatabase(path_utils::GetDailyDBPathCVD()))
 	{
-		return false;
+		if(!m_pDailyScan->LoadDatabase(path_utils::GetDailyDBPathCLD()))
+		{
+			return false;
+		}
 	}
 
 	m_pDailyScan->GetInfo(m_pDailyDBInfo);
-
 
 	SendInfoToTray(false, m_pDailyDBInfo);
 
@@ -393,10 +395,13 @@ void CScanner::Init()
 
 void CScanner::Free()
 {
+	if(m_bLoaded)
+	{
 #ifdef LOAD_MAIN_DB
-	m_pMainScan->FreeEngine();	
+		m_pMainScan->FreeEngine();	
 #endif
-	m_pDailyScan->FreeEngine();
+		m_pDailyScan->FreeEngine();
+	}
 	
 	delete m_pMainScan;
 	delete m_pMainDBInfo;
@@ -405,30 +410,28 @@ void CScanner::Free()
 	delete m_pDailyDBInfo;
 }
 
-bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
+bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 {
-	log_utils::LogData(sFile);
 	if(!m_bLoaded)
 	{
-		log_utils::LogData("Not Loaded.");
 		return true;
 	}
 
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
 
-	log_utils::LogData("Testing support.");
-	if(!file_utils::FileIsSupported(sFilePath.c_str(), m_types))
+	if(bCheckType)
 	{
-		log_utils::LogData("Not Supported.");
-		return true;
+		if(!file_utils::FileIsSupported(sFilePath.c_str(), m_types))
+		{
+			return true;
+		}
 	}
 
 	CDCHash hash;
 	CDCHash pathHash;
 	bool bScanDaily;
 	bool bScanMain;
-	log_utils::LogData("Testing exist.");
 	if(file_utils::FileExistsInInternalDB(sFilePath.c_str(),
 										  m_pFilesMap,
 										  m_pMD5,
@@ -439,7 +442,6 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 										  bScanDaily,
 										  bScanMain))
 	{
-		log_utils::LogData("Already exists");
 		return true;
 	}
 
@@ -448,7 +450,6 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 #ifdef LOAD_MAIN_DB
 	if(bScanMain)
 	{
-		log_utils::LogData("Scaning main");
 		if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
@@ -460,7 +461,6 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 
 	if(bScanDaily)
 	{
-		log_utils::LogData("Scaning daily");
 		if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
@@ -468,8 +468,6 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 			return false;
 		}
 	}
-
-	log_utils::LogData("File scanned.");
 
 	CFileInfo info;
 	info.m_nCount = 1;
@@ -479,11 +477,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus)
 	info.m_fileHash = hash;
 	(*m_pFilesMap)[pathHash] = info;
 
-	log_utils::LogData("File added.");
-
 	SendFileToTray(sFile, NULL);
-
-	log_utils::LogData("File sended to tray.");
 
 	sVirus.Empty();
 	return true;
@@ -659,4 +653,39 @@ void CScanner::SetFilesTypes(CString sTypes)
 			}
 		}
 	}
+}
+
+bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
+{
+	if(!m_bLoaded)
+	{
+		return true;
+	}
+
+	log_utils::LogData(sFile);
+
+	std::string sFilePath(sFile);
+	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
+
+	const char *sVirname;
+
+#ifdef LOAD_MAIN_DB
+	if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
+	{
+		sVirus.Format("%s", sVirname);
+		SendFileToTray(sFile, sVirname);
+		return false;
+	}
+#endif
+
+	if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
+	{
+		sVirus.Format("%s", sVirname);
+		SendFileToTray(sFile, sVirname);
+		return false;
+	}
+
+	SendFileToTray(sFile, NULL);
+	sVirus.Empty();
+	return true;
 }

@@ -27,6 +27,7 @@ All rights reserved.
 #include <lmcons.h>
 #include "ntserv.h"
 #include "ntserv_msg.h"
+#include "../Utils/Registry.h"
 
 
 /////////////////////////////////  Macros /////////////////////////////////////
@@ -649,7 +650,10 @@ BOOL CNTService::ProcessShellCommand(CNTServiceCommandLineInfo& rCmdInfo)
 			break;
 
 		case CNTServiceCommandLineInfo::InstallService:
-		  bResult = Install();
+			{
+				bResult = Install();
+				registry_utils::CheckBaseDir();
+			}
 			break;
 
 		case CNTServiceCommandLineInfo::UninstallService:

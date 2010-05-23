@@ -19,7 +19,8 @@ static const char *sgBaseDir = "DCAntiVirusBaseDir";
 
 static const char *sgDBDir		= "DB";
 static const char *sgDBMain		= "main.cvd";
-static const char *sgDBDaily	= "daily.cvd";
+static const char *sgDBDailyCVD	= "daily.cvd";
+static const char *sgDBDailyCLD	= "daily.cld";
 
 static const char *sgDataFile	= "PassData.dat";
 
@@ -156,16 +157,35 @@ namespace registry_utils
 			GetCurrentDirectory(MAX_PATH, dirPath);
 			WriteProfileString(sgSection, sgBaseDir, dirPath);
 		}
+		else
+		{
+			char dirPath[MAX_PATH];
+			GetCurrentDirectory(MAX_PATH, dirPath);
+			CString sCurrDir(dirPath);
+			if(0 != sBaseDir.CompareNoCase(sCurrDir))
+			{
+				WriteProfileString(sgSection, sgBaseDir, dirPath);
+			}
+
+		}
 	}
 }
 
 namespace path_utils
 {
-	static CString GetDailyDBPath()
+	static CString GetDailyDBPathCVD()
 	{
 		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
 		CString sPath;
-		sPath.Format("%s\\%s\\%s", sBaseDir, sgDBDir, sgDBDaily);
+		sPath.Format("%s\\%s\\%s", sBaseDir, sgDBDir, sgDBDailyCVD);
+		return sPath;
+	}
+
+	static CString GetDailyDBPathCLD()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s\\%s", sBaseDir, sgDBDir, sgDBDailyCLD);
 		return sPath;
 	}
 

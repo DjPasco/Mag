@@ -122,6 +122,8 @@ void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 	}
 #endif
 
+	RequestData();
+
 	CTrayDialog::OnTimer(nIDEvent);
 }
 
@@ -220,9 +222,20 @@ void CDCAntiVirusDlg::OnSettings()
 void CDCAntiVirusDlg::OnUpdateDb()
 {
 	CString sFreshClamPath		= path_utils::GetFreshClamPath();
-	CString sParameters = path_utils::GenerateFrechClamParameters();;
+	CString sParameters = path_utils::GenerateFrechClamParameters();
 
-	ShellExecute(this->GetSafeHwnd(), "open", sFreshClamPath, sParameters, "", SW_SHOW); 
+	CString sCmdFile = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+	sCmdFile += "\\update.bat";
+	FILE *pFile = fopen(sCmdFile, "w");
+	if(NULL == pFile)
+	{
+		return;
+	}
+
+	fprintf(pFile, "@echo off\n%s %s\npause", sFreshClamPath, sParameters);
+	fclose(pFile);
+
+	ShellExecute(this->GetSafeHwnd(), "open", sCmdFile, "", "", SW_SHOW);
 }
 
 void CDCAntiVirusDlg::OnManualScan()

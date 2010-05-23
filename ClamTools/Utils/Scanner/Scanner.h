@@ -23,7 +23,9 @@ public:
 
 public:
 	bool LoadDatabases();
-	bool ScanFile(LPCSTR sFile, CString &sVirus);
+	bool ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType = true);
+
+	bool ScanFileNoIntDB(LPCSTR sFile, CString &sVirus);
 
 	void ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs);
 

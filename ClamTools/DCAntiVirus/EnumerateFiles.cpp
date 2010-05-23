@@ -30,11 +30,17 @@ void CEnumerateFiles::Execute(LPCTSTR lpzDir,LPCTSTR lpzExt, bool bRecurse)
 	CString sFileName(lpzDir);
 	
 	CFileFind f;
-	f.FindFile(sFileName);
-	f.FindNextFile();
-	if(f.IsDirectory())
+	if(f.FindFile(sFileName))
 	{
-		sFileName+="\\*.*";
+		f.FindNextFile();
+		if(f.IsDirectory())
+		{
+			sFileName += "\\*.*";
+		}
+	}
+	else
+	{
+		sFileName += "*.*";
 	}
 	
 	BOOL bFileExist=FindAllFile.FindFile(sFileName);

@@ -27,7 +27,6 @@
 #define IDC_EDIT1_CUR                   1009
 #define ID_EDIT_CURRENT_MEMORY          1009
 #define IDC_EDIT_LOAD                   1010
-#define IDC_BUTTON_MANUAL_SCAN2         1010
 #define IDC_BUTTON_MEMORYL_SCAN         1010
 #define IDC_EDIT3                       1011
 #define IDC_EDIT_MAIN_DB_TIME           1011
@@ -63,6 +62,7 @@
 #define IDC_EDIT12                      1024
 #define IDC_CHECK_DEEP_SCANN            1024
 #define IDC_EDIT_FILES_COUNT            1024
+#define IDC_CHECK_INTERNAL_DB           1024
 #define IDC_EDIT13                      1025
 #define IDC_BUTTON_DELETE_UPD           1025
 #define IDC_CHECK2                      1026

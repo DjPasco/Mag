@@ -13,8 +13,8 @@
 class CScanFiles : public CEnumerateFiles
 {
 public:
-	CScanFiles(HWND hwnd, CDCAntiVirusManualScanDlg *pDlg, CScanEndingObs *pObs)
-		:CEnumerateFiles(pObs), m_hwnd(hwnd), m_pDlg(pDlg) {};
+	CScanFiles(HWND hwnd, CDCAntiVirusManualScanDlg *pDlg, CScanEndingObs *pObs, bool bUseInternalDB)
+		:CEnumerateFiles(pObs), m_hwnd(hwnd), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
 
 public:
 	virtual void OnFile(LPCTSTR lpzFile)
@@ -24,6 +24,7 @@ public:
 		CSendObj obj;
 		strcpy_s(obj.m_sPath, MAX_PATH, lpzFile);
 		obj.m_nType = EManualScan;
+		obj.m_bUseInternalDB = m_bUseInternalDB;
 
 		COPYDATASTRUCT copy;
 		copy.dwData = 1;
@@ -53,6 +54,7 @@ public:
 private:
 	HWND m_hwnd;
 	CDCAntiVirusManualScanDlg *m_pDlg;
+	bool m_bUseInternalDB;
 };
 
 class CCountFiles : public CEnumerateFiles
@@ -93,9 +95,10 @@ UINT Scan(LPVOID pParam)
 		HWND hwnd = NULL;
 		hwnd = ::FindWindow(NULL, sgServerName);
 
-		//if(NULL != hwnd)
+		if(NULL != hwnd)
 		{
-			CScanFiles scanner(hwnd, pDlg, pDlg);
+			bool bUseInternalDB = pDlg->GetUseInternalDB();
+			CScanFiles scanner(hwnd, pDlg, pDlg, bUseInternalDB);
 			CString sExt = pDlg->GetExts();
 			for(CIt it = begin; it != end; ++it)
 			{
@@ -223,6 +226,10 @@ void CDCAntiVirusManualScanDlg::EnableStartItems(BOOL bEnable)
 	GetDlgItem(IDC_BUTTON_REMOVE_SCAN)->EnableWindow(bEnable);
 
 	GetDlgItem(IDOK)->EnableWindow(bEnable);
+	GetDlgItem(IDC_CHECK_INTERNAL_DB)->EnableWindow(bEnable);
+
+	GetDlgItem(IDC_STATIC)->EnableWindow(bEnable);
+	GetDlgItem(IDC_EDIT_TYPES_TO_SCAN)->EnableWindow(bEnable);
 }
 
 void CDCAntiVirusManualScanDlg::OnScan()
@@ -317,8 +324,7 @@ void CDCAntiVirusManualScanDlg::OnFinish()
 
 void CDCAntiVirusManualScanDlg::OnVirus(LPCSTR sItem, LPCSTR sVirus)
 {
-	int nCount = m_listInfected.GetItemCount();
-	int nIns = m_listInfected.InsertItem(nCount, sVirus);
+	int nIns = m_listInfected.InsertItem(0, sVirus);
 	m_listInfected.SetItemText(nIns, 1, sItem);
 }
 
@@ -337,7 +343,16 @@ CString CDCAntiVirusManualScanDlg::GetExts()
 
 void CDCAntiVirusManualScanDlg::OnOK(LPCSTR sItem, LPCSTR sOK)
 {
-	int nCount = m_listInfected.GetItemCount();
-	int nIns = m_listInfected.InsertItem(nCount, sOK);
+	int nIns = m_listInfected.InsertItem(0, sOK);
 	m_listInfected.SetItemText(nIns, 1, sItem);
+}
+
+bool CDCAntiVirusManualScanDlg::GetUseInternalDB()
+{
+	if(((CButton *)GetDlgItem(IDC_CHECK_INTERNAL_DB))->GetCheck())
+	{
+		return true;
+	}	
+
+	return false;
 }
