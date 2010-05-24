@@ -43,143 +43,51 @@ namespace wnd_utils
 	}
 };
 
-extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName,
-										  DWORD dwDesiredAccess,
-										  DWORD dwShareMode,
-										  LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-										  DWORD dwCreationDisposition,
-										  DWORD dwFlagsAndAttributes,
-										  HANDLE hTemplateFile);
+extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+										  DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 
-HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName,
-							   DWORD dwDesiredAccess,
-							   DWORD dwShareMode,
-							   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-							   DWORD dwCreationDisposition,
-							   DWORD dwFlagsAndAttributes,
-							   HANDLE hTemplateFile)
+HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+							   DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
-	char sPath[MAX_PATH];
-	WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, sPath, MAX_PATH,NULL,NULL);
-
-	if(NULL == strstr(sPath, "\\\\.\\"))//Named Pipe
+	if(0 != dwDesiredAccess)
 	{
-		if(!wnd_utils::Execute(sPath))
+		char sPath[MAX_PATH];
+		WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, sPath, MAX_PATH,NULL,NULL);
+
+		if(NULL == strstr(sPath, "\\\\.\\"))//Named Pipe
 		{
-			SetLastError(ERROR_ACCESS_DENIED);
-			return INVALID_HANDLE_VALUE;
+			if(!wnd_utils::Execute(sPath))
+			{
+				SetLastError(ERROR_ACCESS_DENIED);
+				return INVALID_HANDLE_VALUE;
+			}
 		}
 	}
 
-	return pTrueCreateFileW(lpFileName,
-					   dwDesiredAccess,
-					   dwShareMode,
-					   lpSecurityAttributes,
-					   dwCreationDisposition,
-					   dwFlagsAndAttributes,
-					   hTemplateFile);
+	return pTrueCreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
+					   dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 };
 
-extern HANDLE (WINAPI * pTrueCreateFileA)(LPCSTR lpFileName,
-										  DWORD dwDesiredAccess,
-										  DWORD dwShareMode,
-										  LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-										  DWORD dwCreationDisposition,
-										  DWORD dwFlagsAndAttributes,
-										  HANDLE hTemplateFile);
+extern HANDLE (WINAPI * pTrueCreateFileA)(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+										  DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 
-HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName,
-							   DWORD dwDesiredAccess,
-							   DWORD dwShareMode,
-							   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-							   DWORD dwCreationDisposition,
-							   DWORD dwFlagsAndAttributes,
-							   HANDLE hTemplateFile)
+HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+							   DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
-	return pTrueCreateFileA(lpFileName,
-					        dwDesiredAccess,
-					   dwShareMode,
-					   lpSecurityAttributes,
-					   dwCreationDisposition,
-					   dwFlagsAndAttributes,
-					   hTemplateFile);
+	if(0 != dwDesiredAccess)
+	{
+		if(NULL == strstr(lpFileName, "\\\\.\\"))//Named Pipe
+		{
+			if(!wnd_utils::Execute(lpFileName))
+			{
+				SetLastError(ERROR_ACCESS_DENIED);
+				return INVALID_HANDLE_VALUE;
+			}
+		}
+	}
+
+	return pTrueCreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
+						    dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 };
-
-extern BOOL (WINAPI *pTrueCreateProcessW)(LPCWSTR lpszImageName,
-								   LPWSTR lpszCmdLine,
-								   LPSECURITY_ATTRIBUTES lpsaProcess,
-								   LPSECURITY_ATTRIBUTES lpsaThread,
-								   BOOL fInheritHandles,
-								   DWORD fdwCreate,
-								   LPVOID lpvEnvironment,
-								   LPCWSTR lpszCurDir,
-								   LPSTARTUPINFOW lpsiStartInfo,
-								   LPPROCESS_INFORMATION lppiProcInfo); 
-
-BOOL WINAPI TransCreateProcessW(LPCWSTR lpszImageName,
-								LPWSTR lpszCmdLine,
-								LPSECURITY_ATTRIBUTES lpsaProcess,
-								LPSECURITY_ATTRIBUTES lpsaThread,
-								BOOL fInheritHandles,
-								DWORD fdwCreate,
-								LPVOID lpvEnvironment,
-								LPCWSTR lpszCurDir,
-								LPSTARTUPINFOW lpsiStartInfo,
-								LPPROCESS_INFORMATION lppiProcInfo)
-{
-	BOOL bRet =  pTrueCreateProcessW(lpszImageName, lpszCmdLine, lpsaProcess,
-							   lpsaThread, fInheritHandles, fdwCreate,
-							   lpvEnvironment, lpszCurDir, lpsiStartInfo, lppiProcInfo);
-
-	//if(bRet)
-	//{
-	//	char sDetoursPath[MAX_PATH];
-	//	path_utils::GetDetourDllPath(sDetoursPath);
-
-	//	//hook_utils_main::DebugMessage(sDetoursPath);
-
-	//	char sHookPath[MAX_PATH];
-	//	path_utils::GetHookDllPath(sHookPath);
-
-	//	LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), _T("LoadLibraryW"));
-
-	//	hook_utils_main::RunLoadLibraryInProcess(lppiProcInfo->hProcess, LoadLibraryAddr, sDetoursPath);
-	//	//hook_utils_main::DebugMessage("Deours");
-
-	//	hook_utils_main::RunLoadLibraryInProcess(lppiProcInfo->hProcess, LoadLibraryAddr, sHookPath);
-	//	//hook_utils_main::DebugMessage("hook");
-	//}
-
-	return bRet;
-
-}
-
-extern BOOL (WINAPI *pTrueCreateProcessA)(LPCSTR lpApplicationName,
-								   LPSTR lpCommandLine,
-								   LPSECURITY_ATTRIBUTES lpProcessAttributes,
-								   LPSECURITY_ATTRIBUTES lpThreadAttributes,
-								   BOOL bInheritHandles,
-								   DWORD dwCreate,
-								   LPVOID lpEnvironment,
-								   LPCSTR lpCurrentDirectory,
-								   LPSTARTUPINFOA lpStartupInfo,
-								   LPPROCESS_INFORMATION lpProcessInformation); 
-
-BOOL WINAPI TransCreateProcessA(LPCSTR lpApplicationName,
-								   LPSTR lpCommandLine,
-								   LPSECURITY_ATTRIBUTES lpProcessAttributes,
-								   LPSECURITY_ATTRIBUTES lpThreadAttributes,
-								   BOOL bInheritHandles,
-								   DWORD dwCreate,
-								   LPVOID lpEnvironment,
-								   LPCSTR lpCurrentDirectory,
-								   LPSTARTUPINFOA lpStartupInfo,
-								   LPPROCESS_INFORMATION lpProcessInformation)
-{
-	return pTrueCreateProcessA(lpApplicationName, lpCommandLine, lpProcessAttributes,
-							   lpThreadAttributes, bInheritHandles, dwCreate,
-							   lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
-}
-
 
 SYSTEM_HOOK_API void DoMagic(){ }

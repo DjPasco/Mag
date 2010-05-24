@@ -14,6 +14,8 @@ public:
 
 protected:
 	virtual BOOL OnInitDialog();
+	virtual void OnCancel();
+
 	DECLARE_MESSAGE_MAP()
 
 private:

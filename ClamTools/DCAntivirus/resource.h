@@ -19,6 +19,7 @@
 #define IDC_BUTTON_ADD                  1006
 #define IDC_BUTTON_SCAN                 1006
 #define IDD_STOP                        1006
+#define IDC_BUTTON_STOP_MEMORY          1006
 #define IDC_BUTTON2                     1007
 #define IDC_STARTTIME_SHED              1007
 #define IDC_BUTTON_MANUAL_SCAN          1007

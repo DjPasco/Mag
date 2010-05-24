@@ -9,8 +9,6 @@
 #include "../Utils/Settings.h"
 #include "../Utils/SendObj.h"
 
-//#include <string>
-
 const char *sgNoTask = "\nNo task defined\n";
 
 #ifdef _DEBUG

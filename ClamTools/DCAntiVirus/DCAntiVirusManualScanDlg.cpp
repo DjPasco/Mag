@@ -117,9 +117,8 @@ UINT Scan(LPVOID pParam)
 	return 0;
 }
 
-CDCAntiVirusManualScanDlg::CDCAntiVirusManualScanDlg(LPCSTR sTitle, CWnd* pParent)
+CDCAntiVirusManualScanDlg::CDCAntiVirusManualScanDlg(CWnd* pParent)
 	: CDialog(IDD_DIALOG_SCAN, pParent),
-	  m_sTitle(sTitle),
 	  m_bScanning(false)
 {
 //
@@ -164,8 +163,6 @@ BOOL CDCAntiVirusManualScanDlg::OnInitDialog()
 	}	
 
 	EnableProgresItems(FALSE);
-
-	this->SetWindowText(m_sTitle);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -300,7 +297,7 @@ void CDCAntiVirusManualScanDlg::EnumerateFiles()
 
 	for(CIt it = begin; it != end; ++it)
 	{
-		counter.Execute((*it), "*.*", true);
+		counter.Execute((*it), GetExts(), true);
 	}
 
 	m_progres.SetRange32(0, counter.m_nCount);
@@ -355,4 +352,14 @@ bool CDCAntiVirusManualScanDlg::GetUseInternalDB()
 	}	
 
 	return false;
+}
+
+void CDCAntiVirusManualScanDlg::OnCancel()
+{
+	if(m_bScanning)
+	{
+		return;
+	}
+	
+	CDialog::OnCancel();
 }

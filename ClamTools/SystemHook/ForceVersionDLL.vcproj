@@ -209,10 +209,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\Utils\HookUtils.h"
-				>
-			</File>
-			<File
 				RelativePath="..\Utils\SendObj.h"
 				>
 			</File>

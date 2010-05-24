@@ -8,7 +8,7 @@ namespace log_utils
 	void LogData(LPCSTR sData)
 	{
 		sData;
-//#ifdef _DEBUG
+#ifdef _DEBUG
 		FILE *pFile = fopen(path_utils::GetLogFilePath(), "a+");
 		if(NULL == pFile)
 		{
@@ -20,7 +20,7 @@ namespace log_utils
 		fflush(pFile);
 		
 		fclose(pFile);
-//#endif
+#endif
 	}
 }
 

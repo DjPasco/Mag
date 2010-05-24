@@ -9,11 +9,13 @@ class CDCAntiVirusManualScanDlg : public CDialog,
 								  public CScanEndingObs
 {
 public:
-	CDCAntiVirusManualScanDlg(LPCSTR sTitle, CWnd* pParent = NULL);
+	CDCAntiVirusManualScanDlg(CWnd* pParent = NULL);
 	virtual ~CDCAntiVirusManualScanDlg();
 
 protected:
 	virtual BOOL OnInitDialog();
+	virtual void OnCancel();
+
 	DECLARE_MESSAGE_MAP()
 
 private:
@@ -33,8 +35,6 @@ public:
 	void OnFinish();
 
 private:
-	CString m_sTitle;
-
 	CListCtrl m_listScanItems;
 	CListCtrl m_listInfected;
 

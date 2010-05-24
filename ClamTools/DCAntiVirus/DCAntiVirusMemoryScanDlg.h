@@ -8,6 +8,7 @@ public:
 
 protected:
 	virtual BOOL OnInitDialog();
+	virtual void OnCancel();
 	DECLARE_MESSAGE_MAP()
 
 public:
@@ -18,7 +19,12 @@ public:
 
 	void OnFinish();
 
+	bool Continue();
+
 private:
 	CListCtrl m_listLog;
 	CProgressCtrl m_progres;
+	bool m_bScanning;
+public:
+	afx_msg void OnStopMemory();
 };

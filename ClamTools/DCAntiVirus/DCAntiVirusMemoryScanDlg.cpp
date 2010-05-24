@@ -48,6 +48,11 @@ UINT ScanMemory(LPVOID pParam)
 		
 		pDlg->EnumerateFiles();
 
+		if(!pDlg->Continue())
+		{
+			return 0;
+		}
+
 		PROCESSENTRY32 entry;
 		entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -62,6 +67,11 @@ UINT ScanMemory(LPVOID pParam)
 		{
 			while(TRUE == Process32Next(snapshot, &entry))
 			{
+				if(!pDlg->Continue())
+				{
+					return 0;
+				}
+
 				HMODULE ModDLLHandle = NULL;
 				BYTE * BytDLLBaseAdress = 0;
 				MODULEENTRY32 MOEModuleInformation = { 0 };
@@ -92,9 +102,21 @@ UINT ScanMemory(LPVOID pParam)
 							}
 						}
 					}
+
+					if(!pDlg->Continue())
+					{
+						CloseHandle(HanModuleSnapshot);
+						return 0;
+					}
+
 				} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
 
 				CloseHandle(HanModuleSnapshot);
+
+				if(!pDlg->Continue())
+				{
+					return 0;
+				}
 			}
 		}
 
@@ -105,7 +127,8 @@ UINT ScanMemory(LPVOID pParam)
 }
 
 CDCAntiVirusMemoryScanDlg::CDCAntiVirusMemoryScanDlg(CWnd* pParent)
-	: CDialog(IDD_DIALOG_MEMORY_SCAN, pParent)
+	: CDialog(IDD_DIALOG_MEMORY_SCAN, pParent),
+	m_bScanning(false)
 {
 //
 }
@@ -116,7 +139,7 @@ CDCAntiVirusMemoryScanDlg::~CDCAntiVirusMemoryScanDlg()
 }
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusMemoryScanDlg, CDialog)
-	//
+	ON_BN_CLICKED(IDC_BUTTON_STOP_MEMORY, OnStopMemory)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusMemoryScanDlg::OnInitDialog()
@@ -138,6 +161,7 @@ BOOL CDCAntiVirusMemoryScanDlg::OnInitDialog()
 	}
 
 	GetDlgItem(IDOK)->EnableWindow(FALSE);
+	m_bScanning = true;
 	AfxBeginThread(ScanMemory, (LPVOID)this);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -172,6 +196,11 @@ void CDCAntiVirusMemoryScanDlg::EnumerateFiles()
 	{
 		while(TRUE == Process32Next(snapshot, &entry))
 		{
+			if(!Continue())
+			{
+				return;
+			}
+
 			HMODULE ModDLLHandle = NULL;
 			BYTE * BytDLLBaseAdress = 0;
 			MODULEENTRY32 MOEModuleInformation = { 0 };
@@ -188,9 +217,22 @@ void CDCAntiVirusMemoryScanDlg::EnumerateFiles()
 				{
 					nCount++;
 				}
+				
+				if(!Continue())
+				{
+					CloseHandle(HanModuleSnapshot);
+					return;
+				}
+
 			} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
 
 			CloseHandle(HanModuleSnapshot);
+
+			if(!Continue())
+			{
+				return;
+			}
+
 		}
 	}
 
@@ -213,8 +255,37 @@ void CDCAntiVirusMemoryScanDlg::OnOK(LPCSTR sItem, LPCSTR sOK)
 
 void CDCAntiVirusMemoryScanDlg::OnFinish()
 {
+	m_bScanning = false;
+
 	GetDlgItem(IDOK)->EnableWindow(TRUE);
 	m_progres.SetPos(0);
 	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText("Scan completed.");
 	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText("");
+}
+
+void CDCAntiVirusMemoryScanDlg::OnCancel()
+{
+	if(m_bScanning)
+	{
+		return;
+	}
+	
+	CDialog::OnCancel();
+}
+
+void CDCAntiVirusMemoryScanDlg::OnStopMemory()
+{
+	m_bScanning = false;
+
+	GetDlgItem(IDOK)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_STOP_MEMORY)->EnableWindow(FALSE);
+	
+	m_progres.SetPos(0);
+	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText("Scan aborted by user.");
+	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText("");
+}
+
+bool CDCAntiVirusMemoryScanDlg::Continue()
+{
+	return m_bScanning;
 }

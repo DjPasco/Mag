@@ -336,3 +336,13 @@ void CDCAntiVirusScheduledScanDlg::FillItemTypes()
 
 	((CButton *)GetDlgItem(IDD_USE_INTERNAL))->SetCheck(bUse);
 }
+
+void CDCAntiVirusScheduledScanDlg::OnCancel()
+{
+	if(m_bScanning)
+	{
+		return;
+	}
+	
+	CDialog::OnCancel();
+}
