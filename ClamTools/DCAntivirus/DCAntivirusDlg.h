@@ -4,6 +4,7 @@
 	#include "TrayDialog.h"
 #endif
 
+class CSendObj;
 class CDCAntiVirusDlg : public CTrayDialog
 {
 public:
@@ -22,6 +23,8 @@ protected:
 
 private:
 	void RequestData();
+
+	bool SendObj(CSendObj &obj);
 
 private:
 	HICON m_hIcon;

@@ -5,6 +5,7 @@ enum EInfoType
 {
 	EFile = 0,
 	EData,
+	EError,
 	ECount
 };
 

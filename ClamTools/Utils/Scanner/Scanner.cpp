@@ -417,6 +417,9 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 		return true;
 	}
 
+	log_utils::LogData("On-Access");
+	log_utils::LogData(sFile);
+
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
 
@@ -606,6 +609,7 @@ void CScanner::RequestData()
 {
 	if(!m_bLoaded)
 	{
+		SendError("Error on DB loading.");
 		return;
 	}
 
@@ -614,6 +618,28 @@ void CScanner::RequestData()
 #endif
 
 	SendInfoToTray(false, m_pDailyDBInfo);
+}
+
+void CScanner::SendError(LPCSTR sError)
+{
+	HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
+
+	if(NULL == trayHwnd)
+	{
+		return;
+	}
+
+	CTraySendObj obj;
+	obj.m_nType = EError;
+	obj.m_nFilesCount = m_pFilesMap->size();
+	strcpy_s(obj.m_sText, MAX_PATH, sError);
+
+	COPYDATASTRUCT copy;
+	copy.dwData = 1;
+	copy.cbData = sizeof(obj);
+	copy.lpData = &obj;
+
+	SendMessage(trayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
 }
 
 void CScanner::SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML)
@@ -662,6 +688,7 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 		return true;
 	}
 
+	log_utils::LogData("Manual");
 	log_utils::LogData(sFile);
 
 	std::string sFilePath(sFile);
@@ -688,4 +715,15 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 	SendFileToTray(sFile, NULL);
 	sVirus.Empty();
 	return true;
+}
+
+void CScanner::ReloadDB()
+{
+	Free();
+	Init();
+
+	if(!LoadDatabases())
+	{
+		SendError("Error on DB loading.");
+	}
 }

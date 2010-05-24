@@ -13,11 +13,18 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-//#define IGNORE_HOOK
+#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+class CSendHelper
+{
+public:
+	CSendObj m_obj;
+	HWND m_hwnd;
+};
 
 CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 	: CTrayDialog(IDD_DCANTIVIRUS_DIALOG, pParent)
@@ -65,8 +72,6 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 
 	this->SendMessage(WM_HOOK_SYSTEM);
 	SetTimer(m_nTimer, 1000, NULL);
-
-	GetDlgItem(IDC_EDIT11)->SetWindowPos(NULL, 0, 0, 1, 20, SWP_NOMOVE|SWP_NOOWNERZORDER);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -179,6 +184,23 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			GetDlgItem(IDC_EDIT_FILES_COUNT)->SetWindowText(sCount);
 		}
 		break;
+	case EError:
+		{
+			GetDlgItem(IDC_EDIT_MAIN_DB_VERSION)->SetWindowText("");
+			GetDlgItem(IDC_EDIT_MAIN_DB_TIME)->SetWindowText("");
+			GetDlgItem(IDC_EDIT_MAIN_DB_SIG)->SetWindowText("");
+
+			GetDlgItem(IDC_EDIT_DAILY_DB_VERSION)->SetWindowText("");
+			GetDlgItem(IDC_EDIT_DAILY_DB_TIME)->SetWindowText("");
+			GetDlgItem(IDC_EDIT_DAILY_DB_SIG)->SetWindowText("");
+
+			CString sCount;
+			sCount.Format("%d", pData->m_nFilesCount);
+			GetDlgItem(IDC_EDIT_FILES_COUNT)->SetWindowText(sCount);
+
+			GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText(pData->m_sText);
+		}
+		break;
 	default:
 		{
 			ASSERT(FALSE);
@@ -191,26 +213,50 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 
 void CDCAntiVirusDlg::RequestData()
 {
+	CSendObj obj;
+	obj.m_nType = ERequest;
+
+	if(SendObj(obj))
+	{
+		GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Running");
+	}
+	else
+	{
+		GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Stopped!");
+	}
+}
+
+UINT Send(LPVOID pParam)
+{
+	CSendHelper *helper = (CSendHelper *)pParam;
+
+	COPYDATASTRUCT copy;
+	copy.dwData = 1;
+	copy.cbData = sizeof(helper->m_obj);
+	copy.lpData = &helper->m_obj;
+
+	::SendMessage(helper->m_hwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+
+	delete helper;
+	return 0;
+}
+
+bool CDCAntiVirusDlg::SendObj(CSendObj &obj)
+{
 	HWND hwnd = NULL;
 	hwnd = ::FindWindow(NULL, sgServerName);
 
 	if(NULL == hwnd)
 	{
-		GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Stopped!");
-		return;
+		return false;
 	}
 
-	GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Running");
+	CSendHelper *helper = new CSendHelper;
+	helper->m_obj = obj;
+	helper->m_hwnd = hwnd;
 
-	CSendObj obj;
-	obj.m_nType = ERequest;
-
-	COPYDATASTRUCT copy;
-	copy.dwData = 1;
-	copy.cbData = sizeof(obj);
-	copy.lpData = &obj;
-
-	::SendMessage(hwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+	AfxBeginThread(Send, (LPVOID)helper);
+	return true;
 }
 
 void CDCAntiVirusDlg::OnSettings()
@@ -235,7 +281,17 @@ void CDCAntiVirusDlg::OnUpdateDb()
 	fprintf(pFile, "@echo off\n%s %s\npause", sFreshClamPath, sParameters);
 	fclose(pFile);
 
-	ShellExecute(this->GetSafeHwnd(), "open", sCmdFile, "", "", SW_SHOW);
+	STARTUPINFO si = {0};
+    si.cb = sizeof si;
+
+    PROCESS_INFORMATION pi = {0};
+    CreateProcess(sCmdFile, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+
+    ::WaitForSingleObject(pi.hProcess, INFINITE);
+
+	CSendObj obj;
+	obj.m_nType = EReloadDB;
+	SendObj(obj);
 }
 
 void CDCAntiVirusDlg::OnManualScan()

@@ -33,6 +33,8 @@ public:
 
 	void SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML);
 	void SetFilesTypes(CString sTypes);
+
+	void ReloadDB();
 	
 private:
 	void Init();
@@ -40,6 +42,7 @@ private:
 
 	void SendInfoToTray(bool bMain, CDBInfo *pDBInfo);
 	void SendFileToTray(LPCSTR sFile, LPCSTR sVirus);
+	void SendError(LPCSTR sError);
 
 private:
 	CCLScanner *m_pMainScan;

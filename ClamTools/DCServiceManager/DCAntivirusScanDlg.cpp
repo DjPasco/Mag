@@ -135,6 +135,11 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
+	case EReloadDB:
+		{
+			m_pScanner->ReloadDB();
+		}
+		break;
 	}
 	
 	return 1;

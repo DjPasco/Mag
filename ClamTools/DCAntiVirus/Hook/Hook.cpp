@@ -268,8 +268,8 @@ namespace hook_utils
 				{
 					if(internal::NeedHook(entry.szExeFile))
 					{
-						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath);
 						internal::EjectDLL(entry.th32ProcessID, sHookPath);
+						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath);
 					}
 				}
 			}
