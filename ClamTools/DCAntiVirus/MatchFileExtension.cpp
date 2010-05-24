@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MatchFileExtension.h"
+#include "../Utils/Registry.h"
 
 CMatchFileExtension::CMatchFileExtension()
 {
@@ -15,14 +16,14 @@ bool CMatchFileExtension::IsMatchExtension(LPCTSTR lpzFile, LPCTSTR lpzExt)
 {
 	strcpy(m_ctemp,lpzExt);
 	char *token;
-	token = strtok( m_ctemp, ";" );
+	token = strtok(m_ctemp, sgFileExtSeparator);
 	
 	m_sArrayExt.RemoveAll();
 		
 	while(token!=NULL)
 	{
 		m_sArrayExt.Add(token);
-	    token = strtok( NULL,";" );
+	    token = strtok(NULL, sgFileExtSeparator);
 	}
 	bool bFound=false;
 

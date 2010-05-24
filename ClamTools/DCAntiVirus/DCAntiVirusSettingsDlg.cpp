@@ -38,6 +38,7 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusSettingsDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE_UPD,		OnDeleteUpd)
 	ON_BN_CLICKED(IDC_BUTTON_ADD,				OnAdd)
 	ON_BN_CLICKED(IDC_BUTTON_REMOVE,			OnRemove)
+	ON_BN_CLICKED(IDC_BUTTON_ABOUT_SPEC_SCAN, &CDCAntiVirusSettingsDlg::OnAboutSpecScan)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusSettingsDlg::OnInitDialog()
@@ -123,6 +124,18 @@ void CDCAntiVirusSettingsDlg::LoadRegistryData()
 			}
 		}
 	}
+
+	CString sTypes = registry_utils::GetProfileString(sgSection, sgSchedFileTypes, "");	
+	GetDlgItem(IDD_EDIT_TYPES_SETT)->SetWindowText(sTypes);
+
+	CString sUse = registry_utils::GetProfileString(sgSection, sgSchedInternalDB, "");
+	BOOL bUse(FALSE);
+	if(0 == sUse.CompareNoCase("1"))
+	{
+		bUse = TRUE;
+	}
+
+	CheckControl(IDD_USE_INTERNAL_SETT, bUse);
 }
 
 void CDCAntiVirusSettingsDlg::SaveRegistryData()
@@ -143,6 +156,15 @@ void CDCAntiVirusSettingsDlg::SaveRegistryData()
 	}
 
 	registry_utils::WriteProfileString(sgSection, sgShedScanItems, sItems);
+
+	CString sTypes;	
+	GetDlgItem(IDD_EDIT_TYPES_SETT)->GetWindowText(sTypes);
+	registry_utils::WriteProfileString(sgSection, sgSchedFileTypes, sTypes);
+
+	BOOL bUseInternal = ControlChecked(IDD_USE_INTERNAL_SETT);
+	CString sUse;
+	sUse.Format("%d", bUseInternal);
+	registry_utils::WriteProfileString(sgSection, sgSchedInternalDB, sUse);
 }
 
 void CDCAntiVirusSettingsDlg::OnBnClickedOk()
@@ -271,10 +293,8 @@ void CDCAntiVirusSettingsDlg::OnChangeSchedScan()
 	
 	if(IDOK == dlgSched.DoModal())
 	{
-		pTask->SetProgram     ("c:\\avg_free_stf_en_90_730a1834.exe");
-		//pTask->SetParameters  ("Parameters");
-		//pTask->SetStartingDir ("StartDir");
-		//pTask->SetComment     ("Comment");
+		pTask->SetProgram(path_utils::GetAppPath());
+		pTask->SetParameters("scan");
 		if(S_OK == pTask->SaveTask(sgShedScanTaskName, false))
 		{
 			SetTaskInfo(pTask, IDC_STATIC_SCAN_SHED, sgShedScanTaskInfo);
@@ -422,4 +442,10 @@ void CDCAntiVirusSettingsDlg::OnRemove()
 	{
 		m_list.DeleteItem(nSel);
 	}
+}
+
+void CDCAntiVirusSettingsDlg::OnAboutSpecScan()
+{
+	CString sSpecScanHelp = "Additional actions are taken on selected items.\nFor example, HTML files are scanned for script viruses.";
+	MessageBox(sSpecScanHelp, "About special scan", MB_ICONINFORMATION);
 }

@@ -50,4 +50,5 @@ private:
 public:
 	void OnAdd();
 	void OnRemove();
+	afx_msg void OnAboutSpecScan();
 };

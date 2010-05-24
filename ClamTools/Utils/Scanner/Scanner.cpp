@@ -296,6 +296,11 @@ namespace file_utils
 
 		fclose(pFile);
 
+		if(0 == types.size())
+		{
+			return true;
+		}
+
 		char drive[_MAX_DRIVE];
 		char dir[_MAX_DIR];
 		char fname[_MAX_FNAME];
@@ -551,7 +556,7 @@ void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
 
 void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
 {
-	HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
+	HWND trayHwnd = FindWindow(NULL, sgAppName);
 
 	if(NULL == trayHwnd)
 	{
@@ -576,7 +581,7 @@ void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
 
 void CScanner::SendFileToTray(LPCSTR sFile, LPCSTR sVirus)
 {
-	HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
+	HWND trayHwnd = FindWindow(NULL, sgAppName);
 
 	if(NULL == trayHwnd)
 	{
@@ -622,7 +627,7 @@ void CScanner::RequestData()
 
 void CScanner::SendError(LPCSTR sError)
 {
-	HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
+	HWND trayHwnd = FindWindow(NULL, sgAppName);
 
 	if(NULL == trayHwnd)
 	{
@@ -658,13 +663,13 @@ void CScanner::SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bP
 
 void CScanner::SetFilesTypes(CString sTypes)
 {
+	m_types.clear();
+
 	if(!sTypes.IsEmpty())
 	{
-		m_types.clear();
-
 		char *token;
 		char *str = sTypes.GetBuffer(0);
-		token = strtok( str, ";" );
+		token = strtok(str, sgFileExtSeparator);
 		if(NULL != token)
 		{
 			m_types.push_back(_strupr(token));
@@ -672,7 +677,7 @@ void CScanner::SetFilesTypes(CString sTypes)
 
 		while(token != NULL)
 		{
-			token = strtok( NULL, ";" );
+			token = strtok(NULL, sgFileExtSeparator);
 			if(NULL != token)
 			{
 				m_types.push_back(_strupr(token));

@@ -231,6 +231,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DCAntiVirusScheduledScanDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntiVirusScheduledScanDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\DCAntiVirusSettingsDlg.cpp"
 				>
 			</File>

@@ -2,6 +2,8 @@
 #include "DCAntiVirus.h"
 #include "DCAntiVirusDlg.h"
 
+#include "DCAntiVirusScheduledScanDlg.h"
+
 #include "../Utils/Registry.h"
 
 #ifdef _DEBUG
@@ -12,15 +14,32 @@ CDCAntiVirusApp theApp;
 
 BOOL CDCAntiVirusApp::InitInstance()
 {
-	registry_utils::CheckBaseDir();
+	LPCTSTR pszParam = __argv[1];
+	
+	if(__argc > 1 && strstr(pszParam, "scan"))
+	{
+		CDCAntiVirusScheduledScanDlg dlg;
+		dlg.DoModal();
+	}
+	else
+	{
+		HWND trayHwnd = FindWindow(NULL, "DCAntiVirus");
 
-	CWinApp::InitInstance();
+		if(NULL != trayHwnd)
+		{
+			return FALSE;
+		}
 
-	CoInitialize(NULL);//For task scheduler
+		registry_utils::CheckBaseDir();
 
-	CDCAntiVirusDlg dlg;
-	m_pMainWnd = &dlg;
-	dlg.DoModal();
+		CWinApp::InitInstance();
+
+		CoInitialize(NULL);//For task scheduler
+
+		CDCAntiVirusDlg dlg;
+		m_pMainWnd = &dlg;
+		dlg.DoModal();
+	}
 
 	return FALSE;
 }

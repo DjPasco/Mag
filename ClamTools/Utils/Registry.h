@@ -8,6 +8,9 @@ static const char *sgUserEntry = "ScanOptions";
 static const char *sgShedScanTaskName = "DCAntiVirusScan";
 static const char *sgShedScanTaskInfo = "SheduledScanInfo";
 static const char *sgShedScanItems	  = "ItemsToScan";
+static const char *sgSchedFileTypes	  = "SchedFileTypes";
+static const char *sgSchedInternalDB  = "SchedInternalDB";
+
 static const char *sgFileTypes		  = "FileTypes";
 
 static const char *sgShedUpdTaskName = "DCAntiVirusUpdate";
@@ -36,6 +39,8 @@ static const char *sgVirusName = "VirusName";
 static const char *sgLogFileName = "Log.txt";
 
 static const char *sgServerName = "DCAntiVirusScan";
+
+static const char *sgFileExtSeparator = ";";
 
 namespace registry_utils
 {
@@ -245,6 +250,14 @@ namespace path_utils
 		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
 		CString sPath;
 		sPath.Format("%s\\%s", sBaseDir, sgLogFileName);
+		return sPath;
+	}
+
+	static CString GetAppPath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s.exe", sBaseDir, sgAppName);
 		return sPath;
 	}
 }
