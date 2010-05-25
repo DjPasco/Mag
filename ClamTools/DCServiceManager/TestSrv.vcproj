@@ -348,18 +348,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<Filter
-				Name="Hook"
-				>
-				<File
-					RelativePath=".\Hook\Hook.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Hook\Hook.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Utils"

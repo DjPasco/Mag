@@ -13,7 +13,7 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-//#define IGNORE_HOOK
+#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -123,7 +123,7 @@ void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 	if(m_nProcCount != nNewCount)
 	{
 		m_nProcCount = nNewCount;
-		//hook_utils::GlobalHook(false);
+		hook_utils::GlobalHook(false);
 	}
 #endif
 

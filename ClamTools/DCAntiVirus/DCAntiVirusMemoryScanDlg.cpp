@@ -7,12 +7,13 @@
 
 #include "../Utils/SendObj.h"
 #include "../Utils/Registry.h"
+#include "../Utils/Settings.h"
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
 
-static bool OnFile(LPCTSTR lpzFile)
+static bool OnFile(LPCTSTR lpzFile, BOOL bUseInternalDB)
 {
 	HWND hwnd = NULL;
 	hwnd = ::FindWindow(NULL, sgServerName);
@@ -20,7 +21,7 @@ static bool OnFile(LPCTSTR lpzFile)
 	CSendObj obj;
 	strcpy_s(obj.m_sPath, MAX_PATH, lpzFile);
 	obj.m_nType = EManualScan;
-	obj.m_bUseInternalDB = false;
+	obj.m_bUseInternalDB = bUseInternalDB ? true : false;
 
 	COPYDATASTRUCT copy;
 	copy.dwData = 1;
@@ -44,6 +45,12 @@ UINT ScanMemory(LPVOID pParam)
 {
 	if(NULL != pParam)
 	{
+		CSettingsInfo info;
+		if(!settings_utils::Load(info))
+		{
+			return 0;
+		}
+
 		CDCAntiVirusMemoryScanDlg *pDlg = (CDCAntiVirusMemoryScanDlg *)pParam;
 
 		pDlg->EnumerateFiles();
@@ -88,7 +95,7 @@ UINT ScanMemory(LPVOID pParam)
 					{
 						pDlg->ShowCurrentItem(MOEModuleInformation.szExePath);
 
-						if(OnFile(MOEModuleInformation.szExePath))
+						if(OnFile(MOEModuleInformation.szExePath, info.m_bMemIntDB))
 						{
 							pDlg->OnOK(MOEModuleInformation.szExePath, "OK");
 						}

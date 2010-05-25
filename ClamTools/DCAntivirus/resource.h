@@ -114,6 +114,9 @@
 #define IDC_STATIC_TYPES                1049
 #define IDC_STATIC_ACTION2              1050
 #define IDC_STATIC_TYPES_SETT           1050
+#define IDC_STATIC_MEMORY_SCAN          1051
+#define IDC_CHECK5                      1052
+#define IDC_CHECK_MEM_INT_DB            1052
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -129,7 +132,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        144
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1051
+#define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

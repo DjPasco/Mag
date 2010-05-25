@@ -14,6 +14,7 @@ public:
 	  m_bPDF(FALSE),
 	  m_bHTML(FALSE),
 	  m_bIdle(FALSE),
+	  m_bMemIntDB(FALSE),
 	  m_nIdleTime(0),
 	  m_nCPULoad(0){};
 
@@ -25,6 +26,7 @@ public:
 	BOOL m_bArchives;
 	BOOL m_bPDF;
 	BOOL m_bHTML;
+	BOOL m_bMemIntDB;
 
 	BOOL m_bIdle;
 	int m_nIdleTime;
@@ -51,6 +53,7 @@ namespace settings_utils
 												  &info.m_bArchives,
 												  &info.m_bPDF,
 												  &info.m_bHTML,
+												  &info.m_bMemIntDB,
 												  &info.m_bIdle,
 												  &info.m_nIdleTime,
 												  &info.m_nCPULoad);
@@ -70,6 +73,7 @@ namespace settings_utils
 											  info.m_bArchives,
 											  info.m_bPDF,
 											  info.m_bHTML,
+											  info.m_bMemIntDB,
 											  info.m_bIdle,
 											  info.m_nIdleTime,
 											  info.m_nCPULoad);

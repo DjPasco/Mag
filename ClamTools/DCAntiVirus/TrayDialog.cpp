@@ -1,8 +1,4 @@
-// TrayDialog.cpp : implementation file
-//
-
 #include "stdafx.h"
-//#include "TrayDemo.h"
 #include "TrayDialog.h"
 
 #ifdef _DEBUG
@@ -10,10 +6,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-
-/////////////////////////////////////////////////////////////////////////////
-// CTrayDialog dialog
-
 
 CTrayDialog::CTrayDialog(UINT uIDD,CWnd* pParent /*=NULL*/)
 	: CDialog(uIDD, pParent)
@@ -44,9 +36,6 @@ BEGIN_MESSAGE_MAP(CTrayDialog, CDialog)
 	ON_WM_SYSCOMMAND()
 	ON_MESSAGE(WM_TRAY_ICON_NOTIFY_MESSAGE, OnTrayNotify)
 END_MESSAGE_MAP()
-
-/////////////////////////////////////////////////////////////////////////////
-// CTrayDialog message handlers
 
 int CTrayDialog::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {

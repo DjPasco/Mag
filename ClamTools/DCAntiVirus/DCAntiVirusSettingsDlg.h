@@ -24,11 +24,13 @@ private:
 	void GetData(CSettingsInfo &info);
 	void GetScanData(CSettingsInfo &info);
 	void GetIdleData(CSettingsInfo &info);
+	void GetMemoryData(CSettingsInfo &info);
 	bool ControlChecked(UINT ID);
 
 	void SetData(const CSettingsInfo &info);
 	void SetScanData(const CSettingsInfo &info);
 	void SetIdleData(const CSettingsInfo &info);
+	void SetMemoryData(const CSettingsInfo &info);
 	void CheckControl(UINT ID, BOOL bSheck);
 
 	void SetTaskInfo(CScheduledTask *pTask, UINT ID, LPCSTR sEntry = 0);

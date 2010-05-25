@@ -192,6 +192,7 @@ void CDCAntiVirusSettingsDlg::GetData(CSettingsInfo &info)
 {
 	GetScanData(info);
 	GetIdleData(info);
+	GetMemoryData(info);
 }
 
 void CDCAntiVirusSettingsDlg::GetScanData(CSettingsInfo &info)
@@ -235,6 +236,17 @@ void CDCAntiVirusSettingsDlg::SetData(const CSettingsInfo &info)
 {
 	SetScanData(info);
 	SetIdleData(info);
+	SetMemoryData(info);
+}
+
+void CDCAntiVirusSettingsDlg::SetMemoryData(const CSettingsInfo &info)
+{
+	CheckControl(IDC_CHECK_MEM_INT_DB,	info.m_bMemIntDB);
+}
+
+void CDCAntiVirusSettingsDlg::GetMemoryData(CSettingsInfo &info)
+{
+	info.m_bMemIntDB = ControlChecked(IDC_CHECK_MEM_INT_DB);
 }
 
 void CDCAntiVirusSettingsDlg::SetScanData(const CSettingsInfo &info)
