@@ -2,6 +2,8 @@
 #include "Resource.h"
 #include "DCAntivirusScanDlg.h"
 
+#include "DCAntivirusAlertDlg.h"
+
 #include "../IdleTracker/IdleTracker.h"
 #include "../Utils/SendObj.h"
 #include "../Utils/Settings.h"
@@ -64,6 +66,12 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(wParam);
+	
+	HWND trayHwnd = ::FindWindow(NULL, sgAppName);
+	if(NULL == trayHwnd)
+	{
+		return 1;
+	}
 
 	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
 	CSendObj *pData = NULL;
@@ -90,9 +98,9 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 					}
 					else
 					{
-						CString sInfo;
-						sInfo.Format("File: %s\ninfected with virus: %s\n\nAllow access to this file?", sFile, sVirusName);
-						if(IDNO == MessageBox(sInfo, "DCAntiVirus alert", MB_ICONERROR|MB_YESNO))
+						CDCAntivirusAlertDlg dlg(sFile, sVirusName, pData->m_PID);
+						int nRet = dlg.DoModal();
+						if(IDOK == nRet)
 						{
 							return 2;
 						}

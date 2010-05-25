@@ -13,7 +13,7 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-#define IGNORE_HOOK
+//#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

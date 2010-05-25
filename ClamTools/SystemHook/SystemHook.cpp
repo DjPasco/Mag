@@ -3,6 +3,7 @@
 
 #include "../Utils/SendObj.h"
 #include "../Utils/HookUtils.h"
+#include "../Utils/Registry.h"
 
 #include "../../detours/include/detours.h"
 
@@ -14,7 +15,7 @@ namespace wnd_utils
 	static bool Execute(LPCSTR sFile)
 	{
 		HWND hwnd = NULL;
-		hwnd = FindWindow(NULL, "DCAntiVirusScan");
+		hwnd = FindWindow(NULL, sgServerName);
 
 		if(NULL == hwnd)
 		{
@@ -25,6 +26,7 @@ namespace wnd_utils
 		strcpy_s(obj.m_sPath, MAX_PATH, sFile);
 		obj.m_nType = EScan;
 		obj.m_bUseInternalDB = true;
+		obj.m_PID = GetCurrentProcessId();
 
 		COPYDATASTRUCT copy;
 		copy.dwData = 1;
@@ -43,29 +45,7 @@ namespace wnd_utils
 
 		return true;
 	}
-
-	void GetHookDllPath(char *sHookPath)
-	{
-		char dirPath[MAX_PATH];
-		GetCurrentDirectory(MAX_PATH, dirPath);
-
-	#ifdef _DEBUG
-		sprintf_s(sHookPath, MAX_PATH, "%s\\SystemHookD.dll", dirPath);
-	#else
-		sprintf_s(sHookPath, MAX_PATH, "%s\\SystemHook.dll", dirPath);
-	#endif
-	}
-
-	void GetDetourDllPath(char *sDetourPath)
-	{
-		char dirPath[MAX_PATH];
-		GetCurrentDirectory(MAX_PATH, dirPath);
-
-		sprintf_s(sDetourPath, MAX_PATH, "%s\\detoured.dll", dirPath);
-	}
 };
-
-
 
 extern HANDLE (WINAPI * pTrueCreateFileW)(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
 										  DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
@@ -78,7 +58,7 @@ HANDLE WINAPI TransCreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD 
 		char sPath[MAX_PATH];
 		WideCharToMultiByte( CP_ACP, 0, lpFileName, -1, sPath, MAX_PATH,NULL,NULL);
 
-		if(NULL == strstr(sPath, "\\\\.\\"))//Named Pipe
+		if(NULL == strstr(sPath, "\\\\"))//Named Pipe
 		{
 			if(!wnd_utils::Execute(sPath))
 			{
@@ -100,7 +80,7 @@ HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD d
 {
 	if(0 != dwDesiredAccess)
 	{
-		if(NULL == strstr(lpFileName, "\\\\.\\"))//Named Pipe
+		if(NULL == strstr(lpFileName, "\\\\"))//Pipe, disc or device. No scan required.
 		{
 			if(!wnd_utils::Execute(lpFileName))
 			{
@@ -137,10 +117,10 @@ BOOL WINAPI TransCreateProcessW(LPCWSTR lpszImageName,
 								LPPROCESS_INFORMATION lppiProcInfo)
 {
 	char sHookPath[MAX_PATH];
-	wnd_utils::GetHookDllPath(sHookPath);
+	path_utils::GetHookDllPath(sHookPath);
 
 	char sFullDetoursPath[MAX_PATH];
-	wnd_utils::GetDetourDllPath(sFullDetoursPath);
+	path_utils::GetDetourDllPath(sFullDetoursPath);
 	
 	return DetourCreateProcessWithDllW(lpszImageName, lpszCmdLine, lpsaProcess,
 								   lpsaThread, fInheritHandles, fdwCreate,
@@ -164,10 +144,10 @@ BOOL WINAPI TransCreateProcessA(LPCSTR lpApplicationName, LPSTR lpCommandLine, L
 								   LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
 {
 	char sHookPath[MAX_PATH];
-	wnd_utils::GetHookDllPath(sHookPath);
+	path_utils::GetHookDllPath(sHookPath);
 
 	char sFullDetoursPath[MAX_PATH];
-	wnd_utils::GetDetourDllPath(sFullDetoursPath);
+	path_utils::GetDetourDllPath(sFullDetoursPath);
 
 	return DetourCreateProcessWithDllA(lpApplicationName, lpCommandLine, lpProcessAttributes,
 								   lpThreadAttributes, bInheritHandles, dwCreate,

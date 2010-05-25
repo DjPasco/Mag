@@ -41,6 +41,7 @@ static const char *sgVirusName = "VirusName";
 static const char *sgLogFileName = "Log.txt";
 
 static const char *sgServerName = "DCAntiVirusScan";
+static const char *sgQuarantineDir = "Quarantine";
 
 static const char *sgFileExtSeparator = ";";
 
@@ -268,16 +269,23 @@ namespace path_utils
 		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
 
 	#ifdef _DEBUG
-		sprintf(sHookPath, "%s\\SystemHookD.dll", sBaseDir);
+		sprintf_s(sHookPath, MAX_PATH, "%s\\SystemHookD.dll", sBaseDir);
 	#else
-		sprintf(sHookPath, "%s\\SystemHook.dll", sBaseDir);
+		sprintf_s(sHookPath, MAX_PATH, "%s\\SystemHook.dll", sBaseDir);
 	#endif
 	}
 
 	static void GetDetourDllPath(char *sDetourPath)
 	{
 		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
-		sprintf(sDetourPath, "%s\\detoured.dll", sBaseDir);
+		sprintf_s(sDetourPath, MAX_PATH, "%s\\detoured.dll", sBaseDir);
 	}
 
+	static CString GetQuarantineDir()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s\\", sBaseDir, sgQuarantineDir);
+		return sPath;
+	}
 }

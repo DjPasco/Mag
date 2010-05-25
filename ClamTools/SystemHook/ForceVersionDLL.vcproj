@@ -21,6 +21,7 @@
 			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
+			UseOfMFC="2"
 			CharacterSet="2"
 			>
 			<Tool
@@ -42,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..,."
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SYSTEM_HOOK_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;SYSTEM_HOOK_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -96,7 +97,7 @@
 			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			UseOfMFC="0"
+			UseOfMFC="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -120,7 +121,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..,."
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SYSTEM_HOOK_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SYSTEM_HOOK_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"

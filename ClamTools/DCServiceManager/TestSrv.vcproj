@@ -77,7 +77,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamav.lib"
+				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamav.lib  Psapi.lib"
 				OutputFile="../Bin/DCService.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -172,7 +172,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamavd.lib"
+				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamavd.lib  Psapi.lib"
 				OutputFile="../Bin/DCServiceD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -238,6 +238,14 @@
 			</File>
 			<File
 				RelativePath="app.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusAlertDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusAlertDlg.h"
 				>
 			</File>
 			<File
@@ -411,5 +419,9 @@
 		</Filter>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="TestSrv.rc"
+		/>
 	</Globals>
 </VisualStudioProject>

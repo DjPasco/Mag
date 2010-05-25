@@ -33,6 +33,18 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 END
 
+IDD_DIALOG_ALERT DIALOGEX 0, 0, 316, 92
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "DCAntiVirus alert"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Deny access",IDOK,259,71,50,14
+    PUSHBUTTON      "Allow access",IDCANCEL,206,71,50,14
+    PUSHBUTTON      "Delete",IDC_BUTTON_DEL,100,71,50,14
+    PUSHBUTTON      "Quarantine",IDC_BUTTON_QUARANTINE,153,71,50,14
+    LTEXT           "tekstas\nsdfgfg",IDC_STATIC,7,7,302,59
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -48,6 +60,14 @@ BEGIN
         RIGHTMARGIN, 84
         TOPMARGIN, 7
         BOTTOMMARGIN, 64
+    END
+
+    IDD_DIALOG_ALERT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
     END
 END
 #endif    // APSTUDIO_INVOKED
