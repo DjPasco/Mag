@@ -34,7 +34,7 @@ private:
 
 public:
 	void OnSettings();
-	afx_msg void OnUpdateDb();
-	afx_msg void OnManualScan();
-	afx_msg void OnMemoryScan();
+	void OnUpdateDb();
+	void OnManualScan();
+	void OnMemoryScan();
 };

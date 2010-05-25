@@ -32,6 +32,11 @@ BOOL CDCAntiVirusShedDlg::OnInitDialog()
 
 	this->SetWindowText(m_sTitle);
 
+	// Gain a pointer to the control
+	CDateTimeCtrl* pCtrl = (CDateTimeCtrl*) GetDlgItem(IDC_STARTTIME_SHED);
+	ASSERT(pCtrl != NULL);
+	pCtrl->SetFormat(_T("hh:mm"));
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 

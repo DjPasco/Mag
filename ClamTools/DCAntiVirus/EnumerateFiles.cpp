@@ -8,8 +8,9 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-CEnumerateFiles::CEnumerateFiles(CScanEndingObs *pObs):
-m_pObs(pObs)
+CEnumerateFiles::CEnumerateFiles(CScanEndingObs *pObs, bool bPrepare):
+m_pObs(pObs),
+m_bPrepare(bPrepare)
 {
 
 }
@@ -66,6 +67,10 @@ void CEnumerateFiles::Execute(LPCTSTR lpzDir,LPCTSTR lpzExt, bool bRecurse)
 		if(m_MatchFile.IsMatchExtension(FindAllFile.GetFilePath(),lpzExt))
 			OnFile(FindAllFile.GetFilePath());
 
+		if(!m_bPrepare)
+		{
+			Sleep(50);//Low priority	
+		}
 	}
 
 	FindAllFile.Close();

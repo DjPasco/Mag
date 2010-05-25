@@ -14,7 +14,7 @@ class CScanSchedFiles : public CEnumerateFiles
 {
 public:
 	CScanSchedFiles(HWND hwnd, CDCAntiVirusScheduledScanDlg *pDlg, CScanEndingObs *pObs, bool bUseInternalDB)
-		:CEnumerateFiles(pObs), m_hwnd(hwnd), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
+		:CEnumerateFiles(pObs, false), m_hwnd(hwnd), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
 
 public:
 	virtual void OnFile(LPCTSTR lpzFile)
@@ -60,7 +60,7 @@ private:
 class CCountSchedFiles : public CEnumerateFiles
 {
 public:
-	CCountSchedFiles(CScanEndingObs *pObs): CEnumerateFiles(pObs),
+	CCountSchedFiles(CScanEndingObs *pObs): CEnumerateFiles(pObs, true),
 		           m_nCount(0){};
 
 public:
@@ -168,7 +168,7 @@ BOOL CDCAntiVirusScheduledScanDlg::OnInitDialog()
 	EnableStartItems(FALSE);
 	EnableProgresItems(TRUE);
 	m_bScanning = true;
-	AfxBeginThread(SchedScan, (LPVOID)this);
+	AfxBeginThread(SchedScan, (LPVOID)this, THREAD_PRIORITY_LOWEST);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

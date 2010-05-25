@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tchar.h>
+
 static const char *sgSettingsWriteTemplate = "%d %d %d %d %d %d %d %d %d %d";
 static const char *sgSettingsReadTemplate = "%d%d%d%d%d%d%d%d%d%d";
 static const char *sgSection = "Settings";
@@ -260,4 +262,22 @@ namespace path_utils
 		sPath.Format("%s\\%s.exe", sBaseDir, sgAppName);
 		return sPath;
 	}
+
+	static void GetHookDllPath(char *sHookPath)
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+
+	#ifdef _DEBUG
+		sprintf(sHookPath, "%s\\SystemHookD.dll", sBaseDir);
+	#else
+		sprintf(sHookPath, "%s\\SystemHook.dll", sBaseDir);
+	#endif
+	}
+
+	static void GetDetourDllPath(char *sDetourPath)
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		sprintf(sDetourPath, "%s\\detoured.dll", sBaseDir);
+	}
+
 }

@@ -17,23 +17,6 @@ namespace hook_utils
 {
 	namespace internal
 	{
-		void GetHookDllPath(char *sHookPath)
-		{
-			CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
-
-		#ifdef _DEBUG
-			sprintf(sHookPath, "%s\\SystemHookD.dll", sBaseDir);
-		#else
-			sprintf(sHookPath, "%s\\SystemHook.dll", sBaseDir);
-		#endif
-		}
-
-		void GetDetourDllPath(char *sDetourPath)
-		{
-			CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
-			sprintf(sDetourPath, "%s\\detoured.dll", sBaseDir);
-		}
-
 		void EnableDebugPriv()
 		{
 			HANDLE hToken;
@@ -168,10 +151,10 @@ namespace hook_utils
 		si.cb = sizeof(STARTUPINFO);
 
 		char sHookPath[MAX_PATH];
-		internal::GetHookDllPath(sHookPath);
+		path_utils::GetHookDllPath(sHookPath);
 
 		char sFullDetoursPath[MAX_PATH];
-		internal::GetDetourDllPath(sFullDetoursPath);
+		path_utils::GetDetourDllPath(sFullDetoursPath);
 
 		DetourCreateProcessWithDll(sRunExe, NULL, NULL,
 								   NULL, TRUE, CREATE_DEFAULT_ERROR_MODE,
@@ -221,12 +204,12 @@ namespace hook_utils
 				if(GetCurrentProcessId() != entry.th32ProcessID && internal::NeedHook(entry.szExeFile))
 				{
 					char sHookPath[MAX_PATH];
-					internal::GetHookDllPath(sHookPath);
+					path_utils::GetHookDllPath(sHookPath);
 
 					if(bInitial || !internal::ExistsModule(entry.th32ProcessID, sHookPath))
 					{
 						char sFullDetoursPath[MAX_PATH];
-						internal::GetDetourDllPath(sFullDetoursPath);
+						path_utils::GetDetourDllPath(sFullDetoursPath);
 
 						HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, entry.th32ProcessID);
 						internal::RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sFullDetoursPath);
@@ -257,10 +240,10 @@ namespace hook_utils
 			internal::EnableDebugPriv();
 
 			char sHookPath[MAX_PATH];
-			internal::GetHookDllPath(sHookPath);
+			path_utils::GetHookDllPath(sHookPath);
 
 			char sFullDetoursPath[MAX_PATH];
-			internal::GetDetourDllPath(sFullDetoursPath);
+			path_utils::GetDetourDllPath(sFullDetoursPath);
 
 			while(TRUE == Process32Next(snapshot, &entry))
 			{

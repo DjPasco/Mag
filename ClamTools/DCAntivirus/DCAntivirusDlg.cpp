@@ -123,7 +123,7 @@ void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 	if(m_nProcCount != nNewCount)
 	{
 		m_nProcCount = nNewCount;
-		hook_utils::GlobalHook(false);
+		//hook_utils::GlobalHook(false);
 	}
 #endif
 
@@ -278,7 +278,7 @@ void CDCAntiVirusDlg::OnUpdateDb()
 		return;
 	}
 
-	fprintf(pFile, "@echo off\n%s %s\npause", sFreshClamPath, sParameters);
+	fprintf(pFile, "@echo off\n\"%s\" %s\npause", sFreshClamPath, sParameters);
 	fclose(pFile);
 
 	STARTUPINFO si = {0};

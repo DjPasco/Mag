@@ -45,7 +45,7 @@ UINT ScanMemory(LPVOID pParam)
 	if(NULL != pParam)
 	{
 		CDCAntiVirusMemoryScanDlg *pDlg = (CDCAntiVirusMemoryScanDlg *)pParam;
-		
+
 		pDlg->EnumerateFiles();
 
 		if(!pDlg->Continue())
@@ -109,6 +109,8 @@ UINT ScanMemory(LPVOID pParam)
 						return 0;
 					}
 
+					Sleep(50);//Low priority
+
 				} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
 
 				CloseHandle(HanModuleSnapshot);
@@ -162,7 +164,7 @@ BOOL CDCAntiVirusMemoryScanDlg::OnInitDialog()
 
 	GetDlgItem(IDOK)->EnableWindow(FALSE);
 	m_bScanning = true;
-	AfxBeginThread(ScanMemory, (LPVOID)this);
+	AfxBeginThread(ScanMemory, (LPVOID)this, THREAD_PRIORITY_LOWEST);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

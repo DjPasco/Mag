@@ -14,7 +14,7 @@ class CScanFiles : public CEnumerateFiles
 {
 public:
 	CScanFiles(HWND hwnd, CDCAntiVirusManualScanDlg *pDlg, CScanEndingObs *pObs, bool bUseInternalDB)
-		:CEnumerateFiles(pObs), m_hwnd(hwnd), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
+		:CEnumerateFiles(pObs, false), m_hwnd(hwnd), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
 
 public:
 	virtual void OnFile(LPCTSTR lpzFile)
@@ -60,7 +60,7 @@ private:
 class CCountFiles : public CEnumerateFiles
 {
 public:
-	CCountFiles(CScanEndingObs *pObs): CEnumerateFiles(pObs),
+	CCountFiles(CScanEndingObs *pObs): CEnumerateFiles(pObs, true),
 		           m_nCount(0){};
 
 public:
@@ -240,7 +240,7 @@ void CDCAntiVirusManualScanDlg::OnScan()
 
 		m_bScanning = true;
 
-		AfxBeginThread(Scan, (LPVOID)this);
+		AfxBeginThread(Scan, (LPVOID)this, THREAD_PRIORITY_LOWEST);
 	}
 	else
 	{

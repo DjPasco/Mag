@@ -717,6 +717,29 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 		return false;
 	}
 
+	CDCHash hash;
+	CDCHash pathHash;
+	bool bScanDaily;
+	bool bScanMain;
+	if(!file_utils::FileExistsInInternalDB(sFilePath.c_str(),
+										  m_pFilesMap,
+										  m_pMD5,
+										  hash,
+										  pathHash,
+										  m_pMainDBInfo->m_nVersion,
+										  m_pDailyDBInfo->m_nVersion,
+										  bScanDaily,
+										  bScanMain))
+	{
+		CFileInfo info;
+		info.m_nCount = 1;
+		info.m_nMainDBVersion	= m_pMainDBInfo->m_nVersion;
+		info.m_nDailyDBVersion	= m_pDailyDBInfo->m_nVersion;
+		info.m_sFilePath		= sFilePath.c_str();
+		info.m_fileHash			= hash;
+		(*m_pFilesMap)[pathHash]= info;
+	}
+
 	SendFileToTray(sFile, NULL);
 	sVirus.Empty();
 	return true;
