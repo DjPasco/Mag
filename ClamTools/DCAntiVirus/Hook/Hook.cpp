@@ -89,12 +89,19 @@ namespace hook_utils
 			return false;
 		}
 
-		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath)
+		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath, LPCSTR sProcName)
 		{
 			HANDLE HanProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, WorProcessId);
 			char sDLLFilePath[(MAX_PATH + 16)] = { 0 };
 
 			strcpy(sDLLFilePath, sDllPath);
+
+			HMODULE ModKernel32 = GetModuleHandle("Kernel32.dll");
+			if(ModKernel32 == NULL)
+			{
+				return FALSE;
+			}
+
 
 			HMODULE ModDLLHandle = NULL;
 			BYTE * BytDLLBaseAdress = 0;
@@ -103,6 +110,7 @@ namespace hook_utils
 
 			HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, WorProcessId);
 
+			TRACE("Ejecting %s.\n", sDLLFilePath);
 			Module32First(HanModuleSnapshot, &MOEModuleInformation);
 
 			do
@@ -111,32 +119,23 @@ namespace hook_utils
 				{
 					ModDLLHandle = MOEModuleInformation.hModule;
 					BytDLLBaseAdress = MOEModuleInformation.modBaseAddr;
+					TRACE("Ejecting from %s.\n", sProcName);
+
+					if(ModDLLHandle != NULL && BytDLLBaseAdress != 0)
+					{
+						HANDLE HanDLLThread = CreateRemoteThread(HanProcess, NULL, 0, LPTHREAD_START_ROUTINE(GetProcAddress(ModKernel32, "FreeLibrary")), (VOID *)BytDLLBaseAdress, 0, NULL);
+
+						if(HanDLLThread != NULL)
+						{
+							WaitForSingleObject(HanDLLThread, INFINITE);
+							CloseHandle(HanDLLThread);
+							TRACE("Ejecting Completed.\n");
+						}
+					}
 				}
 			} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
 
 			CloseHandle(HanModuleSnapshot);
-
-			HMODULE ModKernel32 = GetModuleHandle("Kernel32.dll");
-
-			if(ModKernel32 != NULL)
-			{
-				if(ModDLLHandle != NULL && BytDLLBaseAdress != 0)
-				{
-					HANDLE HanDLLThread = CreateRemoteThread(HanProcess, NULL, 0, LPTHREAD_START_ROUTINE(GetProcAddress(ModKernel32, "FreeLibrary")), (VOID *)BytDLLBaseAdress, 0, NULL);
-
-					if(HanDLLThread != NULL)
-					{
-						if(WaitForSingleObject(HanDLLThread, INFINITE) != WAIT_FAILED)
-						{
-							CloseHandle(HanDLLThread);
-							CloseHandle(HanProcess);
-							return TRUE;
-						}
-						CloseHandle(HanDLLThread);
-					}
-				}
-			}
-
 			CloseHandle(HanProcess);
 			return FALSE;
 		}
@@ -195,10 +194,11 @@ namespace hook_utils
 			return;
 		}
 
+		internal::EnableDebugPriv();
+
 		if(TRUE == Process32First(snapshot, &entry))
 		{
 			LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "LoadLibraryA");
-			internal::EnableDebugPriv();
 			while(TRUE == Process32Next(snapshot, &entry))
 			{
 				if(GetCurrentProcessId() != entry.th32ProcessID && internal::NeedHook(entry.szExeFile))
@@ -235,10 +235,10 @@ namespace hook_utils
 			return;
 		}
 
+		internal::EnableDebugPriv();
+
 		if(TRUE == Process32First(snapshot, &entry))
 		{
-			internal::EnableDebugPriv();
-
 			char sHookPath[MAX_PATH];
 			path_utils::GetHookDllPath(sHookPath);
 
@@ -251,8 +251,8 @@ namespace hook_utils
 				{
 					if(internal::NeedHook(entry.szExeFile))
 					{
-						internal::EjectDLL(entry.th32ProcessID, sHookPath);
-						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath);
+						internal::EjectDLL(entry.th32ProcessID, sHookPath, entry.szExeFile);
+						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath, entry.szExeFile);
 					}
 				}
 			}

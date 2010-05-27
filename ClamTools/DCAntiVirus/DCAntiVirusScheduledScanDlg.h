@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "ScanEndingObs.h"
+#include "DCAntiVirusLogDlg.h"
 
 typedef std::vector<CString> CScanItems;
 
@@ -32,18 +33,20 @@ public:
 	CString GetExts();
 	void ShowCurrentItem(LPCSTR sItem);
 	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
-	void OnOK(LPCSTR sItem, LPCSTR sOK);
 	bool GetUseInternalDB();
 
 	void OnFinish();
 
 private:
 	CListCtrl m_listScanItems;
-	CListCtrl m_listInfected;
-
 	CProgressCtrl m_progres;
 
 	bool m_bScanning;
+	int m_nCount;
+
+	CInfItems m_infItems;
+	CTime m_tStart;
+	CTime m_tEnd;
 
 public:
 	void OnStop();

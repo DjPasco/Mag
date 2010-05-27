@@ -21,7 +21,7 @@ CDCAntiVirusShedDlg::~CDCAntiVirusShedDlg()
 }
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusShedDlg, CDialog)
-	ON_BN_CLICKED(IDOK,							OnBnClickedOk)
+	ON_BN_CLICKED(IDOK, OnBnClickedOk)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusShedDlg::OnInitDialog()

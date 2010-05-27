@@ -12,6 +12,9 @@
 #define IDD_DIALOG_SCAN                 141
 #define IDD_DIALOG_MEMORY_SCAN          142
 #define IDD_DIALOG_SCHED_SCAN           143
+#define IDD_DIALOG_LOG                  144
+#define IDR_MENU2                       145
+#define IDR_LIST_CONTEXT                145
 #define IDC_SHEET_POSITION              1005
 #define IDC_BUTTON1                     1006
 #define IDC_STARTDATE_SHED              1006
@@ -98,11 +101,6 @@
 #define IDC_PROGRESS1                   1043
 #define ID_PROGRES_MEMORY               1043
 #define IDD_PROGRES_SC                  1043
-#define IDC_STATIC_INFECTED             1044
-#define IDD_STATIC_LOG_SC               1044
-#define IDC_LIST_ITEMS_INFECTED         1045
-#define ID_LOG_MEMORY                   1045
-#define IDD_SCANNED_LIST_SC             1045
 #define IDC_STATIC_CURRENT              1046
 #define ID_STATIC_CURRENT_MEMORY        1046
 #define IDD_STATIC_CURRENT_SC           1046
@@ -115,8 +113,9 @@
 #define IDC_STATIC_ACTION2              1050
 #define IDC_STATIC_TYPES_SETT           1050
 #define IDC_STATIC_MEMORY_SCAN          1051
-#define IDC_CHECK5                      1052
 #define IDC_CHECK_MEM_INT_DB            1052
+#define IDC_LIST_INFECTED               1054
+#define IDC_STATIC_INFO                 1055
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -124,15 +123,17 @@
 #define ID_MENU_45                      32775
 #define ID_MENU_ENABLEON                32776
 #define ID_MENU_1                       32777
+#define ID_MENU_DELETEFILE              32778
+#define ID_MENU_QUARANTINEFILE          32779
 #define IDD_TYPES_SC                    65535
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        144
-#define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1053
+#define _APS_NEXT_RESOURCE_VALUE        146
+#define _APS_NEXT_COMMAND_VALUE         32780
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

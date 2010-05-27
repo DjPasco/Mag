@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DCAntiVirusLogDlg.h"
+
 class CDCAntiVirusMemoryScanDlg : public CDialog
 {
 public:
@@ -15,16 +17,19 @@ public:
 	void EnumerateFiles();
 	void ShowCurrentItem(LPCSTR sItem);
 	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
-	void OnOK(LPCSTR sItem, LPCSTR sOK);
-
 	void OnFinish();
 
 	bool Continue();
 
 private:
-	CListCtrl m_listLog;
 	CProgressCtrl m_progres;
 	bool m_bScanning;
+	int m_nCount;
+
+	CInfItems m_infItems;
+	CTime m_tStart;
+	CTime m_tEnd;
+
 public:
-	afx_msg void OnStopMemory();
+	void OnStopMemory();
 };

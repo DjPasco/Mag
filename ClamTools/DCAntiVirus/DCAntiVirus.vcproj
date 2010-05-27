@@ -21,7 +21,7 @@
 			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="2"
+			UseOfMFC="1"
 			CharacterSet="2"
 			>
 			<Tool
@@ -48,7 +48,7 @@
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -102,7 +102,7 @@
 			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="2"
+			UseOfMFC="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -130,7 +130,7 @@
 				EnableIntrinsicFunctions="true"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				MinimalRebuild="false"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
@@ -204,6 +204,14 @@
 			</File>
 			<File
 				RelativePath=".\DCAntiVirusDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusLogDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusLogDlg.h"
 				>
 			</File>
 			<File

@@ -97,7 +97,7 @@
 			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			UseOfMFC="2"
+			UseOfMFC="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -122,7 +122,7 @@
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..,."
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SYSTEM_HOOK_EXPORTS"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"

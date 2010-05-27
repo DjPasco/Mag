@@ -45,10 +45,6 @@ public:
 				registry_utils::WriteProfileString(sgSection, sgVirusName, "");
 			}
 		}
-		else
-		{
-			m_pDlg->OnOK(lpzFile, "OK");
-		}
 	}
 
 private:
@@ -148,15 +144,6 @@ BOOL CDCAntiVirusManualScanDlg::OnInitDialog()
 	m_listScanItems.ModifyStyle(0, LVS_REPORT|LVS_SINGLESEL); 
 	m_listScanItems.InsertColumn(0, "Items", LVCFMT_LEFT, 350);
 
-	if(!m_listInfected.SubclassDlgItem(IDC_LIST_ITEMS_INFECTED, this))
-	{
-		return FALSE;
-	}
-
-	m_listInfected.ModifyStyle(0, LVS_REPORT|LVS_SINGLESEL); 
-	m_listInfected.InsertColumn(0, "Item status", LVCFMT_LEFT, 150);
-	m_listInfected.InsertColumn(1, "Item path", LVCFMT_LEFT, 350);
-
 	if(!m_progres.SubclassDlgItem(IDC_PROGRESS1, this))
 	{
 		return FALSE;
@@ -233,17 +220,20 @@ void CDCAntiVirusManualScanDlg::OnScan()
 {
 	if(!m_bScanning)
 	{
-		m_listInfected.DeleteAllItems();
 		EnableStartItems(FALSE);
 		EnableProgresItems(TRUE);
 		GetDlgItem(IDC_BUTTON_SCAN)->SetWindowText("Stop");
 
 		m_bScanning = true;
-
+		m_nCount = 0;
+		m_tStart = CTime::GetCurrentTime();
 		AfxBeginThread(Scan, (LPVOID)this, THREAD_PRIORITY_LOWEST);
 	}
 	else
 	{
+		m_tEnd = CTime::GetCurrentTime();
+		CTimeSpan time = m_tEnd - m_tStart;
+
 		m_bScanning = false;
 
 		EnableStartItems(TRUE);
@@ -255,6 +245,12 @@ void CDCAntiVirusManualScanDlg::OnScan()
 		m_progres.SetPos(0);
 
 		GetDlgItem(IDC_EDIT1_CUR)->SetWindowText("");
+
+		CDCAntivirusLogDlg dlg;
+		dlg.SetFilesCount(m_nCount);
+		dlg.SetInfectedItems(m_infItems);
+		dlg.SetTime(time);
+		dlg.DoModal();
 	}
 }
 
@@ -281,6 +277,8 @@ void CDCAntiVirusManualScanDlg::ShowCurrentItem(LPCSTR sItem)
 	GetDlgItem(IDC_EDIT1_CUR)->SetWindowText(sItem);
 
 	m_progres.SetPos(m_progres.GetPos()+1);
+
+	m_nCount++;
 }
 
 void CDCAntiVirusManualScanDlg::EnumerateFiles()
@@ -307,6 +305,9 @@ void CDCAntiVirusManualScanDlg::EnumerateFiles()
 
 void CDCAntiVirusManualScanDlg::OnFinish()
 {
+	m_tEnd = CTime::GetCurrentTime();
+	CTimeSpan time = m_tEnd - m_tStart;
+
 	m_progres.SetPos(0);
 	GetDlgItem(IDC_STATIC_ACTION)->SetWindowText("Scan completed.");
 
@@ -317,12 +318,21 @@ void CDCAntiVirusManualScanDlg::OnFinish()
 	GetDlgItem(IDC_BUTTON_SCAN)->SetWindowText("Start");
 
 	GetDlgItem(IDC_EDIT1_CUR)->SetWindowText("");
+
+	CDCAntivirusLogDlg dlg;
+	dlg.SetFilesCount(m_nCount);
+	dlg.SetInfectedItems(m_infItems);
+	dlg.SetTime(time);
+	dlg.DoModal();
 }
 
 void CDCAntiVirusManualScanDlg::OnVirus(LPCSTR sItem, LPCSTR sVirus)
 {
-	int nIns = m_listInfected.InsertItem(0, sVirus);
-	m_listInfected.SetItemText(nIns, 1, sItem);
+	CInfectedItem item;
+	item.m_sFile = sItem;
+	item.m_sVirus = sVirus;
+
+	m_infItems.push_back(item);
 }
 
 CString CDCAntiVirusManualScanDlg::GetExts()
@@ -336,12 +346,6 @@ CString CDCAntiVirusManualScanDlg::GetExts()
 	}
 	
 	return sExt;
-}
-
-void CDCAntiVirusManualScanDlg::OnOK(LPCSTR sItem, LPCSTR sOK)
-{
-	int nIns = m_listInfected.InsertItem(0, sOK);
-	m_listInfected.SetItemText(nIns, 1, sItem);
 }
 
 bool CDCAntiVirusManualScanDlg::GetUseInternalDB()

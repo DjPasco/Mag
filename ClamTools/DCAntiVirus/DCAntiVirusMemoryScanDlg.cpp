@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "DCAntiVirusMemoryScanDlg.h"
+
 #include "EnumerateFiles.h"
 #include "Psapi.h"
 #include <tlhelp32.h>
@@ -95,11 +96,7 @@ UINT ScanMemory(LPVOID pParam)
 					{
 						pDlg->ShowCurrentItem(MOEModuleInformation.szExePath);
 
-						if(OnFile(MOEModuleInformation.szExePath, info.m_bMemIntDB))
-						{
-							pDlg->OnOK(MOEModuleInformation.szExePath, "OK");
-						}
-						else
+						if(!OnFile(MOEModuleInformation.szExePath, info.m_bMemIntDB))
 						{
 							CString sVirus = registry_utils::GetProfileString(sgSection, sgVirusName, "");
 							if(!sVirus.IsEmpty())
@@ -155,15 +152,6 @@ BOOL CDCAntiVirusMemoryScanDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	if(!m_listLog.SubclassDlgItem(ID_LOG_MEMORY, this))
-	{
-		return FALSE;
-	}
-
-	m_listLog.ModifyStyle(0, LVS_REPORT|LVS_SINGLESEL); 
-	m_listLog.InsertColumn(0, "Item status", LVCFMT_LEFT, 150);
-	m_listLog.InsertColumn(1, "Item path", LVCFMT_LEFT, 350);
-
 	if(!m_progres.SubclassDlgItem(ID_PROGRES_MEMORY, this))
 	{
 		return FALSE;
@@ -171,6 +159,9 @@ BOOL CDCAntiVirusMemoryScanDlg::OnInitDialog()
 
 	GetDlgItem(IDOK)->EnableWindow(FALSE);
 	m_bScanning = true;
+	m_nCount = 0;
+
+	m_tStart = CTime::GetCurrentTime();
 	AfxBeginThread(ScanMemory, (LPVOID)this, THREAD_PRIORITY_LOWEST);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -181,6 +172,8 @@ void CDCAntiVirusMemoryScanDlg::ShowCurrentItem(LPCSTR sItem)
 	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText(sItem);
 
 	m_progres.SetPos(m_progres.GetPos()+1);
+
+	m_nCount++;
 }
 
 void CDCAntiVirusMemoryScanDlg::EnumerateFiles()
@@ -252,24 +245,31 @@ void CDCAntiVirusMemoryScanDlg::EnumerateFiles()
 
 void CDCAntiVirusMemoryScanDlg::OnVirus(LPCSTR sItem, LPCSTR sVirus)
 {
-	int nIns = m_listLog.InsertItem(0, sVirus);
-	m_listLog.SetItemText(nIns, 1, sItem);
-}
+	CInfectedItem item;
+	item.m_sFile = sItem;
+	item.m_sVirus = sVirus;
 
-void CDCAntiVirusMemoryScanDlg::OnOK(LPCSTR sItem, LPCSTR sOK)
-{
-	int nIns = m_listLog.InsertItem(0, sOK);
-	m_listLog.SetItemText(nIns, 1, sItem);
+	m_infItems.push_back(item);
 }
 
 void CDCAntiVirusMemoryScanDlg::OnFinish()
 {
+	m_tEnd = CTime::GetCurrentTime();
+	CTimeSpan time = m_tEnd - m_tStart;
+
 	m_bScanning = false;
 
 	GetDlgItem(IDOK)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_STOP_MEMORY)->EnableWindow(FALSE);
 	m_progres.SetPos(0);
 	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText("Scan completed.");
 	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText("");
+
+	CDCAntivirusLogDlg dlg;
+	dlg.SetFilesCount(m_nCount);
+	dlg.SetInfectedItems(m_infItems);
+	dlg.SetTime(time);
+	dlg.DoModal();
 }
 
 void CDCAntiVirusMemoryScanDlg::OnCancel()
@@ -284,6 +284,9 @@ void CDCAntiVirusMemoryScanDlg::OnCancel()
 
 void CDCAntiVirusMemoryScanDlg::OnStopMemory()
 {
+	m_tEnd = CTime::GetCurrentTime();
+	CTimeSpan time = m_tEnd - m_tStart;
+
 	m_bScanning = false;
 
 	GetDlgItem(IDOK)->EnableWindow(TRUE);
@@ -292,6 +295,12 @@ void CDCAntiVirusMemoryScanDlg::OnStopMemory()
 	m_progres.SetPos(0);
 	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText("Scan aborted by user.");
 	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText("");
+
+	CDCAntivirusLogDlg dlg;
+	dlg.SetFilesCount(m_nCount);
+	dlg.SetInfectedItems(m_infItems);
+	dlg.SetTime(time);
+	dlg.DoModal();
 }
 
 bool CDCAntiVirusMemoryScanDlg::Continue()

@@ -13,7 +13,7 @@
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
-//#define IGNORE_HOOK
+#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -255,7 +255,7 @@ bool CDCAntiVirusDlg::SendObj(CSendObj &obj)
 	helper->m_obj = obj;
 	helper->m_hwnd = hwnd;
 
-	AfxBeginThread(Send, (LPVOID)helper);
+	AfxBeginThread(Send, (LPVOID)helper, THREAD_PRIORITY_HIGHEST);
 	return true;
 }
 

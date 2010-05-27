@@ -67,12 +67,6 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(wParam);
 	
-	HWND trayHwnd = ::FindWindow(NULL, sgAppName);
-	if(NULL == trayHwnd)
-	{
-		return 1;
-	}
-
 	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
 	CSendObj *pData = NULL;
 	pData = (CSendObj *)copy->lpData; 
@@ -123,6 +117,9 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		break;
 	case EManualScan:
 		{
+			int nOldPriority = GetThreadPriority(GetCurrentThread());
+			SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+
 			registry_utils::WriteProfileString(sgSection, sgVirusName, "");
 			CString sFile = pData->m_sPath;
 			CString sVirusName;
@@ -135,6 +132,8 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			{
 				bClean = m_pScanner->ScanFileNoIntDB(sFile, sVirusName); 
 			}
+
+			SetThreadPriority(GetCurrentThread(), nOldPriority);
 
 			if(!bClean)
 			{
