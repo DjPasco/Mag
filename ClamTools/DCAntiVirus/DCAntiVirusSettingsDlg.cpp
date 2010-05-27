@@ -502,7 +502,13 @@ void CDCAntiVirusSettingsDlg::OnRemove()
 
 void CDCAntiVirusSettingsDlg::OnAboutSpecScan()
 {
-	CString sSpecScanHelp = "Additional actions are taken on selected items.\nFor example, HTML files are scanned for script viruses.";
+	CString sSpecScanHelp = "Additional actions are taken on selected items.\n";
+	sSpecScanHelp += "  Deep PE scanning:\tThis flag enables deep scanning of Portable Executable files and allows DCAntiVirus\n\t\tto unpack executables compressed with run-time unpackers.\n";
+	sSpecScanHelp += "  Office Files:\tEnables support for OLE2 containers (used by MS Office and .msi files).\n";
+	sSpecScanHelp += "  Archives:\tThis flag enables transparent scanning of various archive formats.\n";
+	sSpecScanHelp += "  PDF files:\tEnables scanning within PDF files.\n";
+	sSpecScanHelp += "  HTML files:\tThis flag enables HTML normalisation (including ScrEnc decryption).\n";
+
 	MessageBox(sSpecScanHelp, "About special scan", MB_ICONINFORMATION);
 }
 
