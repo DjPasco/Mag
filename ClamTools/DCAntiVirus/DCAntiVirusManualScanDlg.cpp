@@ -227,7 +227,7 @@ void CDCAntiVirusManualScanDlg::OnScan()
 		m_bScanning = true;
 		m_nCount = 0;
 		m_tStart = CTime::GetCurrentTime();
-		AfxBeginThread(Scan, (LPVOID)this, THREAD_PRIORITY_LOWEST);
+		AfxBeginThread(Scan, (LPVOID)this, priority_utils::GetRealPriority(path_utils::GetPriority()));
 	}
 	else
 	{

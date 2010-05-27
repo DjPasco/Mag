@@ -165,7 +165,7 @@ BOOL CDCAntiVirusMemoryScanDlg::OnInitDialog()
 	m_nCount = 0;
 
 	m_tStart = CTime::GetCurrentTime();
-	AfxBeginThread(ScanMemory, (LPVOID)this, THREAD_PRIORITY_LOWEST);
+	AfxBeginThread(ScanMemory, (LPVOID)this, priority_utils::GetRealPriority(path_utils::GetPriority()));
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

@@ -156,7 +156,7 @@ BOOL CDCAntiVirusScheduledScanDlg::OnInitDialog()
 	m_bScanning = true;
 	m_nCount = 0;
 	m_tStart = CTime::GetCurrentTime();
-	AfxBeginThread(SchedScan, (LPVOID)this, THREAD_PRIORITY_LOWEST);
+	AfxBeginThread(SchedScan, (LPVOID)this, priority_utils::GetRealPriority(path_utils::GetPriority()));
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

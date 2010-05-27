@@ -50,10 +50,11 @@ public:
 
 private:
 	CListCtrl m_list;
+	CComboBox m_priority;
 
 public:
 	void OnAdd();
 	void OnRemove();
-	afx_msg void OnAboutSpecScan();
-	afx_msg void OnQuarDir();
+	void OnAboutSpecScan();
+	void OnQuarDir();
 };

@@ -118,7 +118,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 	case EManualScan:
 		{
 			int nOldPriority = GetThreadPriority(GetCurrentThread());
-			SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+			SetThreadPriority(GetCurrentThread(), priority_utils::GetRealPriority(path_utils::GetPriority()));
 
 			registry_utils::WriteProfileString(sgSection, sgVirusName, "");
 			CString sFile = pData->m_sPath;

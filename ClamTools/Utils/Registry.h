@@ -2,6 +2,13 @@
 
 #include <tchar.h>
 
+enum EPriority
+{
+	ENormal = 0,
+	ELow,
+	ELowest
+};
+
 static const char *sgSettingsWriteTemplate = "%d %d %d %d %d %d %d %d %d %d %d";
 static const char *sgSettingsReadTemplate = "%d%d%d%d%d%d%d%d%d%d%d";
 static const char *sgSection = "Settings";
@@ -42,6 +49,8 @@ static const char *sgLogFileName = "Log.txt";
 
 static const char *sgServerName = "DCAntiVirusScan";
 static const char *sgQuarantineDir = "QuarantineDir";
+
+static const char *sgScanPriority = "ScanPriority";
 
 static const char *sgFileExtSeparator = ";";
 
@@ -287,5 +296,51 @@ namespace path_utils
 		CString sPath;
 		sPath.Format("%s\\", sDir);
 		return sPath;
+	}
+
+	static int GetPriority()
+	{
+		CString sPriority = registry_utils::GetProfileString(sgSection, sgScanPriority, "");
+		if(sPriority.IsEmpty())
+		{
+			return 0;
+		}
+
+		int nRet = atoi(sPriority);
+		return nRet;
+	}
+
+	static void SetPriority(int nPriority)
+	{
+		CString sValue;
+		sValue.Format("%d", nPriority);
+		registry_utils::WriteProfileString(sgSection, sgScanPriority, sValue);
+	}
+}
+
+namespace priority_utils
+{
+	static int GetRealPriority(int nUserPriority)
+	{
+		switch(nUserPriority)
+		{
+		case ENormal:
+			{
+				return THREAD_PRIORITY_NORMAL;
+			}
+			break;
+		case ELow:
+			{
+				return THREAD_PRIORITY_BELOW_NORMAL;
+			}
+			break;
+		case ELowest:
+			{
+				return THREAD_PRIORITY_LOWEST;
+			}
+			break;
+		}
+
+		return THREAD_PRIORITY_NORMAL;
 	}
 }

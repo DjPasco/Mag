@@ -52,6 +52,15 @@ BOOL CDCAntiVirusSettingsDlg::OnInitDialog()
 	m_list.ModifyStyle(0, LVS_REPORT|LVS_SINGLESEL); 
 	m_list.InsertColumn(0, "Items", LVCFMT_LEFT, 350);
 
+	if(!m_priority.SubclassDlgItem(IDC_COMBO_PRIORITY, this))
+	{
+		return FALSE;
+	}
+
+	m_priority.InsertString(0, "Normal");
+	m_priority.InsertString(1, "Low");
+	m_priority.InsertString(2, "Lowest");
+
 	LoadRegistryData();
 	LoadShedInfo();
 
@@ -140,6 +149,8 @@ void CDCAntiVirusSettingsDlg::LoadRegistryData()
 
 	CString sQuarDir = registry_utils::GetProfileString(sgSection, sgQuarantineDir, "");
 	GetDlgItem(IDC_EDIT_QUAR)->SetWindowText(sQuarDir);
+
+	m_priority.SetCurSel(path_utils::GetPriority());
 }
 
 void CDCAntiVirusSettingsDlg::SaveRegistryData()
@@ -173,6 +184,8 @@ void CDCAntiVirusSettingsDlg::SaveRegistryData()
 	CString sQuarDir;
 	GetDlgItem(IDC_EDIT_QUAR)->GetWindowText(sQuarDir);
 	registry_utils::WriteProfileString(sgSection, sgQuarantineDir, sQuarDir);
+
+	path_utils::SetPriority(m_priority.GetCurSel());
 }
 
 void CDCAntiVirusSettingsDlg::OnBnClickedOk()
