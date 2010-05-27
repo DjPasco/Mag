@@ -17,7 +17,7 @@ public:
 	void EnumerateFiles();
 	void ShowCurrentItem(LPCSTR sItem);
 	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
-	void OnFinish();
+	void OnFinish(LPCSTR sReason);
 
 	bool Continue();
 

@@ -79,7 +79,7 @@ UINT SchedScan(LPVOID pParam)
 
 		if(!pDlg->Continue())
 		{
-			pDlg->OnFinish();
+			pDlg->OnFinish("Scan stoped by user.");
 			return 0;
 		}
 		
@@ -91,7 +91,7 @@ UINT SchedScan(LPVOID pParam)
 		HWND hwnd = NULL;
 		hwnd = ::FindWindow(NULL, sgServerName);
 
-		//if(NULL != hwnd)
+		if(NULL != hwnd)
 		{
 			bool bUseInternalDB = pDlg->GetUseInternalDB();
 			CScanSchedFiles scanner(hwnd, pDlg, pDlg, bUseInternalDB);
@@ -102,13 +102,13 @@ UINT SchedScan(LPVOID pParam)
 
 				if(!pDlg->Continue())
 				{
-					pDlg->OnFinish();
+					pDlg->OnFinish("Scan stoped by user.");
 					return 0;
 				}
 			}
 		}
 
-		pDlg->OnFinish();
+		pDlg->OnFinish("Scan completed.");
 	}
 	return 0;
 }
@@ -231,13 +231,13 @@ void CDCAntiVirusScheduledScanDlg::EnumerateFiles()
 	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText("Scanning....");
 }
 
-void CDCAntiVirusScheduledScanDlg::OnFinish()
+void CDCAntiVirusScheduledScanDlg::OnFinish(LPCSTR sReason)
 {
 	m_tEnd = CTime::GetCurrentTime();
 	CTimeSpan time = m_tEnd - m_tStart;
 
 	m_progres.SetPos(0);
-	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText("Scan completed.");
+	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText(sReason);
 
 	m_bScanning = false;
 	GetDlgItem(IDD_EDIT_CUR_SC)->SetWindowText("");
@@ -285,22 +285,7 @@ bool CDCAntiVirusScheduledScanDlg::GetUseInternalDB()
 
 void CDCAntiVirusScheduledScanDlg::OnStop()
 {
-	m_tEnd = CTime::GetCurrentTime();
-	CTimeSpan time = m_tEnd - m_tStart;
-
 	m_bScanning = false;
-
-	EnableStartItems(TRUE);
-	EnableProgresItems(FALSE);
-	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText("Scan stoped by user.");
-	m_progres.SetPos(0);
-	GetDlgItem(IDD_EDIT_CUR_SC)->SetWindowText("");
-
-	CDCAntivirusLogDlg dlg(this);
-	dlg.SetFilesCount(m_nCount);
-	dlg.SetInfectedItems(m_infItems);
-	dlg.SetTime(time);
-	dlg.DoModal();
 }
 
 void CDCAntiVirusScheduledScanDlg::FillScanItems()

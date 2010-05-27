@@ -77,6 +77,7 @@ UINT ScanMemory(LPVOID pParam)
 			{
 				if(!pDlg->Continue())
 				{
+					pDlg->OnFinish("Scan aborted by user.");
 					return 0;
 				}
 
@@ -110,6 +111,7 @@ UINT ScanMemory(LPVOID pParam)
 					if(!pDlg->Continue())
 					{
 						CloseHandle(HanModuleSnapshot);
+						pDlg->OnFinish("Scan aborted by user.");
 						return 0;
 					}
 
@@ -121,12 +123,13 @@ UINT ScanMemory(LPVOID pParam)
 
 				if(!pDlg->Continue())
 				{
+					pDlg->OnFinish("Scan aborted by user.");
 					return 0;
 				}
 			}
 		}
 
-		pDlg->OnFinish();
+		pDlg->OnFinish("Scan completed");
 
 	}
 	return 0;
@@ -252,7 +255,7 @@ void CDCAntiVirusMemoryScanDlg::OnVirus(LPCSTR sItem, LPCSTR sVirus)
 	m_infItems.push_back(item);
 }
 
-void CDCAntiVirusMemoryScanDlg::OnFinish()
+void CDCAntiVirusMemoryScanDlg::OnFinish(LPCSTR sReason)
 {
 	m_tEnd = CTime::GetCurrentTime();
 	CTimeSpan time = m_tEnd - m_tStart;
@@ -262,7 +265,7 @@ void CDCAntiVirusMemoryScanDlg::OnFinish()
 	GetDlgItem(IDOK)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BUTTON_STOP_MEMORY)->EnableWindow(FALSE);
 	m_progres.SetPos(0);
-	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText("Scan completed.");
+	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText(sReason);
 	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText("");
 
 	CDCAntivirusLogDlg dlg;
@@ -284,23 +287,7 @@ void CDCAntiVirusMemoryScanDlg::OnCancel()
 
 void CDCAntiVirusMemoryScanDlg::OnStopMemory()
 {
-	m_tEnd = CTime::GetCurrentTime();
-	CTimeSpan time = m_tEnd - m_tStart;
-
 	m_bScanning = false;
-
-	GetDlgItem(IDOK)->EnableWindow(TRUE);
-	GetDlgItem(IDC_BUTTON_STOP_MEMORY)->EnableWindow(FALSE);
-	
-	m_progres.SetPos(0);
-	GetDlgItem(IDC_STATIC_ACTION2)->SetWindowText("Scan aborted by user.");
-	GetDlgItem(ID_EDIT_CURRENT_MEMORY)->SetWindowText("");
-
-	CDCAntivirusLogDlg dlg;
-	dlg.SetFilesCount(m_nCount);
-	dlg.SetInfectedItems(m_infItems);
-	dlg.SetTime(time);
-	dlg.DoModal();
 }
 
 bool CDCAntiVirusMemoryScanDlg::Continue()

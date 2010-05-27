@@ -32,7 +32,7 @@ public:
 	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
 	bool GetUseInternalDB();
 
-	void OnFinish();
+	void OnFinish(LPCSTR sReason);
 
 private:
 	CListCtrl m_listScanItems;
