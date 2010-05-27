@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusSettingsDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_ADD,				OnAdd)
 	ON_BN_CLICKED(IDC_BUTTON_REMOVE,			OnRemove)
 	ON_BN_CLICKED(IDC_BUTTON_ABOUT_SPEC_SCAN, &CDCAntiVirusSettingsDlg::OnAboutSpecScan)
+	ON_BN_CLICKED(IDC_BUTTON_QUAR, &CDCAntiVirusSettingsDlg::OnQuarDir)
 END_MESSAGE_MAP()
 
 BOOL CDCAntiVirusSettingsDlg::OnInitDialog()
@@ -136,6 +137,9 @@ void CDCAntiVirusSettingsDlg::LoadRegistryData()
 	}
 
 	CheckControl(IDD_USE_INTERNAL_SETT, bUse);
+
+	CString sQuarDir = registry_utils::GetProfileString(sgSection, sgQuarantineDir, "");
+	GetDlgItem(IDC_EDIT_QUAR)->SetWindowText(sQuarDir);
 }
 
 void CDCAntiVirusSettingsDlg::SaveRegistryData()
@@ -165,6 +169,10 @@ void CDCAntiVirusSettingsDlg::SaveRegistryData()
 	CString sUse;
 	sUse.Format("%d", bUseInternal);
 	registry_utils::WriteProfileString(sgSection, sgSchedInternalDB, sUse);
+
+	CString sQuarDir;
+	GetDlgItem(IDC_EDIT_QUAR)->GetWindowText(sQuarDir);
+	registry_utils::WriteProfileString(sgSection, sgQuarantineDir, sQuarDir);
 }
 
 void CDCAntiVirusSettingsDlg::OnBnClickedOk()
@@ -483,4 +491,31 @@ void CDCAntiVirusSettingsDlg::OnAboutSpecScan()
 {
 	CString sSpecScanHelp = "Additional actions are taken on selected items.\nFor example, HTML files are scanned for script viruses.";
 	MessageBox(sSpecScanHelp, "About special scan", MB_ICONINFORMATION);
+}
+
+void CDCAntiVirusSettingsDlg::OnQuarDir()
+{
+	BROWSEINFO bi = { 0 };
+    char path[MAX_PATH];
+    bi.lpszTitle = "Select quarantine directory";
+    bi.pszDisplayName = path;
+	bi.ulFlags |= BIF_USENEWUI;
+    LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+    if(NULL != pidl)
+    {
+		char sPathName[MAX_PATH]; 
+		BOOL bRet = SHGetPathFromIDList(pidl, sPathName);
+		if(bRet)
+		{
+			GetDlgItem(IDC_EDIT_QUAR)->SetWindowText(sPathName);
+		}
+
+	     // free memory used
+        IMalloc *imalloc = 0;
+        if(SUCCEEDED(SHGetMalloc(&imalloc)))
+        {
+            imalloc->Free(pidl);
+            imalloc->Release();
+        }
+    }
 }

@@ -13,7 +13,6 @@
 #define IDD_DIALOG_MEMORY_SCAN          142
 #define IDD_DIALOG_SCHED_SCAN           143
 #define IDD_DIALOG_LOG                  144
-#define IDR_MENU2                       145
 #define IDR_LIST_CONTEXT                145
 #define IDC_SHEET_POSITION              1005
 #define IDC_BUTTON1                     1006
@@ -38,6 +37,7 @@
 #define IDC_BUTTON_MEMORYL_SCAN         1010
 #define IDC_EDIT3                       1011
 #define IDC_EDIT_MAIN_DB_TIME           1011
+#define IDC_EDIT_QUAR                   1011
 #define IDC_EDIT4                       1012
 #define IDC_EDIT_MAIN_DB_SIG            1012
 #define IDC_DAILY_SHED                  1012
@@ -116,6 +116,7 @@
 #define IDC_CHECK_MEM_INT_DB            1052
 #define IDC_LIST_INFECTED               1054
 #define IDC_STATIC_INFO                 1055
+#define IDC_BUTTON_QUAR                 1056
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -133,7 +134,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         32780
-#define _APS_NEXT_CONTROL_VALUE         1056
+#define _APS_NEXT_CONTROL_VALUE         1057
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

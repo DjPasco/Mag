@@ -41,7 +41,7 @@ static const char *sgVirusName = "VirusName";
 static const char *sgLogFileName = "Log.txt";
 
 static const char *sgServerName = "DCAntiVirusScan";
-static const char *sgQuarantineDir = "Quarantine";
+static const char *sgQuarantineDir = "QuarantineDir";
 
 static const char *sgFileExtSeparator = ";";
 
@@ -283,9 +283,9 @@ namespace path_utils
 
 	static CString GetQuarantineDir()
 	{
-		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sDir = registry_utils::GetProfileString(sgSection, sgQuarantineDir, "");
 		CString sPath;
-		sPath.Format("%s\\%s\\", sBaseDir, sgQuarantineDir);
+		sPath.Format("%s\\", sDir);
 		return sPath;
 	}
 }

@@ -55,4 +55,5 @@ public:
 	void OnAdd();
 	void OnRemove();
 	afx_msg void OnAboutSpecScan();
+	afx_msg void OnQuarDir();
 };
