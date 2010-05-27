@@ -538,18 +538,6 @@ WORD            wTrigNumber;
 
     ASSERT ( AfxIsValidString ( szTaskName ));
 
-    // Validate parameters and member data.  The program path can't be empty,
-    // but the other strings may be.
-
-    if ( 0 == m_timeStart.wYear      ||
-         NULL == szTaskName          ||
-         0 == lstrlen ( szTaskName ) ||
-         m_sProgramPath.GetLength() < 1 )
-        {
-        return E_FAIL;
-        }
-
-
     // Get an interface to the scheduler.
 
     hr = ::CoCreateInstance (
@@ -957,6 +945,48 @@ ITaskScheduler* pISched    = NULL;
     pISched->Release();
 
     return hr;
+}
+
+bool CScheduledTask::CheckTask(LPCTSTR szTaskName)
+{
+	HRESULT         hr;
+	ITaskScheduler* pISched(NULL);
+	IUnknown*       pIUnk(NULL);
+	bool bFound(false);
+
+    USES_CONVERSION;
+
+    ASSERT ( AfxIsValidString ( szTaskName ));
+
+    hr = ::CoCreateInstance (
+               CLSID_CTaskScheduler,
+               NULL,
+               CLSCTX_INPROC_SERVER,
+               IID_ITaskScheduler,
+               (void **) &pISched );
+
+
+    if(FAILED(hr))
+	{
+		return false;
+	}
+
+
+	hr = pISched->Activate ( T2COLE ( szTaskName ), IID_ITask, &pIUnk );
+
+	if ( SUCCEEDED(hr) )
+	{
+		bFound = true;
+	}
+
+
+	if ( pISched != NULL )
+		pISched->Release();
+
+	if ( pIUnk != NULL )
+		pIUnk->Release();
+
+	return bFound;
 }
 
 

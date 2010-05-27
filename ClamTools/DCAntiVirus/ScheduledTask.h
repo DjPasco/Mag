@@ -118,6 +118,8 @@ public:
     
     static HRESULT DeleteTask ( LPCTSTR szTaskName );   // delete a task from the scheduler
 
+	static bool CheckTask(LPCTSTR szTaskName);
+
 
 // Implementation
 public:

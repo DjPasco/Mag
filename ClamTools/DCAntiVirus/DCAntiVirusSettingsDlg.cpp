@@ -54,6 +54,8 @@ BOOL CDCAntiVirusSettingsDlg::OnInitDialog()
 	LoadRegistryData();
 	LoadShedInfo();
 
+	CheckTasks();
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -319,8 +321,26 @@ void CDCAntiVirusSettingsDlg::OnDeleteSchedScan()
     if(S_OK == CScheduledTask::DeleteTask(sgShedScanTaskName))
     {
 		MessageBox("Scan task deleted.", 0, MB_ICONINFORMATION);
-		SetTaskInfo(NULL, IDC_STATIC_SCAN_SHED, sgShedScanTaskInfo);
     }
+	else
+	{
+		MessageBox("Task already deleted.", 0, MB_ICONEXCLAMATION);
+	}
+	
+	SetTaskInfo(NULL, IDC_STATIC_SCAN_SHED, sgShedScanTaskInfo);
+}
+
+void CDCAntiVirusSettingsDlg::CheckTasks()
+{
+	if(!CScheduledTask::CheckTask(sgShedScanTaskName))
+	{
+		SetTaskInfo(NULL, IDC_STATIC_SCAN_SHED, sgShedScanTaskInfo);
+	}
+
+	if(!CScheduledTask::CheckTask(sgShedUpdTaskName))
+	{
+		SetTaskInfo(NULL, IDC_STATIC_UPD_SHED, sgShedUpdTaskInfo);
+	}
 }
 
 void CDCAntiVirusSettingsDlg::OnChangeUpd()
@@ -349,8 +369,13 @@ void CDCAntiVirusSettingsDlg::OnDeleteUpd()
     if(S_OK == CScheduledTask::DeleteTask(sgShedUpdTaskName))
     {
 		MessageBox("Update task deleted.", 0, MB_ICONINFORMATION);
-		SetTaskInfo(NULL, IDC_STATIC_UPD_SHED, sgShedUpdTaskInfo);
     }
+	else
+	{
+		MessageBox("Task already deleted.", 0, MB_ICONEXCLAMATION);
+	}
+
+	SetTaskInfo(NULL, IDC_STATIC_UPD_SHED, sgShedUpdTaskInfo);
 }
 
 void CDCAntiVirusSettingsDlg::SetTaskInfo(CScheduledTask *pTask, UINT ID, LPCSTR sEntry)

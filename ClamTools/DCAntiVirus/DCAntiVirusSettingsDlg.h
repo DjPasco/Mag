@@ -37,6 +37,8 @@ private:
 
 	void LoadShedInfo();
 
+	void CheckTasks();
+
 public:
 	void OnCheckEnableScan();
 	void OnCheckEnableIdleScan();
