@@ -2,7 +2,8 @@
 #include "resource.h"
 #include "ntserv_msg.h"
 #include "app.h"
-#include "DCAntivirusScanDlg.h"
+
+
 #include "../Utils/Scanner/Scanner.h"
 #include "../Utils/Registry.h"
 #include "../Utils/Log.h"
@@ -15,43 +16,13 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-UINT ScanDlg(LPVOID pParam)
-{
-	if(NULL != pParam)
-	{
-		service_log_utils::LogData("Tinkami duomenys dialogui");
-		CScanner *pScanner = (CScanner *)pParam;
-		CDCAntivirusScanDlg scanDlg(pScanner);
-		scanDlg.Create(IDD_SCAN_DLG);
-		//scanDlg.ShowWindow(SW_HIDE);
-		service_log_utils::LogData("Leidziam Loop.");
-		scanDlg.RunModalLoop();
-		service_log_utils::LogData("LoopBaigesi.");
-	}
-	return 0;
-}
-
 CApp theApp;
 BOOL CApp::InitInstance()
 {
-#ifdef _TEST_
-	CScanner *pScanner = new CScanner;
-	pScanner->LoadDatabases();
-	AfxBeginThread(ScanDlg, (LPVOID)pScanner);
-
-	while (true)
-	{
-		Sleep(1000);
-	}
-
-	delete pScanner;
-#else
 	CNTServiceCommandLineInfo cmdInfo;
 	CMyService Service;
 	Service.ParseCommandLine(cmdInfo);
 	Service.ProcessShellCommand(cmdInfo);
-#endif
-
 	return FALSE;
 }
 

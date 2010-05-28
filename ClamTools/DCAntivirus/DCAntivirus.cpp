@@ -3,6 +3,7 @@
 #include "DCAntiVirusDlg.h"
 
 #include "DCAntiVirusScheduledScanDlg.h"
+#include "DCAntivirusScanDlg.h"
 
 #include "../Utils/Registry.h"
 
@@ -11,6 +12,22 @@
 #endif
 
 CDCAntiVirusApp theApp;
+
+UINT ScanDlg(LPVOID pParam)
+{
+	if(NULL != pParam)
+	{
+		service_log_utils::LogData("Tinkami duomenys dialogui");
+		CScanner *pScanner = (CScanner *)pParam;
+		CDCAntivirusScanDlg scanDlg(pScanner);
+		scanDlg.Create(IDD_SCAN_DLG);
+		//scanDlg.ShowWindow(SW_HIDE);
+		service_log_utils::LogData("Leidziam Loop.");
+		scanDlg.RunModalLoop();
+		service_log_utils::LogData("LoopBaigesi.");
+	}
+	return 0;
+}
 
 BOOL CDCAntiVirusApp::InitInstance()
 {

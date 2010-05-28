@@ -241,22 +241,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DCAntivirusAlertDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\DCAntivirusAlertDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\DCAntivirusScanDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\DCAntivirusScanDlg.h"
-				>
-			</File>
-			<File
 				RelativePath="ntserv.cpp"
 				>
 				<FileConfiguration
