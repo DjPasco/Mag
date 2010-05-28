@@ -7,6 +7,7 @@
 #include "../IdleTracker/IdleTracker.h"
 #include "../Utils/SendObj.h"
 #include "../Utils/Settings.h"
+#include "../Utils/Log.h"
 #include "../Utils/Scanner/Scanner.h"
 
 #ifdef _DEBUG
@@ -33,6 +34,7 @@ CDCAntivirusScanDlg::CDCAntivirusScanDlg(CScanner *pScanner)
 	  m_nMaxCPULoad(20),
 	  m_nIdleTime(900000)// 15 minutes
 {
+	service_log_utils::LogData("Dialogo konstruktorius.");
 	ReloadSettings();
 }
 
@@ -43,6 +45,7 @@ CDCAntivirusScanDlg::~CDCAntivirusScanDlg()
 
 BOOL CDCAntivirusScanDlg::OnInitDialog()
 {
+	service_log_utils::LogData("OnInitDialog.");
 	CDialog::OnInitDialog();
 	IdleTrackerInit();
 	
@@ -65,6 +68,8 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 
 LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 {
+	service_log_utils::LogData("OnCopyData.");
+
 	UNREFERENCED_PARAMETER(wParam);
 	
 	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
@@ -73,6 +78,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 
 	if(NULL == pData)
 	{
+		service_log_utils::LogData("BlogiDuomenys.");
 		return 1;
 	}
 
@@ -80,6 +86,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 	{
 	case EScan:
 		{
+			service_log_utils::LogData("EScan.");
 			if(m_bScan)
 			{
 				CString sFile = pData->m_sPath;
@@ -107,16 +114,19 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		break;
 	case ERequest:
 		{
+			service_log_utils::LogData("ERequest.");
 			m_pScanner->RequestData();
 		}
 		break;
 	case EReloadSettings:
 		{
+			service_log_utils::LogData("EReloadSettings.");
 			ReloadSettings();	
 		}
 		break;
 	case EManualScan:
 		{
+			service_log_utils::LogData("EManualScan.");
 			int nOldPriority = GetThreadPriority(GetCurrentThread());
 			SetThreadPriority(GetCurrentThread(), priority_utils::GetRealPriority(path_utils::GetPriority()));
 
@@ -144,6 +154,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		break;
 	case EReloadDB:
 		{
+			service_log_utils::LogData("EReloadDB.");
 			m_pScanner->ReloadDB();
 		}
 		break;
@@ -154,6 +165,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 
 LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)
 {
+	service_log_utils::LogData("GetCPUCycle.");
 	// Collect the current raw data value for all counters in the 
 	// specified query and updates the status code of each counter 
 	if(PdhCollectQueryData(query) != ERROR_SUCCESS)
@@ -225,6 +237,7 @@ bool CDCAntivirusScanDlg::TimeForScan()
 
 void CDCAntivirusScanDlg::ReloadSettings()
 {
+	service_log_utils::LogData("ReloadSettings.");
 	CSettingsInfo info;
 	if(settings_utils::Load(info))
 	{

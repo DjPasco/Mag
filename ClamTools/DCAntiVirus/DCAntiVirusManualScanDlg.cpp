@@ -91,7 +91,7 @@ UINT Scan(LPVOID pParam)
 		HWND hwnd = NULL;
 		hwnd = ::FindWindow(NULL, sgServerName);
 
-		//if(NULL != hwnd)
+		if(NULL != hwnd)
 		{
 			bool bUseInternalDB = pDlg->GetUseInternalDB();
 			CScanFiles scanner(hwnd, pDlg, pDlg, bUseInternalDB);

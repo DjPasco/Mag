@@ -45,8 +45,6 @@ static const char *sgServiceDescription = "DCAntiVirus: Protection against Virus
 
 static const char *sgVirusName = "VirusName";
 
-static const char *sgLogFileName = "Log.txt";
-
 static const char *sgServerName = "DCAntiVirusScan";
 static const char *sgQuarantineDir = "QuarantineDir";
 
@@ -257,11 +255,19 @@ namespace path_utils
 		return sParameters;
 	}
 
-	static CString GetLogFilePath()
+	static CString GetScanLogFilePath()
 	{
 		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
 		CString sPath;
-		sPath.Format("%s\\%s", sBaseDir, sgLogFileName);
+		sPath.Format("%s\\%s", sBaseDir, "ScanLog.txt");
+		return sPath;
+	}
+
+	static CString GetServiceLogFilePath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s", sBaseDir, "ServiceLog.txt");
 		return sPath;
 	}
 
@@ -294,7 +300,15 @@ namespace path_utils
 	{
 		CString sDir = registry_utils::GetProfileString(sgSection, sgQuarantineDir, "");
 		CString sPath;
-		sPath.Format("%s\\", sDir);
+		if(sDir.IsEmpty())
+		{
+			CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+			sPath.Format("%s\\%s\\", sgBaseDir, "Quarantine");
+		}
+		else
+		{
+			sPath.Format("%s\\", sDir);
+		}
 		return sPath;
 	}
 

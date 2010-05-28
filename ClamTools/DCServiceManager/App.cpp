@@ -5,6 +5,7 @@
 #include "DCAntivirusScanDlg.h"
 #include "../Utils/Scanner/Scanner.h"
 #include "../Utils/Registry.h"
+#include "../Utils/Log.h"
 
 //#define _TEST_
 
@@ -18,11 +19,14 @@ UINT ScanDlg(LPVOID pParam)
 {
 	if(NULL != pParam)
 	{
+		service_log_utils::LogData("Tinkami duomenys dialogui");
 		CScanner *pScanner = (CScanner *)pParam;
 		CDCAntivirusScanDlg scanDlg(pScanner);
 		scanDlg.Create(IDD_SCAN_DLG);
-		scanDlg.ShowWindow(SW_HIDE);
+		//scanDlg.ShowWindow(SW_HIDE);
+		service_log_utils::LogData("Leidziam Loop.");
 		scanDlg.RunModalLoop();
+		service_log_utils::LogData("LoopBaigesi.");
 	}
 	return 0;
 }
@@ -61,6 +65,7 @@ CMyService::CMyService() : CNTService(sgServiceName, sgServiceDisplayName, SERVI
 
 void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 {
+	service_log_utils::LogData("------ Service starting. ---------");
 	//register our control handler
 	RegisterCtrlHandler();
 
@@ -76,6 +81,8 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 		LockFile(hDataFile, 0, 0, low, high);
 
 		pScanner->LoadDatabases();
+		service_log_utils::LogData("Virus DB loaded.");
+		service_log_utils::LogData("Starting hiden dialog.");
 		AfxBeginThread(ScanDlg, (LPVOID)pScanner);
 
 	//Report to the event log that the service has started successfully
@@ -113,6 +120,7 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	//Unlock's data file
 	UnlockFile(hDataFile, 0, 0, low, high);
 	CloseHandle(hDataFile);
+	service_log_utils::LogData("Service closing.");
 
 	delete pScanner;
 	ReportStatusToSCM(SERVICE_STOPPED, NO_ERROR, 0, 1, 0);
@@ -171,5 +179,5 @@ void CMyService::OnUserDefinedRequest(DWORD dwControl)
 
 void CMyService::ShowHelp()
 {
-	AfxMessageBox(_T("A demo service which just beeps the speaker\nUsage: testsrv [-install | -uninstall | -help]\n"));
+	AfxMessageBox(_T("Service Usage: DCService.exe [-install | -uninstall | -help]\n"));
 }

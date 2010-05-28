@@ -74,11 +74,17 @@ namespace file_utils
 			EVP_MD_CTX_init(&mdctx);
 			EVP_DigestInit_ex(&mdctx, pMD5, NULL);
 
+			unsigned int uFileSize(0);
+
 			while(!feof(pFile))
 			{
 				uRead = fread(data, sizeof(char), DC_HASH_BUFFER, pFile);
 				EVP_DigestUpdate(&mdctx, data, uRead);
+				uFileSize += uRead;
 			}
+
+			double dFileSizeMB = uFileSize/1048576.0;
+			scan_log_utils::LogParameter("File Size (MB)", dFileSizeMB);
 			
 			EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
 			EVP_MD_CTX_cleanup(&mdctx);
@@ -129,30 +135,35 @@ namespace file_utils
 	{
 		hash.resize(0);
 		pathHash.resize(0);
+		scan_log_utils::LogData(sFile);
+		CTime tBegin = CTime::GetCurrentTime();
 		if(!internal::GetFileHash(sFile, hash, pathHash, pMD5))
 		{
 			return false;
 		}
+		CTime tEnd = CTime::GetCurrentTime();
+		scan_log_utils::LogTime("Hash time", tBegin, tEnd);
 
 		CMapEditI it = pMapFiles->find(pathHash);
 		if(it != pMapFiles->end())
 		{
+			scan_log_utils::LogData("File found in internal DB");
 			CFileInfo &info = (*it).second;
 			info.m_nCount++;
 
 			if(info.m_fileHash == hash)
 			{
-				bool bOld = false;
-				if(nMainDBVersion != info.m_nMainDBVersion)
+				bool bOld = true;
+				if(nMainDBVersion == info.m_nMainDBVersion)
 				{
-					bOld = true;
-					bScanMain = true;
+					bOld = false;
+					bScanMain = false;
 				}
 
-				if(nDailyDBVersion != info.m_nDailyDBVersion)
+				if(nDailyDBVersion == info.m_nDailyDBVersion)
 				{
-					bOld = true;
-					bScanDaily = true;
+					bOld = false;
+					bScanDaily = false;
 				}
 
 				if(bOld)
@@ -417,13 +428,11 @@ void CScanner::Free()
 
 bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 {
+	scan_log_utils::LogData("----------- ScanFile -----------");
 	if(!m_bLoaded)
 	{
 		return true;
 	}
-
-	log_utils::LogData("On-Access");
-	log_utils::LogData(sFile);
 
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
@@ -438,8 +447,8 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 
 	CDCHash hash;
 	CDCHash pathHash;
-	bool bScanDaily;
-	bool bScanMain;
+	bool bScanDaily(true);
+	bool bScanMain(true);
 	if(file_utils::FileExistsInInternalDB(sFilePath.c_str(),
 										  m_pFilesMap,
 										  m_pMD5,
@@ -454,10 +463,11 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 	}
 
 	const char *sVirname;
-
+	CTime tBegin = CTime::GetCurrentTime();
 #ifdef LOAD_MAIN_DB
 	if(bScanMain)
 	{
+		scan_log_utils::LogData("Scanning Main DB");
 		if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
@@ -469,6 +479,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 
 	if(bScanDaily)
 	{
+		scan_log_utils::LogData("Scanning Daily DB");
 		if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
@@ -476,6 +487,8 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 			return false;
 		}
 	}
+	CTime tEnd = CTime::GetCurrentTime();
+	scan_log_utils::LogTime("Scan time", tBegin, tEnd);
 
 	CFileInfo info;
 	info.m_nCount = 1;
@@ -688,22 +701,22 @@ void CScanner::SetFilesTypes(CString sTypes)
 
 bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 {
+	scan_log_utils::LogData("----------- ScanFileNoIntDB -----------");
+
 	if(!m_bLoaded)
 	{
 		return true;
 	}
 
-	log_utils::LogData("Manual");
-	log_utils::LogData(sFile);
-
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
 
 	const char *sVirname;
-
+	CTime tBegin = CTime::GetCurrentTime();
 #ifdef LOAD_MAIN_DB
 	if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
+		scan_log_utils::LogData("Scanning Main DB");
 		sVirus.Format("%s", sVirname);
 		SendFileToTray(sFile, sVirname);
 		return false;
@@ -712,10 +725,13 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 
 	if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
+		scan_log_utils::LogData("Scanning Main DB");
 		sVirus.Format("%s", sVirname);
 		SendFileToTray(sFile, sVirname);
 		return false;
 	}
+	CTime tEnd = CTime::GetCurrentTime();
+	scan_log_utils::LogTime("Scan time", tBegin, tEnd);
 
 	CDCHash hash;
 	CDCHash pathHash;

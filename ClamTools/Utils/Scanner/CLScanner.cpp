@@ -73,6 +73,9 @@ bool CCLScanner::LoadDatabase(LPCSTR sDBPath)
 		return false;
 	}
 
+	cl_engine_set_num(m_pEngine, CL_ENGINE_MAX_FILESIZE, 1610612736);//1.5 GB
+	cl_engine_set_num(m_pEngine, CL_ENGINE_MAX_SCANSIZE, 1610612736);//1.5 GB
+
 	return true;
 }
 

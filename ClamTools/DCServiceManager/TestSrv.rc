@@ -27,7 +27,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDD_SCAN_DLG DIALOGEX 0, 0, 91, 71
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "DCAntiVirusScan"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -133,13 +133,13 @@ BEGIN
     BEGIN
         BLOCK "180904b0"
         BEGIN
-            VALUE "CompanyName", "PJ Naughter"
-            VALUE "FileDescription", "TestSrv - a sample NT Service implemented using CNTService"
+            VALUE "CompanyName", "DCAntiVirus"
+            VALUE "FileDescription", "DCAntivirus Service"
             VALUE "FileVersion", "1, 0, 6, 0"
-            VALUE "InternalName", "TestSrv"
-            VALUE "LegalCopyright", "Copyright © 1998 - 2000 PJ Naughter"
-            VALUE "OriginalFilename", "TestSrv.exe"
-            VALUE "ProductName", "TestSrv NT Service"
+            VALUE "InternalName", "DCAntiVirusService"
+            VALUE "LegalCopyright", "Copyright © 2010 DC"
+            VALUE "OriginalFilename", "DCService.exe"
+            VALUE "ProductName", "DCAntiVirus"
             VALUE "ProductVersion", "1, 0, 6, 0"
         END
     END
