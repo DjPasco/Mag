@@ -36,6 +36,7 @@ public:
 	char m_sVirusName[MAX_PATH];
 	bool m_bOK;
 	int m_nFilesCount;
+	bool m_bScanned;
 };
 
 #endif

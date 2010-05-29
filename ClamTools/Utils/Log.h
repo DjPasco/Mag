@@ -1,8 +1,8 @@
-#ifndef _LOG_H__
-#define _LOG_H__
+#pragma once
 
 #include "Registry.h"
 #include <math.h>
+#include <Psapi.h>
 #define _LOG_
 
 namespace scan_log_utils
@@ -31,14 +31,27 @@ namespace scan_log_utils
 #endif
 	}
 
-	static void LogHeader(LPCSTR sData)
+	static void LogHeader(LPCSTR sData, DWORD PID)
 	{
 #ifdef _LOG_
 		char sOSTime[128];
 		_strtime(sOSTime);
 
+		
+		HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, PID);
+
 		CString s;
-		s.Format("------- %s %s -------", sOSTime, sData);
+		if(NULL != hProcess)
+		{
+			char sProcName[MAX_PATH];
+			GetModuleBaseName(hProcess, NULL, sProcName, MAX_PATH);
+
+			s.Format("------- %s %s Process name: %s -------", sOSTime, sData, sProcName);
+		}
+		else
+		{
+			s.Format("------- %s %s -------", sOSTime, sData);
+		}
 
 		Write(s);
 #endif
@@ -118,5 +131,3 @@ namespace scan_log_utils
 //#endif
 //	}
 //}
-
-#endif

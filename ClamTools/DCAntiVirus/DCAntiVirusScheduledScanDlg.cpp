@@ -25,6 +25,7 @@ public:
 		strcpy_s(obj.m_sPath, MAX_PATH, lpzFile);
 		obj.m_nType = EManualScan;
 		obj.m_bUseInternalDB = m_bUseInternalDB;
+		obj.m_PID = GetCurrentProcessId();
 
 		COPYDATASTRUCT copy;
 		copy.dwData = 1;

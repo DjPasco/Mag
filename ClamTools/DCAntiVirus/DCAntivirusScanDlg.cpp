@@ -127,7 +127,11 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 				CFileResult result;
 				ZeroMemory(&result, sizeof(CFileResult));
 				SendFileToPipeServer(pData, result);
-				SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
+				if(result.m_bScanned)
+				{
+					SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
+				}
+
 				if(!result.m_bOK)
 				{
 					if(m_bDeny)
@@ -164,7 +168,10 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			CFileResult result;
 			ZeroMemory(&result, sizeof(CFileResult));
 			SendFileToPipeServer(pData, result);
-			SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
+			if(result.m_bScanned)
+			{
+				SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
+			}
 			if(!result.m_bOK)
 			{
 				registry_utils::WriteProfileString(sgSection, sgVirusName, result.m_sVirusName);

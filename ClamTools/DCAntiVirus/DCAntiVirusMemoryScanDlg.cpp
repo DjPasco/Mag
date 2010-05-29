@@ -23,6 +23,7 @@ static bool OnFile(LPCTSTR lpzFile, BOOL bUseInternalDB)
 	strcpy_s(obj.m_sPath, MAX_PATH, lpzFile);
 	obj.m_nType = EManualScan;
 	obj.m_bUseInternalDB = bUseInternalDB ? true : false;
+	obj.m_PID = GetCurrentProcessId();
 
 	COPYDATASTRUCT copy;
 	copy.dwData = 1;

@@ -29,7 +29,7 @@ void DoAction(CSendObj *pData, CScanner *pScanner, CFileResult &result)
 		{
 			CString sFile = pData->m_sPath;
 			CString sVirusName;
-			if(!pScanner->ScanFile(sFile, sVirusName, true))
+			if(!pScanner->ScanFile(sFile, sVirusName, pData->m_PID, result.m_bScanned, true))
 			{
 				result.m_bOK = false;
 				strcpy_s(result.m_sVirusName, MAX_PATH, sVirusName);
@@ -57,11 +57,11 @@ void DoAction(CSendObj *pData, CScanner *pScanner, CFileResult &result)
 			bool bClean(true);
 			if(pData->m_bUseInternalDB)
 			{
-				bClean = pScanner->ScanFile(sFile, sVirusName, false); 
+				bClean = pScanner->ScanFile(sFile, sVirusName, pData->m_PID, result.m_bScanned, false); 
 			}
 			else
 			{
-				bClean = pScanner->ScanFileNoIntDB(sFile, sVirusName); 
+				bClean = pScanner->ScanFileNoIntDB(sFile, sVirusName, pData->m_PID, result.m_bScanned); 
 			}
 
 			SetThreadPriority(GetCurrentThread(), nOldPriority);

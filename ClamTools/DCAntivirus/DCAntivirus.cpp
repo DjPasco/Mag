@@ -49,17 +49,6 @@ UINT ScanDlg(LPVOID pParam)
 
 BOOL CDCAntiVirusApp::InitInstance()
 {
-	double dSec = 0.0402;
-
-			int nSec = (int)floor(dSec);
-		int hour=nSec/3600;
-		nSec=nSec%3600;
-		int min=nSec/60;
-		nSec=nSec%60;
-		int sec=nSec;
-		int milisec;
-		
-	
 	LPCTSTR pszParam = __argv[1];
 	
 	if(__argc > 1 && strstr(pszParam, "scan"))
