@@ -349,6 +349,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Utils\npipe.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Utils\npipe.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Utils\Registry.h"
 				>
 			</File>

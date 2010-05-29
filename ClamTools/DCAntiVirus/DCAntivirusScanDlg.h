@@ -10,13 +10,16 @@
 	#include "../Utils/Scanner/ScanValidatorObs.h"
 #endif
 
+class CSendObj;
+class CTrayRequestData;
+class CTraySendObj;
+class CFileResult;
 
-class CScanner;
 class CDCAntivirusScanDlg : public CDialog,
 							public CScanValidatorObs
 {
 public:
-	CDCAntivirusScanDlg(CScanner *pScanner);
+	CDCAntivirusScanDlg();
 	virtual ~CDCAntivirusScanDlg();
 
 public:
@@ -34,10 +37,18 @@ protected:
 	bool TimeForScan();
 
 private:
-	void ReloadSettings();
+	void ReloadSettings(CSendObj *pObj);
+
+	void SendFileToPipeServer(CSendObj *pObj, CFileResult &result);
+	void RequestData(CSendObj *pObj);
+
+	void SendInfoToTray(CTrayRequestData &pTrayInfo);
+	void SendMessageToTray(LPCSTR sMessage);
+	bool SendObj(CTraySendObj &obj);
+	void SendFileToTray(LPCSTR sFile, LPCSTR sVirus, int nFilesCount);
 
 private:
-	CScanner *m_pScanner;
+	//CScanner *m_pScanner;
 	UINT_PTR m_nTimer;
 
 	HQUERY		m_hQuery;

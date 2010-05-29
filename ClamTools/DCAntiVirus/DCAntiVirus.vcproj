@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="detoured.lib detours.lib Psapi.lib"
+				AdditionalDependencies="detoured.lib detours.lib IdleTrac.lib pdh.lib Psapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)D.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../Bin"
@@ -150,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="detoured.lib detours.lib Psapi.lib"
+				AdditionalDependencies="detoured.lib detours.lib IdleTrac.lib pdh.lib Psapi.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../Bin"
 				GenerateDebugInformation="true"
@@ -199,6 +199,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DCAntivirusAlertDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusAlertDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\DCAntiVirusDlg.cpp"
 				>
 			</File>
@@ -228,6 +236,14 @@
 			</File>
 			<File
 				RelativePath=".\DCAntiVirusMemoryScanDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusScanDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusScanDlg.h"
 				>
 			</File>
 			<File
@@ -360,6 +376,14 @@
 		<Filter
 			Name="Utils"
 			>
+			<File
+				RelativePath="..\Utils\npipe.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Utils\npipe.h"
+				>
+			</File>
 			<File
 				RelativePath="..\Utils\Registry.h"
 				>

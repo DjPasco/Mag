@@ -220,6 +220,13 @@ void CDCAntiVirusManualScanDlg::OnScan()
 {
 	if(!m_bScanning)
 	{
+		if(0 == m_listScanItems.GetItemCount())
+		{
+			MessageBox("Please, add items to scan list.", NULL, MB_ICONWARNING);
+			return;
+		}
+
+		m_infItems.clear();
 		EnableStartItems(FALSE);
 		EnableProgresItems(TRUE);
 		GetDlgItem(IDC_BUTTON_SCAN)->SetWindowText("Stop");

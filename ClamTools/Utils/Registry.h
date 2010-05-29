@@ -50,6 +50,8 @@ static const char *sgQuarantineDir = "QuarantineDir";
 
 static const char *sgScanPriority = "ScanPriority";
 
+static const char *sgScanServer = "DCSCANSERVER";
+
 static const char *sgFileExtSeparator = ";";
 
 namespace registry_utils

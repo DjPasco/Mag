@@ -5,6 +5,7 @@
 #include "ScanValidatorObs.h"
 #include "../TraySendObj.h"
 #include "../Registry.h"
+#include "../Settings.h"
 #include "../Log.h"
 
 #include <stdio.h>
@@ -347,6 +348,13 @@ CScanner::CScanner()
 	m_pFilesMap = new CScannedFileMap;
 
 	file_utils::ReadPassData(m_pFilesMap);
+
+	CSettingsInfo info;
+	if(settings_utils::Load(info))
+	{
+		SetScanSettings(info.m_bDeep, info.m_bOffice, info.m_bArchives, info.m_bPDF, info.m_bHTML);
+		SetFilesTypes(info.m_sFilesTypes);
+	}
 }
 
 CScanner::~CScanner()
@@ -380,8 +388,6 @@ bool CScanner::LoadDatabases()
 	}
 
 	m_pDailyScan->GetInfo(m_pDailyDBInfo);
-
-	SendInfoToTray(false, m_pDailyDBInfo);
 
 	m_bLoaded = true;
 
@@ -471,7 +477,6 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 		if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
-			SendFileToTray(sFile, sVirname);
 			return false;
 		}
 	}
@@ -483,7 +488,6 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 		if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
-			SendFileToTray(sFile, sVirname);
 			return false;
 		}
 	}
@@ -497,8 +501,6 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 	info.m_sFilePath = sFilePath.c_str();
 	info.m_fileHash = hash;
 	(*m_pFilesMap)[pathHash] = info;
-
-	SendFileToTray(sFile, NULL);
 
 	sVirus.Empty();
 	return true;
@@ -567,98 +569,31 @@ void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
 	}
 }
 
-void CScanner::SendInfoToTray(bool bMain, CDBInfo *pDBInfo)
-{
-	HWND trayHwnd = FindWindow(NULL, sgAppName);
-
-	if(NULL == trayHwnd)
-	{
-		return;
-	}
-
-	CTraySendObj obj;
-	obj.m_nType = EData;
-	obj.m_bMain = bMain;
-	strcpy_s(obj.m_sText, MAX_PATH, pDBInfo->m_sTime);
-	obj.m_nVersion = pDBInfo->m_nVersion;
-	obj.m_nSigs = pDBInfo->m_nSigs;
-	obj.m_nFilesCount = m_pFilesMap->size();
-
-	COPYDATASTRUCT copy;
-	copy.dwData = 1;
-	copy.cbData = sizeof(obj);
-	copy.lpData = &obj;
-
-	SendMessage(trayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
-}
-
-void CScanner::SendFileToTray(LPCSTR sFile, LPCSTR sVirus)
-{
-	HWND trayHwnd = FindWindow(NULL, sgAppName);
-
-	if(NULL == trayHwnd)
-	{
-		return;
-	}
-
-	CTraySendObj obj;
-	obj.m_nType = EFile;
-	strcpy_s(obj.m_sText, MAX_PATH, sFile);
-	if(NULL != sVirus)
-	{
-		strcpy_s(obj.m_sText2, MAX_PATH, sVirus);
-	}
-	else
-	{
-		strcpy_s(obj.m_sText2, MAX_PATH, "File is clean.");
-	}
-
-	obj.m_nFilesCount = m_pFilesMap->size();
-
-	COPYDATASTRUCT copy;
-	copy.dwData = 1;
-	copy.cbData = sizeof(obj);
-	copy.lpData = &obj;
-
-	SendMessage(trayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
-}
-
-void CScanner::RequestData()
+void CScanner::RequestData(CTrayRequestData &data)
 {
 	if(!m_bLoaded)
 	{
-		SendError("Error on DB loading.");
+		strcpy_s(data.m_sInfo, MAX_PATH, "DB not loaded");
 		return;
 	}
 
 #ifdef LOAD_MAIN_DB
-	SendInfoToTray(true, m_pMainDBInfo);
+	data.m_nMainVersion = m_pMainDBInfo->m_nVersion;
+	data.m_nMainSigCount = m_pMainDBInfo->m_nSigs;
+	strcpy_s(data.m_sMainDate, MAX_PATH, m_pMainDBInfo->m_sTime);
 #endif
 
-	SendInfoToTray(false, m_pDailyDBInfo);
+	data.m_nDailyVersion = m_pDailyDBInfo->m_nVersion;
+	data.m_nDailySigCount = m_pDailyDBInfo->m_nSigs;
+	strcpy_s(data.m_sDailyDate, MAX_PATH, m_pDailyDBInfo->m_sTime);
+
+	data.m_nFilesCount = m_pFilesMap->size();
 }
 
-void CScanner::SendError(LPCSTR sError)
-{
-	HWND trayHwnd = FindWindow(NULL, sgAppName);
-
-	if(NULL == trayHwnd)
-	{
-		return;
-	}
-
-	CTraySendObj obj;
-	obj.m_nType = EError;
-	obj.m_nFilesCount = m_pFilesMap->size();
-	strcpy_s(obj.m_sText, MAX_PATH, sError);
-
-	COPYDATASTRUCT copy;
-	copy.dwData = 1;
-	copy.cbData = sizeof(obj);
-	copy.lpData = &obj;
-
-	SendMessage(trayHwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
-}
+int CScanner::GetFilesCount()
+{ 
+	return m_pFilesMap->size();
+};
 
 void CScanner::SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML)
 {
@@ -718,7 +653,6 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 	{
 		scan_log_utils::LogData("Scanning Main DB");
 		sVirus.Format("%s", sVirname);
-		SendFileToTray(sFile, sVirname);
 		return false;
 	}
 #endif
@@ -727,7 +661,6 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 	{
 		scan_log_utils::LogData("Scanning Main DB");
 		sVirus.Format("%s", sVirname);
-		SendFileToTray(sFile, sVirname);
 		return false;
 	}
 	CTime tEnd = CTime::GetCurrentTime();
@@ -756,7 +689,6 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 		(*m_pFilesMap)[pathHash]= info;
 	}
 
-	SendFileToTray(sFile, NULL);
 	sVirus.Empty();
 	return true;
 }
@@ -766,8 +698,5 @@ void CScanner::ReloadDB()
 	Free();
 	Init();
 
-	if(!LoadDatabases())
-	{
-		SendError("Error on DB loading.");
-	}
+	LoadDatabases();
 }

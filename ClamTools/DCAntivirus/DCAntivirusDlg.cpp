@@ -10,6 +10,7 @@
 #include "../Utils/TraySendObj.h"
 #include "../Utils/SendObj.h"
 #include "../Utils/Registry.h"
+#include "../Utils/npipe.h"
 
 #define WM_HOOK_SYSTEM	WM_USER+1
 
@@ -109,8 +110,8 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 {
 #ifndef IGNORE_HOOK
-	hook_utils::GlobalHook(true);
-	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
+	//hook_utils::GlobalHook(true);
+	hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 #endif
 
 	return 0;
@@ -123,7 +124,7 @@ void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)
 	if(m_nProcCount != nNewCount)
 	{
 		m_nProcCount = nNewCount;
-		hook_utils::GlobalHook(false);
+		//hook_utils::GlobalHook(false);
 	}
 #endif
 
@@ -184,20 +185,8 @@ LRESULT CDCAntiVirusDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			GetDlgItem(IDC_EDIT_FILES_COUNT)->SetWindowText(sCount);
 		}
 		break;
-	case EError:
+	case EMessage:
 		{
-			GetDlgItem(IDC_EDIT_MAIN_DB_VERSION)->SetWindowText("");
-			GetDlgItem(IDC_EDIT_MAIN_DB_TIME)->SetWindowText("");
-			GetDlgItem(IDC_EDIT_MAIN_DB_SIG)->SetWindowText("");
-
-			GetDlgItem(IDC_EDIT_DAILY_DB_VERSION)->SetWindowText("");
-			GetDlgItem(IDC_EDIT_DAILY_DB_TIME)->SetWindowText("");
-			GetDlgItem(IDC_EDIT_DAILY_DB_SIG)->SetWindowText("");
-
-			CString sCount;
-			sCount.Format("%d", pData->m_nFilesCount);
-			GetDlgItem(IDC_EDIT_FILES_COUNT)->SetWindowText(sCount);
-
 			GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText(pData->m_sText);
 		}
 		break;
@@ -215,15 +204,7 @@ void CDCAntiVirusDlg::RequestData()
 {
 	CSendObj obj;
 	obj.m_nType = ERequest;
-
-	if(SendObj(obj))
-	{
-		GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Running");
-	}
-	else
-	{
-		GetDlgItem(IDC_EDIT_SERVICE_STATUS)->SetWindowText("Stopped!");
-	}
+	SendObj(obj);
 }
 
 UINT Send(LPVOID pParam)

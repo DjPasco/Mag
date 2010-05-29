@@ -6,9 +6,11 @@
 
 #include "../Utils/Scanner/Scanner.h"
 #include "../Utils/Registry.h"
+#include "../Utils/Settings.h"
 #include "../Utils/Log.h"
-
-//#define _TEST_
+#include "../Utils/npipe.h"
+#include "../Utils/TraySendObj.h"
+#include "../Utils/SendObj.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -16,13 +18,147 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+void DoAction(CSendObj *pData, CScanner *pScanner, CFileResult &result)
+{
+	result.m_bOK = true;
+	strcpy_s(result.m_sVirusName, MAX_PATH, "File is clean.");
+
+	switch(pData->m_nType)
+	{
+	case EScan:
+		{
+			CString sFile = pData->m_sPath;
+			CString sVirusName;
+			if(!pScanner->ScanFile(sFile, sVirusName, true))
+			{
+				result.m_bOK = false;
+				strcpy_s(result.m_sVirusName, MAX_PATH, sVirusName);
+			}
+		}
+		break;
+	case EReloadSettings:
+		{
+			CSettingsInfo info;
+			if(settings_utils::Load(info))
+			{
+				pScanner->SetScanSettings(info.m_bDeep, info.m_bOffice, info.m_bArchives, info.m_bPDF, info.m_bHTML);
+				pScanner->SetFilesTypes(info.m_sFilesTypes);
+			}
+		}
+		break;
+	case EManualScan:
+		{
+			int nOldPriority = GetThreadPriority(GetCurrentThread());
+			SetThreadPriority(GetCurrentThread(), priority_utils::GetRealPriority(path_utils::GetPriority()));
+
+			registry_utils::WriteProfileString(sgSection, sgVirusName, "");
+			CString sFile = pData->m_sPath;
+			CString sVirusName;
+			bool bClean(true);
+			if(pData->m_bUseInternalDB)
+			{
+				bClean = pScanner->ScanFile(sFile, sVirusName, false); 
+			}
+			else
+			{
+				bClean = pScanner->ScanFileNoIntDB(sFile, sVirusName); 
+			}
+
+			SetThreadPriority(GetCurrentThread(), nOldPriority);
+
+			if(!bClean)
+			{
+				result.m_bOK = false;
+				strcpy_s(result.m_sVirusName, MAX_PATH, sVirusName);
+			}
+		}
+		break;
+	case EReloadDB:
+		{
+			pScanner->ReloadDB();
+		}
+		break;
+	}
+
+	result.m_nFilesCount = pScanner->GetFilesCount();
+}
+
+UINT Server(LPVOID pParam)
+{
+	CScanner *pScanner = (CScanner *)pParam;
+
+	CNamedPipe serverPipe;
+	SECURITY_ATTRIBUTES sa;
+	sa.lpSecurityDescriptor = (PSECURITY_DESCRIPTOR)malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
+	InitializeSecurityDescriptor(sa.lpSecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
+	// ACL is set as NULL in order to allow all access to the object.
+	SetSecurityDescriptorDacl(sa.lpSecurityDescriptor, TRUE, NULL, FALSE);
+	sa.nLength = sizeof(sa);
+	sa.bInheritHandle = TRUE;
+	if (!serverPipe.Create(_T(sgScanServer), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_WAIT, 1, 4096, 4096, 1, &sa))
+	{
+		return 0;
+	}
+
+	while (1)
+	{
+		if (!serverPipe.ConnectClient())
+		{
+			continue;
+		}
+		
+		CSendObj obj;
+		DWORD dwBytes;
+		if (serverPipe.Read(&obj, sizeof(CSendObj), dwBytes, NULL))
+		{
+			if(obj.m_nType == ERequest)
+			{
+				CTrayRequestData data;
+				ZeroMemory(&data, sizeof(CTrayRequestData));
+				pScanner->RequestData(data);
+				serverPipe.Write(&data, sizeof(CTrayRequestData), dwBytes);
+			}
+			else
+			{
+				CFileResult result;
+				ZeroMemory(&result, sizeof(CFileResult));
+
+				DoAction(&obj, pScanner, result);
+
+				serverPipe.Write(&result, sizeof(CFileResult), dwBytes);
+			}
+		}
+
+		if (!serverPipe.DisconnectClient())
+		{
+			continue;
+		}
+	}
+
+	return 0;
+};
+
+//#define _TEST_
+
 CApp theApp;
 BOOL CApp::InitInstance()
 {
+
+#ifdef _TEST_ 
+	
+	CScanner *pScanner = new CScanner;
+	pScanner->LoadDatabases();
+	Server((LPVOID)pScanner);
+	delete pScanner;
+
+#else
+
 	CNTServiceCommandLineInfo cmdInfo;
 	CMyService Service;
 	Service.ParseCommandLine(cmdInfo);
 	Service.ProcessShellCommand(cmdInfo);
+#endif
+
 	return FALSE;
 }
 
@@ -53,9 +189,7 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 
 		pScanner->LoadDatabases();
 		service_log_utils::LogData("Virus DB loaded.");
-		service_log_utils::LogData("Starting hiden dialog.");
-		AfxBeginThread(ScanDlg, (LPVOID)pScanner);
-
+		AfxBeginThread(Server, (LPVOID)pScanner);
 	//Report to the event log that the service has started successfully
 	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);
 

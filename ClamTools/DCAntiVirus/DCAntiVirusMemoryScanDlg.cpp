@@ -46,18 +46,20 @@ UINT ScanMemory(LPVOID pParam)
 {
 	if(NULL != pParam)
 	{
+		CDCAntiVirusMemoryScanDlg *pDlg = (CDCAntiVirusMemoryScanDlg *)pParam;
+
 		CSettingsInfo info;
 		if(!settings_utils::Load(info))
 		{
+			pDlg->OnFinish("No reg info loaded.");
 			return 0;
 		}
-
-		CDCAntiVirusMemoryScanDlg *pDlg = (CDCAntiVirusMemoryScanDlg *)pParam;
 
 		pDlg->EnumerateFiles();
 
 		if(!pDlg->Continue())
 		{
+			pDlg->OnFinish("Scan aborted by user.");
 			return 0;
 		}
 

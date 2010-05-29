@@ -14,7 +14,7 @@ class CScannedFileMap;
 class CCLScanner;
 class CScanValidatorObs;
 class CDBInfo;
-
+class CTrayRequestData;
 class CScanner  
 {
 public:
@@ -29,20 +29,18 @@ public:
 
 	void ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs);
 
-	void RequestData();
+	void RequestData(CTrayRequestData &data);
 
 	void SetScanSettings(BOOL bDeep, BOOL bOffice, BOOL bArchives, BOOL bPDF, BOOL bHTML);
 	void SetFilesTypes(CString sTypes);
 
 	void ReloadDB();
+
+	int GetFilesCount();
 	
 private:
 	void Init();
 	void Free();
-
-	void SendInfoToTray(bool bMain, CDBInfo *pDBInfo);
-	void SendFileToTray(LPCSTR sFile, LPCSTR sVirus);
-	void SendError(LPCSTR sError);
 
 private:
 	CCLScanner *m_pMainScan;

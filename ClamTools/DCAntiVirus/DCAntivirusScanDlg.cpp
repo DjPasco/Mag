@@ -6,9 +6,11 @@
 
 #include "../IdleTracker/IdleTracker.h"
 #include "../Utils/SendObj.h"
+#include "../Utils/TraySendObj.h"
 #include "../Utils/Settings.h"
 #include "../Utils/Log.h"
 #include "../Utils/Scanner/Scanner.h"
+#include "../Utils/npipe.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -21,21 +23,41 @@ static LPCTSTR gszProcessorTime="\\Processor(_Total)\\% Processor Time";
 #define MAX_LOAD 10
 #define CHECK_IDLE 60000 // One minute
 
+class CTraySendHelper
+{
+public:
+	CTraySendObj	m_obj;
+	HWND			m_hwnd;
+};
+
+UINT SendToTray(LPVOID pParam)
+{
+	CTraySendHelper *helper = (CTraySendHelper *)pParam;
+
+	COPYDATASTRUCT copy;
+	copy.dwData = 1;
+	copy.cbData = sizeof(helper->m_obj);
+	copy.lpData = &helper->m_obj;
+
+	::SendMessage(helper->m_hwnd, WM_COPYDATA, 0, (LPARAM) (LPVOID) &copy);
+
+	delete helper;
+	return 0;
+}
+
 BEGIN_MESSAGE_MAP(CDCAntivirusScanDlg, CDialog)
 	ON_MESSAGE(WM_COPYDATA, OnCopyData)
 	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-CDCAntivirusScanDlg::CDCAntivirusScanDlg(CScanner *pScanner)
-	: m_pScanner(pScanner),
-	  m_bScan(true),
+CDCAntivirusScanDlg::CDCAntivirusScanDlg()
+	: m_bScan(true),
 	  m_bDeny(true),
 	  m_bIdleScan(true),
 	  m_nMaxCPULoad(20),
 	  m_nIdleTime(900000)// 15 minutes
 {
-	service_log_utils::LogData("Dialogo konstruktorius.");
-	ReloadSettings();
+	ReloadSettings(NULL);
 }
 
 CDCAntivirusScanDlg::~CDCAntivirusScanDlg()
@@ -45,7 +67,6 @@ CDCAntivirusScanDlg::~CDCAntivirusScanDlg()
 
 BOOL CDCAntivirusScanDlg::OnInitDialog()
 {
-	service_log_utils::LogData("OnInitDialog.");
 	CDialog::OnInitDialog();
 	IdleTrackerInit();
 	
@@ -66,10 +87,26 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 	return TRUE;
 }
 
+bool CDCAntivirusScanDlg::SendObj(CTraySendObj &obj)
+{
+	HWND hwnd = NULL;
+	hwnd = ::FindWindow(NULL, sgAppName);
+
+	if(NULL == hwnd)
+	{
+		return false;
+	}
+
+	CTraySendHelper *helper = new CTraySendHelper;
+	helper->m_obj = obj;
+	helper->m_hwnd = hwnd;
+
+	AfxBeginThread(SendToTray, (LPVOID)helper, THREAD_PRIORITY_HIGHEST);
+	return true;
+}
+
 LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 {
-	service_log_utils::LogData("OnCopyData.");
-
 	UNREFERENCED_PARAMETER(wParam);
 	
 	PCOPYDATASTRUCT copy = (PCOPYDATASTRUCT) lParam;
@@ -78,7 +115,6 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 
 	if(NULL == pData)
 	{
-		service_log_utils::LogData("BlogiDuomenys.");
 		return 1;
 	}
 
@@ -86,12 +122,13 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 	{
 	case EScan:
 		{
-			service_log_utils::LogData("EScan.");
 			if(m_bScan)
 			{
-				CString sFile = pData->m_sPath;
-				CString sVirusName;
-				if(!m_pScanner->ScanFile(sFile, sVirusName, true))
+				CFileResult result;
+				ZeroMemory(&result, sizeof(CFileResult));
+				SendFileToPipeServer(pData, result);
+				SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
+				if(!result.m_bOK)
 				{
 					if(m_bDeny)
 					{
@@ -99,7 +136,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 					}
 					else
 					{
-						CDCAntivirusAlertDlg dlg(sFile, sVirusName, pData->m_PID);
+						CDCAntivirusAlertDlg dlg(pData->m_sPath, result.m_sVirusName, pData->m_PID);
 						int nRet = dlg.DoModal();
 						if(IDOK == nRet)
 						{
@@ -114,53 +151,149 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		break;
 	case ERequest:
 		{
-			service_log_utils::LogData("ERequest.");
-			m_pScanner->RequestData();
+			RequestData(pData);
 		}
 		break;
 	case EReloadSettings:
 		{
-			service_log_utils::LogData("EReloadSettings.");
-			ReloadSettings();	
+			ReloadSettings(pData);	
 		}
 		break;
 	case EManualScan:
 		{
-			service_log_utils::LogData("EManualScan.");
-			int nOldPriority = GetThreadPriority(GetCurrentThread());
-			SetThreadPriority(GetCurrentThread(), priority_utils::GetRealPriority(path_utils::GetPriority()));
-
-			registry_utils::WriteProfileString(sgSection, sgVirusName, "");
-			CString sFile = pData->m_sPath;
-			CString sVirusName;
-			bool bClean(true);
-			if(pData->m_bUseInternalDB)
+			CFileResult result;
+			ZeroMemory(&result, sizeof(CFileResult));
+			SendFileToPipeServer(pData, result);
+			SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
+			if(!result.m_bOK)
 			{
-				bClean = m_pScanner->ScanFile(sFile, sVirusName, false); 
-			}
-			else
-			{
-				bClean = m_pScanner->ScanFileNoIntDB(sFile, sVirusName); 
-			}
-
-			SetThreadPriority(GetCurrentThread(), nOldPriority);
-
-			if(!bClean)
-			{
-				registry_utils::WriteProfileString(sgSection, sgVirusName, sVirusName);
+				registry_utils::WriteProfileString(sgSection, sgVirusName, result.m_sVirusName);
 				return 2;
 			}
 		}
 		break;
 	case EReloadDB:
 		{
-			service_log_utils::LogData("EReloadDB.");
-			m_pScanner->ReloadDB();
+			CFileResult result;
+			ZeroMemory(&result, sizeof(CFileResult));
+			SendFileToPipeServer(pData, result);
 		}
 		break;
 	}
 	
 	return 1;
+}
+
+void CDCAntivirusScanDlg::RequestData(CSendObj *pObj)
+{
+	CNamedPipe clientPipe;
+	if (!CNamedPipe::ServerAvailable(".", _T(sgScanServer), 1000))
+	{
+		SendMessageToTray("Service not available.");
+		return;
+	}
+
+	SECURITY_ATTRIBUTES sa;
+	sa.lpSecurityDescriptor = (PSECURITY_DESCRIPTOR)malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
+	InitializeSecurityDescriptor(sa.lpSecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
+	// ACL is set as NULL in order to allow all access to the object.
+	SetSecurityDescriptorDacl(sa.lpSecurityDescriptor, TRUE, NULL, FALSE);
+	sa.nLength = sizeof(sa);
+	sa.bInheritHandle = TRUE;
+
+	if (!clientPipe.Open(".", _T(sgScanServer), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, &sa, 0))
+	{
+		SendMessageToTray("Can't open connection to service.");
+		return;
+	}
+
+	DWORD dwBytes;
+
+	CSendObj newObj(*pObj);						
+	clientPipe.Write(&newObj, sizeof(CSendObj), dwBytes);
+
+	CTrayRequestData data;
+	if (!clientPipe.Read(&data, sizeof(CTrayRequestData), dwBytes, NULL))
+	{
+		SendMessageToTray("Can't read data from service.");
+		return;
+	}
+
+	SendMessageToTray("Service running.");
+	SendInfoToTray(data);
+
+	clientPipe.Close();
+}
+
+void CDCAntivirusScanDlg::SendMessageToTray(LPCSTR sMessage)
+{
+	CTraySendObj obj;
+	obj.m_nType = EMessage;
+	strcpy_s(obj.m_sText, MAX_PATH, sMessage);
+
+	SendObj(obj);
+}
+
+void CDCAntivirusScanDlg::SendInfoToTray(CTrayRequestData &pTrayInfo)
+{
+	CTraySendObj obj;
+	obj.m_nType = EData;
+	//Main DB info
+	obj.m_bMain = true;
+	strcpy_s(obj.m_sText, MAX_PATH, pTrayInfo.m_sMainDate);
+	obj.m_nVersion		= pTrayInfo.m_nMainVersion;
+	obj.m_nSigs			= pTrayInfo.m_nMainSigCount;
+	obj.m_nFilesCount	= pTrayInfo.m_nFilesCount;
+
+	SendObj(obj);
+
+	//Daily DB info
+	obj.m_bMain = false;
+	strcpy_s(obj.m_sText, MAX_PATH, pTrayInfo.m_sDailyDate);
+	obj.m_nVersion		= pTrayInfo.m_nDailyVersion;
+	obj.m_nSigs			= pTrayInfo.m_nDailySigCount;
+	obj.m_nFilesCount	= pTrayInfo.m_nFilesCount;
+
+	SendObj(obj);
+}
+
+void CDCAntivirusScanDlg::SendFileToTray(LPCSTR sFile, LPCSTR sVirus, int nFilesCount)
+{
+	CTraySendObj obj;
+	obj.m_nType = EFile;
+	strcpy_s(obj.m_sText, MAX_PATH, sFile);
+	strcpy_s(obj.m_sText2, MAX_PATH, sVirus);
+	obj.m_nFilesCount = nFilesCount;
+
+	SendObj(obj);
+}
+
+void CDCAntivirusScanDlg::SendFileToPipeServer(CSendObj *pObj, CFileResult &result)
+{
+	result.m_bOK = true;
+
+	CNamedPipe clientPipe;
+	if (!CNamedPipe::ServerAvailable(".", _T(sgScanServer), 1000))
+	{
+		return;
+	}
+
+	if (!clientPipe.Open(".", _T(sgScanServer), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, NULL, 0))
+	{
+		return;
+	}
+
+	DWORD dwBytes;
+
+	CSendObj newObj(*pObj);						
+	clientPipe.Write(&newObj, sizeof(CSendObj), dwBytes);
+
+	if (!clientPipe.Read(&result, sizeof(CFileResult), dwBytes, NULL))
+	{
+		return;
+	}
+
+	clientPipe.Close();
 }
 
 LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)
@@ -201,7 +334,7 @@ void CDCAntivirusScanDlg::OnTimer(UINT nIDEvent)
 		long lLoad = GetCPUCycle(m_hQuery, m_hCounter);
 		if(-1 != lLoad && MAX_LOAD >= lLoad)
 		{
-			m_pScanner->ScanFilesForOptimisation(this);
+			//m_pScanner->ScanFilesForOptimisation(this);
 		}
 	}
 
@@ -235,9 +368,8 @@ bool CDCAntivirusScanDlg::TimeForScan()
 	return false;
 }
 
-void CDCAntivirusScanDlg::ReloadSettings()
+void CDCAntivirusScanDlg::ReloadSettings(CSendObj *pObj)
 {
-	service_log_utils::LogData("ReloadSettings.");
 	CSettingsInfo info;
 	if(settings_utils::Load(info))
 	{
@@ -248,7 +380,11 @@ void CDCAntivirusScanDlg::ReloadSettings()
 		m_nMaxCPULoad	= info.m_nCPULoad;
 		m_nIdleTime		= info.m_nIdleTime * 60000;
 
-		m_pScanner->SetScanSettings(info.m_bDeep, info.m_bOffice, info.m_bArchives, info.m_bPDF, info.m_bHTML);
-		m_pScanner->SetFilesTypes(info.m_sFilesTypes);
+		if(NULL != pObj)
+		{
+			CFileResult result;
+			ZeroMemory(&result, sizeof(CFileResult));
+			SendFileToPipeServer(pObj, result);
+		}
 	}
 }

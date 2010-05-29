@@ -5,7 +5,7 @@ enum EInfoType
 {
 	EFile = 0,
 	EData,
-	EError,
+	EMessage,
 	ECount
 };
 
@@ -19,6 +19,23 @@ public:
     unsigned int m_nVersion;
     unsigned int m_nSigs;
 	int m_nFilesCount;
+};
+
+class CTrayRequestData
+{
+public://Main info
+	int m_nMainVersion;
+	int m_nMainSigCount;
+	char m_sMainDate[MAX_PATH];
+
+public://Daily info
+	int m_nDailyVersion;
+	int m_nDailySigCount;
+	char m_sDailyDate[MAX_PATH];
+
+public:
+	int m_nFilesCount;
+	char m_sInfo[MAX_PATH];
 };
 
 #endif
