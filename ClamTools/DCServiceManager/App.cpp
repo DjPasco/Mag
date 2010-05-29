@@ -172,7 +172,6 @@ CMyService::CMyService() : CNTService(sgServiceName, sgServiceDisplayName, SERVI
 
 void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 {
-	service_log_utils::LogData("------ Service starting. ---------");
 	//register our control handler
 	RegisterCtrlHandler();
 
@@ -188,7 +187,6 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 		LockFile(hDataFile, 0, 0, low, high);
 
 		pScanner->LoadDatabases();
-		service_log_utils::LogData("Virus DB loaded.");
 		AfxBeginThread(Server, (LPVOID)pScanner);
 	//Report to the event log that the service has started successfully
 	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);
@@ -225,7 +223,6 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	//Unlock's data file
 	UnlockFile(hDataFile, 0, 0, low, high);
 	CloseHandle(hDataFile);
-	service_log_utils::LogData("Service closing.");
 
 	delete pScanner;
 	ReportStatusToSCM(SERVICE_STOPPED, NO_ERROR, 0, 1, 0);

@@ -50,6 +50,30 @@ public:
 	~CScannedFileMap() { };
 };
 
+class CPrecisionTimer
+{
+	LARGE_INTEGER lFreq, lStart;
+
+public:
+	CPrecisionTimer()
+	{
+		QueryPerformanceFrequency(&lFreq);
+	}
+
+	inline void Start()
+	{
+		QueryPerformanceCounter(&lStart);
+	}
+
+	inline double Stop()
+	{
+		// Return duration in seconds...
+		LARGE_INTEGER lEnd;
+		QueryPerformanceCounter(&lEnd);
+		return (double(lEnd.QuadPart - lStart.QuadPart) / lFreq.QuadPart);
+	}
+};
+
 typedef CScannedFileMap::const_iterator CMapI;
 typedef CScannedFileMap::iterator CMapEditI;
 
@@ -85,7 +109,7 @@ namespace file_utils
 			}
 
 			double dFileSizeMB = uFileSize/1048576.0;
-			scan_log_utils::LogParameter("File Size (MB)", dFileSizeMB);
+			scan_log_utils::LogFileSize("File Size", dFileSizeMB);
 			
 			EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
 			EVP_MD_CTX_cleanup(&mdctx);
@@ -136,19 +160,19 @@ namespace file_utils
 	{
 		hash.resize(0);
 		pathHash.resize(0);
-		scan_log_utils::LogData(sFile);
-		CTime tBegin = CTime::GetCurrentTime();
+		CPrecisionTimer timer;
+		timer.Start();
 		if(!internal::GetFileHash(sFile, hash, pathHash, pMD5))
 		{
 			return false;
 		}
-		CTime tEnd = CTime::GetCurrentTime();
-		scan_log_utils::LogTime("Hash time", tBegin, tEnd);
+		
+		double dSec = timer.Stop();
+		scan_log_utils::LogTime("Hash time", dSec);
 
 		CMapEditI it = pMapFiles->find(pathHash);
 		if(it != pMapFiles->end())
 		{
-			scan_log_utils::LogData("File found in internal DB");
 			CFileInfo &info = (*it).second;
 			info.m_nCount++;
 
@@ -434,11 +458,22 @@ void CScanner::Free()
 
 bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 {
-	scan_log_utils::LogData("----------- ScanFile -----------");
+	if(bCheckType)
+	{
+		scan_log_utils::LogHeader("ScanFile (realtime scan)");
+	}
+	else
+	{
+		scan_log_utils::LogHeader("ScanFile (manual/memory scan)");
+	}
+
 	if(!m_bLoaded)
 	{
+		scan_log_utils::WriteLine("DB not loaded.");
 		return true;
 	}
+
+	scan_log_utils::WriteLine(sFile);
 
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
@@ -447,6 +482,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 	{
 		if(!file_utils::FileIsSupported(sFilePath.c_str(), m_types))
 		{
+			scan_log_utils::WriteLine("File not supported (check file extension settings).");
 			return true;
 		}
 	}
@@ -465,6 +501,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 										  bScanDaily,
 										  bScanMain))
 	{
+		scan_log_utils::WriteLine("File exists in internal DB.");
 		return true;
 	}
 
@@ -473,10 +510,11 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 #ifdef LOAD_MAIN_DB
 	if(bScanMain)
 	{
-		scan_log_utils::LogData("Scanning Main DB");
+		scan_log_utils::WriteLine("Scanning Main DB.");
 		if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
+			scan_log_utils::LogVirus(sVirus, true);
 			return false;
 		}
 	}
@@ -484,15 +522,16 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, bool bCheckType)
 
 	if(bScanDaily)
 	{
-		scan_log_utils::LogData("Scanning Daily DB");
+		scan_log_utils::WriteLine("Scanning Daily DB.");
 		if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 		{
 			sVirus.Format("%s", sVirname);
+			scan_log_utils::LogVirus(sVirus, false);
 			return false;
 		}
 	}
 	CTime tEnd = CTime::GetCurrentTime();
-	scan_log_utils::LogTime("Scan time", tBegin, tEnd);
+	//scan_log_utils::LogTime("Scan time", tBegin, tEnd);
 
 	CFileInfo info;
 	info.m_nCount = 1;
@@ -636,12 +675,15 @@ void CScanner::SetFilesTypes(CString sTypes)
 
 bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 {
-	scan_log_utils::LogData("----------- ScanFileNoIntDB -----------");
+	scan_log_utils::LogHeader("ScanFileNoIntDB (manual/memory scan)");
 
 	if(!m_bLoaded)
 	{
+		scan_log_utils::WriteLine("DB not loaded.");
 		return true;
 	}
+
+	scan_log_utils::WriteLine(sFile);
 
 	std::string sFilePath(sFile);
 	std::transform(sFilePath.begin(), sFilePath.end(), sFilePath.begin(), toupper);
@@ -649,22 +691,24 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus)
 	const char *sVirname;
 	CTime tBegin = CTime::GetCurrentTime();
 #ifdef LOAD_MAIN_DB
+	scan_log_utils::WriteLine("Scanning Main DB.");
 	if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
-		scan_log_utils::LogData("Scanning Main DB");
 		sVirus.Format("%s", sVirname);
+		scan_log_utils::LogVirus(sVirus, true);
 		return false;
 	}
 #endif
 
+	scan_log_utils::WriteLine("Scanning Daily DB.");
 	if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
-		scan_log_utils::LogData("Scanning Main DB");
 		sVirus.Format("%s", sVirname);
+		scan_log_utils::LogVirus(sVirus, false);
 		return false;
 	}
 	CTime tEnd = CTime::GetCurrentTime();
-	scan_log_utils::LogTime("Scan time", tBegin, tEnd);
+	//scan_log_utils::LogTime("Scan time", tBegin, tEnd);
 
 	CDCHash hash;
 	CDCHash pathHash;

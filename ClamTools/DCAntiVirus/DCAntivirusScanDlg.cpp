@@ -298,7 +298,6 @@ void CDCAntivirusScanDlg::SendFileToPipeServer(CSendObj *pObj, CFileResult &resu
 
 LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)
 {
-	service_log_utils::LogData("GetCPUCycle.");
 	// Collect the current raw data value for all counters in the 
 	// specified query and updates the status code of each counter 
 	if(PdhCollectQueryData(query) != ERROR_SUCCESS)

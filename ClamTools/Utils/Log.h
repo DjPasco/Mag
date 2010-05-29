@@ -2,13 +2,14 @@
 #define _LOG_H__
 
 #include "Registry.h"
-
+#include <math.h>
 #define _LOG_
 
 namespace scan_log_utils
 {
-	static void WriteLine(LPCSTR sLine)
+	static void Write(LPCSTR sLine)
 	{
+#ifdef _LOG_
 		FILE *pFile = fopen(path_utils::GetScanLogFilePath(), "a+");
 		if(NULL == pFile)
 		{
@@ -18,56 +19,104 @@ namespace scan_log_utils
 		fprintf(pFile, "%s\n", sLine);
 		fflush(pFile);
 		fclose(pFile);
-	}
-
-	static void LogData(LPCSTR sData)
-	{
-#ifdef _LOG_
-		WriteLine(sData);
 #endif
 	}
 
-	static void LogParameter(LPCSTR sData, double dPar)
+	static void WriteLine(LPCSTR sLine)
 	{
 #ifdef _LOG_
 		CString s;
-		s.Format("%s: %.2f", sData, dPar);
-		WriteLine(s);
+		s.Format("\t%s", sLine);
+		Write(s);
 #endif
 	}
 
-	static void LogTime(LPCSTR sText, CTime tBegin, CTime tEnd)
+	static void LogHeader(LPCSTR sData)
 	{
 #ifdef _LOG_
-		CTimeSpan span = tEnd - tBegin;
-		CString sLine;
-		sLine.Format("%s: %d:%d:%d", sText, span.GetHours(), span.GetMinutes(), span.GetSeconds());
-		WriteLine(sLine);
+		char sOSTime[128];
+		_strtime(sOSTime);
+
+		CString s;
+		s.Format("------- %s %s -------", sOSTime, sData);
+
+		Write(s);
 #endif
 	}
-}
 
-namespace service_log_utils
-{
-	static void WriteLine(LPCSTR sLine)
+	static void LogFileSize(LPCSTR sData, double dPar)
 	{
-		FILE *pFile = fopen(path_utils::GetServiceLogFilePath(), "a+");
-		if(NULL == pFile)
+#ifdef _LOG_
+		CString s;
+		s.Format("\t%s: %.2f MB", sData, dPar);
+		Write(s);
+#endif
+	}
+
+	static void LogVirus(LPCSTR sVirus, bool bMain)
+	{
+#ifdef _LOG_
+		CString s;
+		if(bMain)
 		{
-			return;
+			s.Format("\tVirus found by Main DB: %s", sVirus);
+		}
+		else
+		{
+			s.Format("\tVirus found by Daily DB: %s", sVirus);
 		}
 
-		fprintf(pFile, "%s\n", sLine);
-		fflush(pFile);
-		fclose(pFile);
+		Write(s);
+#endif
 	}
 
-	static void LogData(LPCSTR sData)
+	static void LogTime(LPCSTR sText, double dSec)
 	{
 #ifdef _LOG_
-		WriteLine(sData);
+		int nSec = (int)floor(dSec);
+		int hour=nSec/3600;
+		nSec=nSec%3600;
+		int min=nSec/60;
+		nSec=nSec%60;
+		int sec=nSec;
+		int milisec(0);
+		if(0 == (int)floor(dSec))
+		{
+			milisec = (int)(dSec * 1000);
+		}
+		else
+		{
+			milisec = (int)(dSec - (int)floor(dSec)) * 1000;
+		}
+		CString s;
+		s.Format("\t%s: %d:%d:%d:%d", sText, hour, min, sec, milisec);
+		//s.Format("\t%s: %.4f", sText, dSec);
+		Write(s);
 #endif
 	}
 }
+
+//namespace service_log_utils
+//{
+//	static void WriteLine(LPCSTR sLine)
+//	{
+//		FILE *pFile = fopen(path_utils::GetServiceLogFilePath(), "a+");
+//		if(NULL == pFile)
+//		{
+//			return;
+//		}
+//
+//		fprintf(pFile, "%s\n", sLine);
+//		fflush(pFile);
+//		fclose(pFile);
+//	}
+//
+//	static void LogData(LPCSTR sData)
+//	{
+//#ifdef _LOG_
+//		WriteLine(sData);
+//#endif
+//	}
+//}
 
 #endif
