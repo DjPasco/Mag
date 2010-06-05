@@ -265,6 +265,14 @@ namespace path_utils
 		return sPath;
 	}
 
+	static CString GetHookLogFilePath()
+	{
+		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");
+		CString sPath;
+		sPath.Format("%s\\%s", sBaseDir, "HookLog.txt");
+		return sPath;
+	}
+
 	static CString GetServiceLogFilePath()
 	{
 		CString sBaseDir = registry_utils::GetProfileString(sgSection, sgBaseDir, "");

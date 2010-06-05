@@ -59,19 +59,34 @@ void CDCAntivirusHookDlg::FillProcessTree()
 
 		while(TRUE == Process32Next(snapshot, &entry))
 		{
-			HTREEITEM proc_item = m_treeProc.InsertItem(entry.szExeFile);
+			CString sProcItem;
+			sProcItem.Format("%d | %s", entry.th32ProcessID, entry.szExeFile);
+			HTREEITEM proc_item = m_treeProc.InsertItem(sProcItem);
+
+			bool bSysHook(false), bDetHook(false);
 
 			if(hook_utils::ExistsModule(entry.th32ProcessID, sHookPath))
 			{
 				m_treeProc.InsertItem("SystemHook.dll", proc_item);
+				bSysHook = true;
 			}
 
 			if(hook_utils::ExistsModule(entry.th32ProcessID, sFullDetoursPath))
 			{
 				m_treeProc.InsertItem("detoured.dll", proc_item);
+				bDetHook = true;
 			}
 
-			m_treeProc.Expand(proc_item, TVE_EXPAND);
+			//Bold item if one of dll's are not found on process.
+			if(!bSysHook || !bDetHook)
+			{
+				TV_ITEM tvi;
+				tvi.mask = TVIF_STATE | TVIF_HANDLE;
+				tvi.hItem = proc_item;
+				tvi.state = TVIS_BOLD;
+				tvi.stateMask = TVIS_BOLD;
+				m_treeProc.SetItem(&tvi);
+			}
 		}
 	}
 

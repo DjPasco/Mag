@@ -7,6 +7,8 @@
 #include "RemoteLib.h"
 
 #include "../../Utils/Registry.h"
+#include "../../Utils/Log.h"
+
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -69,20 +71,20 @@ namespace hook_utils
 
 		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath, LPCSTR sProcName)
 		{
-			TRACE("Ejecting %s.\n", sDllPath);
+			hook_log_utils::LogString("Ejecting", sDllPath);
 
 			HMODULE hDllModule = RemoteGetModuleHandleNT(WorProcessId, sDllPath); 
 			if(NULL == hDllModule)
 			{
-				TRACE("Dll not found.\n");
+				hook_log_utils::WriteLine("Dll not found.");
 				return FALSE;
 			}
 
-			TRACE("Dll found.\n");
+			hook_log_utils::WriteLine("Dll found.");
 
 			if(!RemoteFreeLibraryNT(WorProcessId, hDllModule))
 			{
-				TRACE("UnHooking error.\n");
+				hook_log_utils::WriteLine("UnHooking error.");
 				LPVOID lpMsgBuf;
 				FormatMessage( 
 					FORMAT_MESSAGE_ALLOCATE_BUFFER | 
@@ -94,11 +96,11 @@ namespace hook_utils
 					(LPTSTR) &lpMsgBuf,
 					0,
 					NULL);
-				TRACE("Reason: %s.\n", lpMsgBuf);
+				hook_log_utils::LogString("Reason", lpMsgBuf);
 				return FALSE;
 			}
 
-			TRACE("Dll ejected.\n");
+			hook_log_utils::WriteLine("Dll ejected.");
 
 			return TRUE;
 		}
@@ -149,12 +151,9 @@ namespace hook_utils
 
 	void GlobalHook(bool bInitial)
 	{
-		HWND hwnd = NULL;
-		hwnd = ::FindWindow(NULL, sgServerName);
-
-		if(NULL == hwnd)
+		if(bInitial)
 		{
-			return;
+			hook_log_utils::LogHeader("Hook System", GetCurrentProcessId());
 		}
 
 		PROCESSENTRY32 entry;
@@ -164,6 +163,7 @@ namespace hook_utils
 
 		if(INVALID_HANDLE_VALUE == snapshot)
 		{
+			hook_log_utils::WriteLine("INVALID_HANDLE_VALUE.");
 			return;
 		}
 
@@ -180,13 +180,13 @@ namespace hook_utils
 
 					if(bInitial || !ExistsModule(entry.th32ProcessID, sHookPath))
 					{
-						TRACE("Working on %s.\n", entry.szExeFile);
+						hook_log_utils::LogString("Working on", entry.szExeFile);
 						char sDetoursPath[MAX_PATH];
 						path_utils::GetDetourDllPath(sDetoursPath);
 
 						if(NULL == RemoteLoadLibraryNT(entry.th32ProcessID, sDetoursPath))
 						{
-							TRACE("Hook failed on %s.\n", sDetoursPath);
+							hook_log_utils::LogString("Hook failed on", sDetoursPath);
 							LPVOID lpMsgBuf;
 							FormatMessage( 
 								FORMAT_MESSAGE_ALLOCATE_BUFFER | 
@@ -198,16 +198,16 @@ namespace hook_utils
 								(LPTSTR) &lpMsgBuf,
 								0,
 								NULL);
-							TRACE("Reason: %s.\n", lpMsgBuf);
+							hook_log_utils::LogString("Reason", lpMsgBuf);
 						}
 						else
 						{
-							TRACE("Hook OK on %s.\n", sDetoursPath);
+							hook_log_utils::LogString("Hook OK on", sDetoursPath);
 						}
 
 						if(NULL == RemoteLoadLibraryNT(entry.th32ProcessID, sHookPath))
 						{
-							TRACE("Hook failed on %s.\n", sHookPath);
+							hook_log_utils::LogString("Hook failed on", sHookPath);
 							LPVOID lpMsgBuf;
 							FormatMessage( 
 								FORMAT_MESSAGE_ALLOCATE_BUFFER | 
@@ -219,11 +219,11 @@ namespace hook_utils
 								(LPTSTR) &lpMsgBuf,
 								0,
 								NULL);
-							TRACE("Reason: %s.\n", lpMsgBuf);
+							hook_log_utils::LogString("Reason", lpMsgBuf);
 						}
 						else
 						{
-							TRACE("Hook OK on %s.\n", sHookPath);
+							hook_log_utils::LogString("Hook OK on", sHookPath);
 						}
 					}
 				}
@@ -235,6 +235,8 @@ namespace hook_utils
 
 	void GlobalUnHook()
 	{
+		hook_log_utils::LogHeader("UnHook System", GetCurrentProcessId());
+
 		PROCESSENTRY32 entry;
 		entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -242,6 +244,7 @@ namespace hook_utils
 
 		if(INVALID_HANDLE_VALUE == snapshot)
 		{
+			hook_log_utils::WriteLine("INVALID_HANDLE_VALUE.");
 			return;
 		}
 
@@ -261,7 +264,7 @@ namespace hook_utils
 				{
 					if(internal::NeedHook(entry.szExeFile))
 					{
-						TRACE("Working on %s.\n", entry.szExeFile);
+						hook_log_utils::LogString("Working on", entry.szExeFile);
 						internal::EjectDLL(entry.th32ProcessID, sHookPath, entry.szExeFile);
 						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath, entry.szExeFile);
 					}

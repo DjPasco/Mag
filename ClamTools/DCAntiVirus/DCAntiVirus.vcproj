@@ -393,6 +393,10 @@
 			Name="Utils"
 			>
 			<File
+				RelativePath="..\Utils\Log.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Utils\npipe.cpp"
 				>
 			</File>

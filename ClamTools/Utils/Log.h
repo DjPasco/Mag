@@ -112,7 +112,6 @@ namespace scan_log_utils
 		}
 		CString s;
 		s.Format("\t%s: %d:%d:%d:%d", sText, hour, min, sec, milisec);
-		//s.Format("\t%s: %.4f", sText, dSec);
 		Write(s);
 #endif
 	}
@@ -140,3 +139,74 @@ namespace scan_log_utils
 //#endif
 //	}
 //}
+
+namespace hook_log_utils
+{
+	static void Write(LPCSTR sLine)
+	{
+#ifdef _LOG_
+		FILE *pFile = fopen(path_utils::GetHookLogFilePath(), "a+");
+		if(NULL == pFile)
+		{
+			return;
+		}
+
+		fprintf(pFile, "%s\n", sLine);
+		fflush(pFile);
+		fclose(pFile);
+#endif
+	}
+
+	static void WriteLine(LPCSTR sLine)
+	{
+#ifdef _LOG_
+		CString s;
+		s.Format("\t%s", sLine);
+		Write(s);
+#endif
+	}
+
+	static void LogHeader(LPCSTR sData, DWORD PID)
+	{
+#ifdef _LOG_
+		char sOSTime[128];
+		_strtime(sOSTime);
+
+		
+		HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, PID);
+
+		CString s;
+		if(NULL != hProcess)
+		{
+			char sProcName[MAX_PATH];
+			GetModuleBaseName(hProcess, NULL, sProcName, MAX_PATH);
+
+			s.Format("------- %s -- %s -- Process name: %s -------", sOSTime, sData, sProcName);
+		}
+		else
+		{
+			s.Format("------- %s -- %s -------", sOSTime, sData);
+		}
+
+		Write(s);
+#endif
+	}
+
+	static void LogString(LPCSTR sData, LPCSTR sValue)
+	{
+#ifdef _LOG_
+		CString s;
+		s.Format("\t%s: %s", sData, sValue);
+		Write(s);
+#endif
+	}
+
+	static void LogString(LPCSTR sData, LPVOID sValue)
+	{
+#ifdef _LOG_
+		CString s;
+		s.Format("\t%s: %s", sData, sValue);
+		Write(s);
+#endif
+	}
+}

@@ -33,7 +33,7 @@
 Detours/Detours/
 
 #Hash DB
-ClamTools\Bin\PassData.dat
+PassData.dat
 
 #Debug catalog 
 [Dd]ebug*/
