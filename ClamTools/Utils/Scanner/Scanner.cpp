@@ -3,14 +3,14 @@
 
 #include "CLScanner.h"
 #include "ScanValidatorObs.h"
+#include "PrecisionTimer.h"
+#include "FileHashDBUtils.h"
 #include "../TraySendObj.h"
 #include "../Registry.h"
 #include "../Settings.h"
 #include "../Log.h"
 
 #include <stdio.h>
-#include <hash_map>
-#include <map>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -22,365 +22,16 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 #define LOAD_MAIN_DB
-#define DC_HASH_SIZE 16
-#define DC_HASH_BUFFER 1048576
-
-typedef std::vector<unsigned char> CDCHash;
-
-class CFileInfo
-{
-public:
-	unsigned int m_nMainDBVersion;
-	unsigned int m_nDailyDBVersion;
-	unsigned int m_nCount;
-	CString m_sFilePath;
-	CDCHash m_fileHash;
-};
-
-class CFileInfoEx: public CFileInfo
-{
-public:
-	CDCHash m_pathHash;
-};
-
-class CScannedFileMap : public std::map<CDCHash, CFileInfo>
-{
-public:
-	CScannedFileMap() { };
-	~CScannedFileMap() { };
-};
-
-class CPrecisionTimer
-{
-	LARGE_INTEGER lFreq, lStart;
-
-public:
-	CPrecisionTimer()
-	{
-		QueryPerformanceFrequency(&lFreq);
-	}
-
-	inline void Start()
-	{
-		QueryPerformanceCounter(&lStart);
-	}
-
-	inline double Stop()
-	{
-		// Return duration in seconds...
-		LARGE_INTEGER lEnd;
-		QueryPerformanceCounter(&lEnd);
-		return (double(lEnd.QuadPart - lStart.QuadPart) / lFreq.QuadPart);
-	}
-};
-
-typedef CScannedFileMap::const_iterator CMapI;
-typedef CScannedFileMap::iterator CMapEditI;
-
-namespace file_utils
-{
-	namespace internal
-	{
-		bool GetFileHash(LPCSTR sFile, CDCHash &hash, CDCHash &pathHash, const EVP_MD *pMD5)
-		{
-			FILE *pFile = fopen(sFile, "rb");
-			if(NULL == pFile)
-			{
-				return false;
-			}
-
-			EVP_MD_CTX mdctx;
-			unsigned char md_value[EVP_MAX_MD_SIZE];
-			unsigned int md_len;
-
-			char *data = (char *)malloc(DC_HASH_BUFFER);
-			unsigned int uRead(0);
-
-			EVP_MD_CTX_init(&mdctx);
-			EVP_DigestInit_ex(&mdctx, pMD5, NULL);
-
-			unsigned int uFileSize(0);
-
-			while(!feof(pFile))
-			{
-				uRead = fread(data, sizeof(char), DC_HASH_BUFFER, pFile);
-				EVP_DigestUpdate(&mdctx, data, uRead);
-				uFileSize += uRead;
-			}
-
-			double dFileSizeMB = uFileSize/1048576.0;
-			scan_log_utils::LogFileSize("File Size", dFileSizeMB);
-			
-			EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-			EVP_MD_CTX_cleanup(&mdctx);
-
-			fclose(pFile);
-			free((void *)data);
-
-			if(md_len > DC_HASH_SIZE)
-			{
-				return false;//Wrong data
-			}
-
-			hash.resize(DC_HASH_SIZE);
-			for(unsigned int i = 0; i < md_len; ++i)
-			{
-				hash[i] = md_value[i];
-			}
-
-			EVP_MD_CTX_init(&mdctx);
-			EVP_DigestInit_ex(&mdctx, pMD5, NULL);
-			EVP_DigestUpdate(&mdctx, sFile, strlen(sFile));
-			EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-			EVP_MD_CTX_cleanup(&mdctx);
-
-			if(md_len > DC_HASH_SIZE)
-			{
-				return false;//Wrong data
-			}
-			pathHash.resize(DC_HASH_SIZE);
-			for(unsigned int i = 0; i < md_len; ++i)
-			{
-				pathHash[i] = md_value[i];
-			}
-
-			return true;
-		}
-	};
-
-	bool FileExistsInInternalDB(LPCSTR sFile,
-								CScannedFileMap *pMapFiles,
-								const EVP_MD *pMD5,
-								CDCHash &hash,
-								CDCHash &pathHash,
-								unsigned int nMainDBVersion,
-								unsigned int nDailyDBVersion,
-								bool &bScanDaily,
-								bool &bScanMain)
-	{
-		hash.resize(0);
-		pathHash.resize(0);
-		CPrecisionTimer timer;
-		timer.Start();
-		if(!internal::GetFileHash(sFile, hash, pathHash, pMD5))
-		{
-			return false;
-		}
-		
-		double dSec = timer.Stop();
-		scan_log_utils::LogTime("Hash time", dSec);
-
-		CMapEditI it = pMapFiles->find(pathHash);
-		if(it != pMapFiles->end())
-		{
-			CFileInfo &info = (*it).second;
-			info.m_nCount++;
-
-			if(info.m_fileHash == hash)
-			{
-				bool bOld = true;
-				if(nMainDBVersion == info.m_nMainDBVersion)
-				{
-					bOld = false;
-					bScanMain = false;
-				}
-
-				if(nDailyDBVersion == info.m_nDailyDBVersion)
-				{
-					bOld = false;
-					bScanDaily = false;
-				}
-
-				if(bOld)
-				{
-					return false;
-				}
-				
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
-	bool ReadHash(FILE *pFile, CDCHash &hash)
-	{
-		hash.resize(DC_HASH_SIZE);
-		int pt = 0;
-		for(int i = 0; i < DC_HASH_SIZE; ++i)
-		{
-			if(1 != fscanf(pFile, "%x", &pt))//Error.
-			{
-				return false;
-			}
-
-			hash[i] = pt;
-		}
-
-		return true;
-	}
-
-	bool ReadPath(FILE *pFile, CString &sPath)
-	{
-		char s;
-		while(true)
-		{
-			if(0 == fread(&s, sizeof(char), 1, pFile))
-			{
-				return false;
-			}
-
-			if(s == 13 || s == 10)
-			{
-				break;
-			}
-
-			sPath += s;
-		}
-
-		return true;
-	}
-
-	void ReadPassData(CScannedFileMap *pMapFiles)
-	{
-		FILE *pFile = fopen(path_utils::GetDataFilePath(), "rb");
-		if(NULL == pFile)
-		{
-			return;
-		}
-
-		char symbol;
-		CString sBuffer;
-
-		while(!feof(pFile))
-		{
-			CDCHash hash;
-			if(!ReadHash(pFile, hash))
-			{
-				break;
-			}
-
-			CFileInfo info;
-			if(!ReadHash(pFile, info.m_fileHash))
-			{
-				break;
-			}
-
-			fscanf(pFile, "%u", &info.m_nMainDBVersion);
-			fscanf(pFile, "%u", &info.m_nDailyDBVersion);
-			fscanf(pFile, "%u", &info.m_nCount);
-
-			fread(&symbol, sizeof(char), 1, pFile);
-
-			ReadPath(pFile, info.m_sFilePath);
-
-			(*pMapFiles)[hash] = info;
-		}
-
-		fclose(pFile);
-
-		scan_log_utils::LogInt("Loaded items", pMapFiles->size());
-	}
-
-	void WritePassData(CScannedFileMap *pMapFiles)
-	{
-		FILE *pFile = fopen(path_utils::GetDataFilePath(), "wb");
-		if(NULL == pFile)
-		{
-			return;
-		}
-
-		scan_log_utils::LogInt("Saved items", pMapFiles->size());
-
-		CDCHash hash;
-		CFileInfo info;
-		CMapI begin = pMapFiles->begin();
-		CMapI end = pMapFiles->end();
-
-		for(CMapI it = begin; it != end; ++it)
-		{
-			hash	= it->first;
-			info	= it->second;
-
-			int nHashSize = hash.size();
-			
-			if(DC_HASH_SIZE != nHashSize)
-			{
-				continue;//Corrupted record.
-			}
-
-			for(int i = 0; i < DC_HASH_SIZE; ++i)
-			{
-				fprintf(pFile, "%02x ", hash[i]);//8 ouputs like 08.
-			}
-
-			for(int i = 0; i < DC_HASH_SIZE; ++i)
-			{
-				fprintf(pFile, "%02x ", info.m_fileHash[i]);//8 ouputs like 08.
-			}
-
-			fprintf(pFile, "%u %u %u %s\n", info.m_nMainDBVersion, info.m_nDailyDBVersion, info.m_nCount, info.m_sFilePath);
-		}
-
-		fflush(pFile);
-		fclose(pFile);
-	}
-
-	bool FileIsSupported(LPCSTR sFile, CFilesTypes &types)
-	{
-		FILE *pFile = fopen(sFile, "rb");
-		if(NULL == pFile)
-		{
-			return false;
-		}
-
-		fclose(pFile);
-
-		if(0 == types.size())
-		{
-			return true;
-		}
-
-		char drive[_MAX_DRIVE];
-		char dir[_MAX_DIR];
-		char fname[_MAX_FNAME];
-		char ext[_MAX_EXT];
-
-		_splitpath(sFile, drive, dir, fname, ext);
-
-		char extension[_MAX_EXT];
-		strcpy(extension, &ext[1]);//Remowing point before extension
-
-		if(types.end() != std::find(types.begin(), types.end(), extension))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	bool SortFilesByUsage(const CFileInfoEx &file1, const CFileInfoEx &file2)
-	{
-		return file1.m_nCount > file2.m_nCount;
-	}
-}
 
 CScanner::CScanner()
 {
+	m_pFilesMap = NULL;
+
 	m_bLoaded = false;
 
 	Init();
 	
 	m_pMD5 = EVP_md5();
-
-	m_pFilesMap = new CScannedFileMap;
-
-	scan_log_utils::LogHeader("Loading hash DB", GetCurrentProcessId());
-	CPrecisionTimer timer;
-	timer.Start();
-	file_utils::ReadPassData(m_pFilesMap);
-	double dSec = timer.Stop();
-	scan_log_utils::LogTime("Load time", dSec);
 
 	CSettingsInfo info;
 	if(settings_utils::Load(info))
@@ -393,17 +44,6 @@ CScanner::CScanner()
 CScanner::~CScanner()
 {
 	Free();	
-
-	scan_log_utils::LogHeader("Saving hash DB", GetCurrentProcessId());
-	CPrecisionTimer timer;
-	timer.Start();
-	file_utils::WritePassData(m_pFilesMap);
-	double dSec = timer.Stop();
-	scan_log_utils::LogTime("Save time", dSec);
-
-	m_pFilesMap->clear();
-
-	delete m_pFilesMap;
 }
 
 bool CScanner::LoadDatabases()
@@ -474,6 +114,11 @@ void CScanner::Free()
 
 bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, DWORD PID, bool &bScanned, bool bCheckType)
 {
+	if(NULL == m_pFilesMap)
+	{
+		return false;
+	}
+
 	if(bCheckType)
 	{
 		scan_log_utils::LogHeader("ScanFile (realtime scan)", PID);
@@ -496,7 +141,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, DWORD PID, bool &bScanned
 
 	if(bCheckType)
 	{
-		if(!file_utils::FileIsSupported(sFilePath.c_str(), m_types))
+		if(!file_hash_DB_utils::FileIsSupported(sFilePath.c_str(), m_types))
 		{
 			scan_log_utils::WriteLine("File not supported (check file extension settings).");
 			return true;
@@ -509,7 +154,7 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, DWORD PID, bool &bScanned
 	CDCHash pathHash;
 	bool bScanDaily(true);
 	bool bScanMain(true);
-	if(file_utils::FileExistsInInternalDB(sFilePath.c_str(),
+	if(file_hash_DB_utils::FileExistsInInternalDB(sFilePath.c_str(),
 										  m_pFilesMap,
 										  m_pMD5,
 										  hash,
@@ -552,13 +197,13 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, DWORD PID, bool &bScanned
 	double dSec = timer.Stop();
 	scan_log_utils::LogTime("Scan time", dSec);
 
-	CFileInfo info;
-	info.m_nCount = 1;
-	info.m_nMainDBVersion = m_pMainDBInfo->m_nVersion;
-	info.m_nDailyDBVersion = m_pDailyDBInfo->m_nVersion;
-	info.m_sFilePath = sFilePath.c_str();
-	info.m_fileHash = hash;
-	(*m_pFilesMap)[pathHash] = info;
+	file_hash_DB_utils::AddFileInfo(m_pFilesMap,
+				1,
+				m_pMainDBInfo->m_nVersion,
+				m_pDailyDBInfo->m_nVersion,
+				sFilePath.c_str(),
+				hash,
+				pathHash);
 
 	sVirus.Empty();
 	return true;
@@ -629,6 +274,11 @@ void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
 
 void CScanner::RequestData(CTrayRequestData &data)
 {
+	if(NULL == m_pFilesMap)
+	{
+		return;
+	}
+
 	if(!m_bLoaded)
 	{
 		strcpy_s(data.m_sInfo, MAX_PATH, "DB not loaded");
@@ -650,6 +300,11 @@ void CScanner::RequestData(CTrayRequestData &data)
 
 int CScanner::GetFilesCount()
 { 
+	if(NULL == m_pFilesMap)
+	{
+		return -1;
+	}
+
 	return m_pFilesMap->size();
 };
 
@@ -694,6 +349,11 @@ void CScanner::SetFilesTypes(CString sTypes)
 
 bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus, DWORD PID, bool &bScanned)
 {
+	if(NULL == m_pFilesMap)
+	{
+		return true;;
+	}
+
 	scan_log_utils::LogHeader("ScanFileNoIntDB (manual/memory scan)", PID);
 
 	if(!m_bLoaded)
@@ -736,7 +396,7 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus, DWORD PID, bool &b
 	CDCHash pathHash;
 	bool bScanDaily;
 	bool bScanMain;
-	if(!file_utils::FileExistsInInternalDB(sFilePath.c_str(),
+	if(!file_hash_DB_utils::FileExistsInInternalDB(sFilePath.c_str(),
 										  m_pFilesMap,
 										  m_pMD5,
 										  hash,
@@ -746,13 +406,13 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus, DWORD PID, bool &b
 										  bScanDaily,
 										  bScanMain))
 	{
-		CFileInfo info;
-		info.m_nCount = 1;
-		info.m_nMainDBVersion	= m_pMainDBInfo->m_nVersion;
-		info.m_nDailyDBVersion	= m_pDailyDBInfo->m_nVersion;
-		info.m_sFilePath		= sFilePath.c_str();
-		info.m_fileHash			= hash;
-		(*m_pFilesMap)[pathHash]= info;
+		file_hash_DB_utils::AddFileInfo(m_pFilesMap,
+					1,
+					m_pMainDBInfo->m_nVersion,
+					m_pDailyDBInfo->m_nVersion,
+					sFilePath.c_str(),
+					hash,
+					pathHash);
 	}
 
 	sVirus.Empty();
@@ -765,4 +425,9 @@ void CScanner::ReloadDB()
 	Init();
 
 	LoadDatabases();
+}
+
+void CScanner::SetFilesMap(CScannedFileMap *pFilesMap)
+{
+	m_pFilesMap = pFilesMap;
 }

@@ -3,7 +3,7 @@
 #include "ntserv_msg.h"
 #include "app.h"
 
-
+#include "../Utils/Scanner/FileHashDBUtils.h"
 #include "../Utils/Scanner/Scanner.h"
 #include "../Utils/Registry.h"
 #include "../Utils/Settings.h"
@@ -85,7 +85,16 @@ void DoAction(CSendObj *pData, CScanner *pScanner, CFileResult &result)
 
 UINT Server(LPVOID pParam)
 {
-	CScanner *pScanner = (CScanner *)pParam;
+	CScannedFileMap *pFilesMap = (CScannedFileMap *)pParam;
+
+	if(NULL == pFilesMap)
+	{
+		return 0;
+	}
+
+	CScanner *pScanner = new CScanner;
+	pScanner->LoadDatabases();
+	pScanner->SetFilesMap(pFilesMap);
 
 	CNamedPipe serverPipe;
 	SECURITY_ATTRIBUTES sa;
@@ -97,6 +106,7 @@ UINT Server(LPVOID pParam)
 	sa.bInheritHandle = TRUE;
 	if (!serverPipe.Create(_T(sgScanServer), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_WAIT, 1, 4096, 4096, 1, &sa))
 	{
+		delete pScanner;
 		return 0;
 	}
 
@@ -140,6 +150,8 @@ UINT Server(LPVOID pParam)
 			continue;
 		}
 	}
+
+	delete pScanner;
 
 	return 0;
 };
@@ -205,18 +217,25 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 
 	//Pretend that starting up takes some time
 	ReportStatusToSCM(SERVICE_START_PENDING, NO_ERROR, 0, 1, 0);
-	CScanner *pScanner = new CScanner;
-	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
+	
+	CScannedFileMap *pFilesMap = new CScannedFileMap;
+	scan_log_utils::LogHeader("Loading hash DB", GetCurrentProcessId());
+	CPrecisionTimer timer;
+	timer.Start();
+	file_hash_DB_utils::ReadPassData(pFilesMap);
+	double dSec = timer.Stop();
+	scan_log_utils::LogTime("Load time", dSec);
 
 	//Lock hash DB file
 	HANDLE hDataFile = CreateFile(path_utils::GetDataFilePath(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	DWORD low, high;
 	low = GetFileSize(hDataFile, &high);
 	LockFile(hDataFile, 0, 0, low, high);
+	
+	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
 
-	pScanner->LoadDatabases();
 	//Starting real scan pipes server
-	CWinThread *pThread = AfxBeginThread(Server, (LPVOID)pScanner);
+	CWinThread *pThread = AfxBeginThread(Server, (LPVOID)pFilesMap);
 
 	//Report to the event log that the service has started successfully
 	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);
@@ -257,7 +276,14 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	UnlockFile(hDataFile, 0, 0, low, high);
 	CloseHandle(hDataFile);
 
-	delete pScanner;
+	scan_log_utils::LogHeader("Saving hash DB", GetCurrentProcessId());
+	timer.Start();
+	file_hash_DB_utils::WritePassData(pFilesMap);
+	dSec = timer.Stop();
+	scan_log_utils::LogTime("Save time", dSec);
+
+	pFilesMap->clear();
+	delete pFilesMap;
 
 	ReportStatusToSCM(SERVICE_STOPPED, NO_ERROR, 0, 1, 0);
 

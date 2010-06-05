@@ -388,6 +388,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\Utils\Scanner\FileHashDBUtils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Utils\Scanner\PrecisionTimer.h"
+					>
+				</File>
+				<File
 					RelativePath="..\Utils\Scanner\Scanner.cpp"
 					>
 					<FileConfiguration

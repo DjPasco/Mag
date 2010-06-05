@@ -2,13 +2,9 @@
 #define _SCANNER_H__
 #pragma once
 
-#ifndef HEADER_ENVELOPE_H
-	#include "openssl/evp.h"
+#ifndef _FILE_HASH_DB_UTILS_H__
+	#include "FileHashDBUtils.h"
 #endif
-
-#include <vector>
-
-typedef std::vector<CString> CFilesTypes;
 
 class CScannedFileMap;
 class CCLScanner;
@@ -37,6 +33,8 @@ public:
 	void ReloadDB();
 
 	int GetFilesCount();
+
+	void SetFilesMap(CScannedFileMap *pFilesMap);
 	
 private:
 	void Init();
