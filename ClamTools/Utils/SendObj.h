@@ -8,6 +8,7 @@ enum ESendInfoType
 	EReloadSettings,
 	EReloadDB,
 	EManualScan,
+	EQuit,
 	ESendCount
 };
 

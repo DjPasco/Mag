@@ -78,7 +78,6 @@ namespace hook_utils
 				return FALSE;
 			}
 
-
 			TRACE("Dll found.\n");
 
 			if(!RemoteFreeLibraryNT(WorProcessId, hDllModule))

@@ -16,6 +16,9 @@ public:
 	virtual void ShowHelp();
 	virtual void OnUserDefinedRequest(DWORD dwControl);
 
+private:
+	void StopRealScanServer();
+
 protected:
 	BOOL  m_bWantStop;
 	BOOL  m_bPaused;

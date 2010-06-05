@@ -111,6 +111,12 @@ UINT Server(LPVOID pParam)
 		DWORD dwBytes;
 		if (serverPipe.Read(&obj, sizeof(CSendObj), dwBytes, NULL))
 		{
+			if(EQuit == obj.m_nType)
+			{
+				serverPipe.DisconnectClient();
+				break;
+			}
+
 			if(obj.m_nType == ERequest)
 			{
 				CTrayRequestData data;
@@ -157,6 +163,7 @@ BOOL CApp::InitInstance()
 	CMyService Service;
 	Service.ParseCommandLine(cmdInfo);
 	Service.ProcessShellCommand(cmdInfo);
+
 #endif
 
 	return FALSE;
@@ -170,6 +177,27 @@ CMyService::CMyService() : CNTService(sgServiceName, sgServiceDisplayName, SERVI
 	m_dwBeepInternal = 1000;
 }
 
+void CMyService::StopRealScanServer()
+{
+	CNamedPipe clientPipe;
+	if (!CNamedPipe::ServerAvailable(".", _T(sgScanServer), 1000))
+	{
+		return;
+	}
+
+	if (!clientPipe.Open(".", _T(sgScanServer), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, NULL, 0))
+	{
+		return;
+	}
+
+	DWORD dwBytes;
+
+	CSendObj obj;
+	obj.m_nType = EQuit;
+	clientPipe.Write(&obj, sizeof(CSendObj), dwBytes);
+	clientPipe.Close();
+}
+
 void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 {
 	//register our control handler
@@ -177,17 +205,19 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 
 	//Pretend that starting up takes some time
 	ReportStatusToSCM(SERVICE_START_PENDING, NO_ERROR, 0, 1, 0);
-		CScanner *pScanner = new CScanner;
+	CScanner *pScanner = new CScanner;
 	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
 
-		//Lock's data file
-		HANDLE hDataFile = CreateFile(path_utils::GetDataFilePath(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		DWORD low, high;
-		low = GetFileSize(hDataFile, &high);
-		LockFile(hDataFile, 0, 0, low, high);
+	//Lock hash DB file
+	HANDLE hDataFile = CreateFile(path_utils::GetDataFilePath(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	DWORD low, high;
+	low = GetFileSize(hDataFile, &high);
+	LockFile(hDataFile, 0, 0, low, high);
 
-		pScanner->LoadDatabases();
-		AfxBeginThread(Server, (LPVOID)pScanner);
+	pScanner->LoadDatabases();
+	//Starting real scan pipes server
+	CWinThread *pThread = AfxBeginThread(Server, (LPVOID)pScanner);
+
 	//Report to the event log that the service has started successfully
 	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);
 
@@ -195,7 +225,6 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	BOOL bOldPause = m_bPaused;
 	while (!m_bWantStop)
 	{
-		//As a demo, we just do a message beep
 		Sleep(m_dwBeepInternal);
 		//SCM has requested a Pause / Continue
 		if (m_bPaused != bOldPause)
@@ -220,11 +249,16 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	//Pretend that closing down takes some time
 	ReportStatusToSCM(SERVICE_STOP_PENDING, NO_ERROR, 0, 1, 0);
 	
-	//Unlock's data file
+	//Stoping real scan pipe server
+	StopRealScanServer();
+	WaitForSingleObject(pThread->m_hThread, INFINITE);
+
+	//Unlock hash DB file
 	UnlockFile(hDataFile, 0, 0, low, high);
 	CloseHandle(hDataFile);
 
 	delete pScanner;
+
 	ReportStatusToSCM(SERVICE_STOPPED, NO_ERROR, 0, 1, 0);
 
 	//Report to the event log that the service has stopped successfully

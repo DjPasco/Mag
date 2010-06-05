@@ -46,11 +46,11 @@ namespace scan_log_utils
 			char sProcName[MAX_PATH];
 			GetModuleBaseName(hProcess, NULL, sProcName, MAX_PATH);
 
-			s.Format("------- %s %s Process name: %s -------", sOSTime, sData, sProcName);
+			s.Format("------- %s -- %s -- Process name: %s -------", sOSTime, sData, sProcName);
 		}
 		else
 		{
-			s.Format("------- %s %s -------", sOSTime, sData);
+			s.Format("------- %s -- %s -------", sOSTime, sData);
 		}
 
 		Write(s);
@@ -62,6 +62,15 @@ namespace scan_log_utils
 #ifdef _LOG_
 		CString s;
 		s.Format("\t%s: %.2f MB", sData, dPar);
+		Write(s);
+#endif
+	}
+
+	static void LogInt(LPCSTR sData, int nValue)
+	{
+#ifdef _LOG_
+		CString s;
+		s.Format("\t%s: %d", sData, nValue);
 		Write(s);
 #endif
 	}

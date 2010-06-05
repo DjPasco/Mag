@@ -278,6 +278,8 @@ namespace file_utils
 		}
 
 		fclose(pFile);
+
+		scan_log_utils::LogInt("Loaded items", pMapFiles->size());
 	}
 
 	void WritePassData(CScannedFileMap *pMapFiles)
@@ -287,6 +289,8 @@ namespace file_utils
 		{
 			return;
 		}
+
+		scan_log_utils::LogInt("Saved items", pMapFiles->size());
 
 		CDCHash hash;
 		CFileInfo info;
@@ -371,7 +375,12 @@ CScanner::CScanner()
 
 	m_pFilesMap = new CScannedFileMap;
 
+	scan_log_utils::LogHeader("Loading hash DB", GetCurrentProcessId());
+	CPrecisionTimer timer;
+	timer.Start();
 	file_utils::ReadPassData(m_pFilesMap);
+	double dSec = timer.Stop();
+	scan_log_utils::LogTime("Load time", dSec);
 
 	CSettingsInfo info;
 	if(settings_utils::Load(info))
@@ -384,7 +393,14 @@ CScanner::CScanner()
 CScanner::~CScanner()
 {
 	Free();	
+
+	scan_log_utils::LogHeader("Saving hash DB", GetCurrentProcessId());
+	CPrecisionTimer timer;
+	timer.Start();
 	file_utils::WritePassData(m_pFilesMap);
+	double dSec = timer.Stop();
+	scan_log_utils::LogTime("Save time", dSec);
+
 	m_pFilesMap->clear();
 
 	delete m_pFilesMap;
