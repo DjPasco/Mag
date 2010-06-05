@@ -69,52 +69,39 @@ namespace hook_utils
 
 		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath, LPCSTR sProcName)
 		{
-			HANDLE HanProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_QUERY_INFORMATION|PROCESS_VM_OPERATION|PROCESS_VM_WRITE|PROCESS_VM_READ, FALSE, WorProcessId);
-			char sDLLFilePath[(MAX_PATH + 16)] = { 0 };
+			TRACE("Ejecting %s.\n", sDllPath);
 
-			strcpy(sDLLFilePath, sDllPath);
-
-			HMODULE ModKernel32 = GetModuleHandle("Kernel32.dll");
-			if(ModKernel32 == NULL)
+			HMODULE hDllModule = RemoteGetModuleHandleNT(WorProcessId, sDllPath); 
+			if(NULL == hDllModule)
 			{
+				TRACE("Dll not found.\n");
 				return FALSE;
 			}
 
-			MODULEENTRY32 MOEModuleInformation = { 0 };
-			MOEModuleInformation.dwSize = sizeof(MODULEENTRY32);
 
-			HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, WorProcessId);
+			TRACE("Dll found.\n");
 
-			TRACE("Ejecting %s.\n", sDLLFilePath);
-			Module32First(HanModuleSnapshot, &MOEModuleInformation);
-
-			bool bFound(false);
-
-			do
+			if(!RemoteFreeLibraryNT(WorProcessId, hDllModule))
 			{
-				if(!lstrcmpi(MOEModuleInformation.szExePath, sDLLFilePath))
-				{
-					bFound = true;
-
-					TRACE("Dll found.\n");
-
-					if(!RemoteFreeLibraryNT(WorProcessId, MOEModuleInformation.hModule))
-					{
-						TRACE("UnHooking error.\n");
-					}
-
-					TRACE("Dll ejected.\n");
-				}
-			} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
-
-			if(!bFound)
-			{
-				TRACE("Dll not found.\n");
+				TRACE("UnHooking error.\n");
+				LPVOID lpMsgBuf;
+				FormatMessage( 
+					FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+					FORMAT_MESSAGE_FROM_SYSTEM | 
+					FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL,
+					GetLastError(),
+					0, // Default language
+					(LPTSTR) &lpMsgBuf,
+					0,
+					NULL);
+				TRACE("Reason: %s.\n", lpMsgBuf);
+				return FALSE;
 			}
 
-			CloseHandle(HanModuleSnapshot);
-			CloseHandle(HanProcess);
-			return FALSE;
+			TRACE("Dll ejected.\n");
+
+			return TRUE;
 		}
 	}
 
@@ -153,27 +140,12 @@ namespace hook_utils
 
 	bool ExistsModule(DWORD dwProcID, char *sDLLPath)
 	{
-		HMODULE ModDLLHandle = NULL;
-		BYTE * BytDLLBaseAdress = 0;
-		MODULEENTRY32 MOEModuleInformation = { 0 };
-		MOEModuleInformation.dwSize = sizeof(MODULEENTRY32);
-
-		HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcID);
-
-		Module32First(HanModuleSnapshot, &MOEModuleInformation);
-
-		do
+		if(NULL == RemoteGetModuleHandleNT(dwProcID, sDLLPath))
 		{
-			if(!lstrcmpi(MOEModuleInformation.szExePath, sDLLPath))
-			{
-				CloseHandle(HanModuleSnapshot);
-				return true;
-			}
-		} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
+			return false;
+		}
 
-		CloseHandle(HanModuleSnapshot);
-
-		return false;
+		return true;
 	}
 
 	void GlobalHook(bool bInitial)

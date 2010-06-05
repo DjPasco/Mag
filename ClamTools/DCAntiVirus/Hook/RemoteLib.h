@@ -40,9 +40,11 @@
 #ifdef UNICODE // UNICODE is defined
 #define RemoteLoadLibraryNT			RemoteLoadLibraryNTW
 #define RemoteGetModuleFileName		RemoteGetModuleFileNameW
+#define RemoteGetModuleHandleNT		RemoteGetModuleHandleNTW
 #else // #ifdef UNICODE
 #define RemoteLoadLibraryNT			RemoteLoadLibraryNTA
 #define RemoteGetModuleFileName		RemoteGetModuleFileNameA
+#define RemoteGetModuleHandleNT		RemoteGetModuleHandleNTA
 #endif // #ifdef UNICODE
 
 /////////////////////////////////////////////////////////////////////////
@@ -53,5 +55,7 @@
 /////////////////////////////////////////////////////////////////////////
 HMODULE RemoteLoadLibraryNTA(DWORD dwTargetProcessID, LPCSTR lpszDllPath);
 HMODULE RemoteLoadLibraryNTW(DWORD dwTargetProcessID, LPCWSTR lpszDllPath);
-BOOL RemoteFreeLibraryNT(DWORD dwTargetProcessID, HMODULE hModule);
+BOOL	RemoteFreeLibraryNT(DWORD dwTargetProcessID, HMODULE hModule);
+HMODULE RemoteGetModuleHandleNTA(DWORD dwTargetProcessID, LPCSTR lpszDllPath);
+HMODULE RemoteGetModuleHandleNTW(DWORD dwTargetProcessID, LPCWSTR lpszDllPath);
 #endif // #ifndef __REMOTELIB_H__

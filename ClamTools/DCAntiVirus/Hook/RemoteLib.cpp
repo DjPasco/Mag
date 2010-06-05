@@ -12,15 +12,17 @@
 #include "stdafx.h"
 #include "RemoteLib.h"
 
+#ifdef _DEBUG
+#undef THIS_FILE
+static char THIS_FILE[]=__FILE__;
+#define new DEBUG_NEW
+#endif
+
 BOOL IsWindowsNT();
 HANDLE OpenProcessForRemoteExecute(DWORD dwProcessID);
 BOOL WriteProcessBytes(HANDLE hProcess, LPVOID lpBaseAddr, LPCVOID lpData, DWORD dwSize);
 BOOL RemoteExecute(DWORD dwRemoteProcID, LPTHREAD_START_ROUTINE lpfn, LPCVOID lpszParamString, DWORD dwLen, DWORD& rExitCode, DWORD& rErrorCode);
 BOOL RemoteExecute(HANDLE hRemoteProc, LPTHREAD_START_ROUTINE lpfn, LPVOID lpParam, DWORD& rExitCode, DWORD& rErrorCode);
-
-/////////////////////////////////////////////////////////////////////////////////
-// Functions Below This Line are for Windows NT Plateform Only!
-/////////////////////////////////////////////////////////////////////////////////
 
 BOOL IsWindowsNT()
 {
@@ -235,4 +237,77 @@ BOOL RemoteFreeLibraryNT(DWORD dwTargetProcessID, HMODULE hModule)
 	}
 
 	return TRUE;
+}
+
+HMODULE RemoteGetModuleHandleNTA(DWORD dwTargetProcessID, LPCSTR lpszDllPath)
+{
+	if (lpszDllPath && lpszDllPath[0] == 0)
+	{
+		::SetLastError(ERROR_MOD_NOT_FOUND);
+		return NULL;
+	}
+
+	if (!IsWindowsNT())
+	{
+		::SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+		return NULL;
+	}
+	
+	LPTHREAD_START_ROUTINE lpfn = (LPTHREAD_START_ROUTINE)::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "GetModuleHandleA");
+	if (lpfn == NULL)
+		return NULL;
+
+	DWORD dwExitCode = 0;
+	DWORD dwErrorCode = ERROR_SUCCESS;
+
+	BOOL bOK = RemoteExecute(dwTargetProcessID, lpfn, (LPCVOID)lpszDllPath, lpszDllPath ? (::strlen(lpszDllPath) + 1) * sizeof(char) : 0, dwExitCode, dwErrorCode);
+	if (!bOK)
+	{
+		::SetLastError(dwErrorCode);
+		return NULL;
+	}
+
+	if (dwExitCode == 0)
+	{
+		::SetLastError(ERROR_FILE_NOT_FOUND);
+		return NULL;
+	}
+
+	return (HMODULE)dwExitCode;
+}
+
+HMODULE RemoteGetModuleHandleNTW(DWORD dwTargetProcessID, LPCWSTR lpszDllPath)
+{
+	if (lpszDllPath && lpszDllPath[0] == 0)
+	{
+		::SetLastError(ERROR_MOD_NOT_FOUND);
+		return NULL;
+	}
+		
+	if (!IsWindowsNT())
+	{
+		::SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+		return NULL;
+	}
+
+	LPTHREAD_START_ROUTINE lpfn = (LPTHREAD_START_ROUTINE)::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "GetModuleHandleW");
+	if (lpfn == NULL)
+		return NULL;
+	
+	DWORD dwExitCode = 0;
+	DWORD dwErrorCode = ERROR_SUCCESS;
+	BOOL bOK = RemoteExecute(dwTargetProcessID, lpfn, (LPCVOID)lpszDllPath, lpszDllPath ? (::wcslen(lpszDllPath) + 1) * sizeof(wchar_t) : 0, dwExitCode, dwErrorCode);
+	if (!bOK)
+	{
+		::SetLastError(dwErrorCode);
+		return NULL;
+	}
+
+	if (dwExitCode == 0)
+	{
+		::SetLastError(ERROR_FILE_NOT_FOUND);
+		return NULL;
+	}
+
+	return (HMODULE)dwExitCode;
 }
