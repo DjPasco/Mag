@@ -5,11 +5,13 @@
 #include "DCAntiVirusSettingsDlg.h"
 #include "DCAntiVirusManualScanDlg.h"
 #include "DCAntiVirusMemoryScanDlg.h"
+#include "DCAntiVirusHookDlg.h"
 #include "Hook/Hook.h"
 
 #include "../Utils/TraySendObj.h"
 #include "../Utils/SendObj.h"
 #include "../Utils/Registry.h"
+#include "../Utils/Settings.h"
 #include "../Utils/npipe.h"
 
 #define WM_HOOK_SYSTEM	WM_USER+1
@@ -36,9 +38,7 @@ CDCAntiVirusDlg::CDCAntiVirusDlg(CWnd* pParent)
 
 CDCAntiVirusDlg::~CDCAntiVirusDlg()
 {
-#ifndef IGNORE_HOOK
-	hook_utils::GlobalUnHook();
-#endif
+	//
 }
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
@@ -113,6 +113,8 @@ LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 	hook_utils::GlobalHook(true);
 	//hook_utils::StartExeWithHookDll("c:\\WINDOWS\\NOTEPAD.EXE");
 #endif
+
+	RunHookInfoDlg();
 
 	return 0;
 }
@@ -285,4 +287,41 @@ void CDCAntiVirusDlg::OnMemoryScan()
 {
 	CDCAntiVirusMemoryScanDlg dlg;
 	dlg.DoModal();
+}
+
+void CDCAntiVirusDlg::RunHookInfoDlg()
+{
+	CSettingsInfo info;
+	if(settings_utils::Load(info))
+	{
+		if(!info.m_bLog)
+		{
+			return;
+		}
+	}
+
+	CDCAntivirusHookDlg dlg;
+	dlg.DoModal();
+}
+
+void CDCAntiVirusDlg::OnCancel()
+{
+#ifndef IGNORE_HOOK
+	hook_utils::GlobalUnHook();
+#endif	
+
+	RunHookInfoDlg();
+
+	CDialog::OnCancel();
+}
+
+void CDCAntiVirusDlg::OnOK()
+{
+#ifndef IGNORE_HOOK
+	hook_utils::GlobalUnHook();
+#endif
+
+	RunHookInfoDlg();
+
+	CDialog::OnOK();
 }

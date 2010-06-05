@@ -4,6 +4,7 @@
 #include "Psapi.h"
 #include <tlhelp32.h>
 #include <iostream>
+#include "RemoteLib.h"
 
 #include "../../Utils/Registry.h"
 
@@ -36,39 +37,6 @@ namespace hook_utils
 			CloseHandle(hToken); 
 		}
 
-		void RunLoadLibraryInProcess(HANDLE hProcess, LPVOID LoadLibraryAddr, char *sDLLPath)
-		{
-			LPVOID LLParam = (LPVOID)VirtualAllocEx(hProcess, NULL, strlen(sDLLPath), MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
-			WriteProcessMemory(hProcess, LLParam, sDLLPath, strlen(sDLLPath), NULL);
-			HANDLE hLoadLibrary = CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibraryAddr, LLParam, NULL, NULL);
-			WaitForSingleObject(hLoadLibrary, INFINITE);
-		}
-
-		bool ExistsModule(DWORD dwProcID, char *sDLLPath)
-		{
-			HMODULE ModDLLHandle = NULL;
-			BYTE * BytDLLBaseAdress = 0;
-			MODULEENTRY32 MOEModuleInformation = { 0 };
-			MOEModuleInformation.dwSize = sizeof(MODULEENTRY32);
-
-			HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcID);
-
-			Module32First(HanModuleSnapshot, &MOEModuleInformation);
-
-			do
-			{
-				if(!lstrcmpi(MOEModuleInformation.szExePath, sDLLPath))
-				{
-					CloseHandle(HanModuleSnapshot);
-					return true;
-				}
-			} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
-
-			CloseHandle(HanModuleSnapshot);
-
-			return false;
-		}
-
 		bool NeedHook(LPCSTR sExeName)
 		{
 			if(0 == lstrcmpi(sExeName, "DCService.exe"))
@@ -77,6 +45,16 @@ namespace hook_utils
 			}
 
 			if(0 == lstrcmpi(sExeName, "DCServiceD.exe"))
+			{
+				return false;
+			}
+
+			if(0 == lstrcmpi(sExeName, "DCAntiVirus.exe"))
+			{
+				return false;
+			}
+
+			if(0 == lstrcmpi(sExeName, "DCAntiVirusD.exe"))
 			{
 				return false;
 			}
@@ -91,7 +69,7 @@ namespace hook_utils
 
 		BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath, LPCSTR sProcName)
 		{
-			HANDLE HanProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, WorProcessId);
+			HANDLE HanProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_QUERY_INFORMATION|PROCESS_VM_OPERATION|PROCESS_VM_WRITE|PROCESS_VM_READ, FALSE, WorProcessId);
 			char sDLLFilePath[(MAX_PATH + 16)] = { 0 };
 
 			strcpy(sDLLFilePath, sDllPath);
@@ -102,9 +80,6 @@ namespace hook_utils
 				return FALSE;
 			}
 
-
-			HMODULE ModDLLHandle = NULL;
-			BYTE * BytDLLBaseAdress = 0;
 			MODULEENTRY32 MOEModuleInformation = { 0 };
 			MOEModuleInformation.dwSize = sizeof(MODULEENTRY32);
 
@@ -113,27 +88,29 @@ namespace hook_utils
 			TRACE("Ejecting %s.\n", sDLLFilePath);
 			Module32First(HanModuleSnapshot, &MOEModuleInformation);
 
+			bool bFound(false);
+
 			do
 			{
 				if(!lstrcmpi(MOEModuleInformation.szExePath, sDLLFilePath))
 				{
-					ModDLLHandle = MOEModuleInformation.hModule;
-					BytDLLBaseAdress = MOEModuleInformation.modBaseAddr;
-					TRACE("Ejecting from %s.\n", sProcName);
+					bFound = true;
 
-					if(ModDLLHandle != NULL && BytDLLBaseAdress != 0)
+					TRACE("Dll found.\n");
+
+					if(!RemoteFreeLibraryNT(WorProcessId, MOEModuleInformation.hModule))
 					{
-						HANDLE HanDLLThread = CreateRemoteThread(HanProcess, NULL, 0, LPTHREAD_START_ROUTINE(GetProcAddress(ModKernel32, "FreeLibrary")), (VOID *)BytDLLBaseAdress, 0, NULL);
-
-						if(HanDLLThread != NULL)
-						{
-							WaitForSingleObject(HanDLLThread, INFINITE);
-							CloseHandle(HanDLLThread);
-							TRACE("Ejecting Completed.\n");
-						}
+						TRACE("UnHooking error.\n");
 					}
+
+					TRACE("Dll ejected.\n");
 				}
 			} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
+
+			if(!bFound)
+			{
+				TRACE("Dll not found.\n");
+			}
 
 			CloseHandle(HanModuleSnapshot);
 			CloseHandle(HanProcess);
@@ -174,6 +151,31 @@ namespace hook_utils
 		}
 	}
 
+	bool ExistsModule(DWORD dwProcID, char *sDLLPath)
+	{
+		HMODULE ModDLLHandle = NULL;
+		BYTE * BytDLLBaseAdress = 0;
+		MODULEENTRY32 MOEModuleInformation = { 0 };
+		MOEModuleInformation.dwSize = sizeof(MODULEENTRY32);
+
+		HANDLE HanModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcID);
+
+		Module32First(HanModuleSnapshot, &MOEModuleInformation);
+
+		do
+		{
+			if(!lstrcmpi(MOEModuleInformation.szExePath, sDLLPath))
+			{
+				CloseHandle(HanModuleSnapshot);
+				return true;
+			}
+		} while(Module32Next(HanModuleSnapshot, &MOEModuleInformation));
+
+		CloseHandle(HanModuleSnapshot);
+
+		return false;
+	}
+
 	void GlobalHook(bool bInitial)
 	{
 		HWND hwnd = NULL;
@@ -198,7 +200,6 @@ namespace hook_utils
 
 		if(TRUE == Process32First(snapshot, &entry))
 		{
-			LPVOID LoadLibraryAddr = (LPVOID)GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "LoadLibraryA");
 			while(TRUE == Process32Next(snapshot, &entry))
 			{
 				if(GetCurrentProcessId() != entry.th32ProcessID && internal::NeedHook(entry.szExeFile))
@@ -206,15 +207,53 @@ namespace hook_utils
 					char sHookPath[MAX_PATH];
 					path_utils::GetHookDllPath(sHookPath);
 
-					if(bInitial || !internal::ExistsModule(entry.th32ProcessID, sHookPath))
+					if(bInitial || !ExistsModule(entry.th32ProcessID, sHookPath))
 					{
-						char sFullDetoursPath[MAX_PATH];
-						path_utils::GetDetourDllPath(sFullDetoursPath);
+						TRACE("Working on %s.\n", entry.szExeFile);
+						char sDetoursPath[MAX_PATH];
+						path_utils::GetDetourDllPath(sDetoursPath);
 
-						HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD|PROCESS_VM_OPERATION|PROCESS_VM_WRITE, FALSE, entry.th32ProcessID);
-						internal::RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sFullDetoursPath);
-						internal::RunLoadLibraryInProcess(hProcess, LoadLibraryAddr, sHookPath);
-						CloseHandle(hProcess);
+						if(NULL == RemoteLoadLibraryNT(entry.th32ProcessID, sDetoursPath))
+						{
+							TRACE("Hook failed on %s.\n", sDetoursPath);
+							LPVOID lpMsgBuf;
+							FormatMessage( 
+								FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+								FORMAT_MESSAGE_FROM_SYSTEM | 
+								FORMAT_MESSAGE_IGNORE_INSERTS,
+								NULL,
+								GetLastError(),
+								0, // Default language
+								(LPTSTR) &lpMsgBuf,
+								0,
+								NULL);
+							TRACE("Reason: %s.\n", lpMsgBuf);
+						}
+						else
+						{
+							TRACE("Hook OK on %s.\n", sDetoursPath);
+						}
+
+						if(NULL == RemoteLoadLibraryNT(entry.th32ProcessID, sHookPath))
+						{
+							TRACE("Hook failed on %s.\n", sHookPath);
+							LPVOID lpMsgBuf;
+							FormatMessage( 
+								FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+								FORMAT_MESSAGE_FROM_SYSTEM | 
+								FORMAT_MESSAGE_IGNORE_INSERTS,
+								NULL,
+								GetLastError(),
+								0, // Default language
+								(LPTSTR) &lpMsgBuf,
+								0,
+								NULL);
+							TRACE("Reason: %s.\n", lpMsgBuf);
+						}
+						else
+						{
+							TRACE("Hook OK on %s.\n", sHookPath);
+						}
 					}
 				}
 			}
@@ -251,6 +290,7 @@ namespace hook_utils
 				{
 					if(internal::NeedHook(entry.szExeFile))
 					{
+						TRACE("Working on %s.\n", entry.szExeFile);
 						internal::EjectDLL(entry.th32ProcessID, sHookPath, entry.szExeFile);
 						internal::EjectDLL(entry.th32ProcessID, sFullDetoursPath, entry.szExeFile);
 					}

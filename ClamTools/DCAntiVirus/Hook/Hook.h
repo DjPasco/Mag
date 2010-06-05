@@ -8,6 +8,7 @@ namespace hook_utils
 	void GlobalHook(bool bInitial = false);
 	void GlobalUnHook();
 	int GetProcessCount();
+	bool ExistsModule(DWORD dwProcID, char *sDLLPath);
 }
 
 #endif

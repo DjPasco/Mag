@@ -15,8 +15,9 @@
 #define IDD_DIALOG_LOG                  144
 #define IDR_LIST_CONTEXT                145
 #define IDD_DIALOG_ALERT                146
-#define IDD_DIALOG1                     147
 #define IDD_SCAN_DLG                    147
+#define IDD_DIALOG1                     148
+#define IDD_DIALOG_PROC                 148
 #define IDC_BUTTON_DEL                  1000
 #define IDC_BUTTON_QUARANTINE           1001
 #define IDC_SHEET_POSITION              1005
@@ -123,6 +124,8 @@
 #define IDC_STATIC_INFO                 1055
 #define IDC_BUTTON_QUAR                 1056
 #define IDC_COMBO_PRIORITY              1057
+#define IDC_CHECK_LOG                   1058
+#define IDC_PROCESS_TREE                1060
 #define ID_LALA1_LALA2                  32771
 #define ID_LALA1_LALA3                  32772
 #define ID_MENU_VIEWFULLLOG             32773
@@ -138,9 +141,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        148
+#define _APS_NEXT_RESOURCE_VALUE        149
 #define _APS_NEXT_COMMAND_VALUE         32780
-#define _APS_NEXT_CONTROL_VALUE         1058
+#define _APS_NEXT_CONTROL_VALUE         1061
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

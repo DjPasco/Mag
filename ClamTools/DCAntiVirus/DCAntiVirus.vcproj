@@ -215,6 +215,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DCAntivirusHookDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DCAntivirusHookDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\DCAntivirusLogDlg.cpp"
 				>
 			</File>
@@ -370,6 +378,14 @@
 			</File>
 			<File
 				RelativePath=".\Hook\Hook.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Hook\RemoteLib.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Hook\RemoteLib.h"
 				>
 			</File>
 		</Filter>

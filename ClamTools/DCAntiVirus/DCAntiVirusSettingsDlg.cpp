@@ -216,6 +216,8 @@ void CDCAntiVirusSettingsDlg::GetData(CSettingsInfo &info)
 	GetScanData(info);
 	GetIdleData(info);
 	GetMemoryData(info);
+
+	info.m_bLog = ControlChecked(IDC_CHECK_LOG);
 }
 
 void CDCAntiVirusSettingsDlg::GetScanData(CSettingsInfo &info)
@@ -260,6 +262,8 @@ void CDCAntiVirusSettingsDlg::SetData(const CSettingsInfo &info)
 	SetScanData(info);
 	SetIdleData(info);
 	SetMemoryData(info);
+
+	CheckControl(IDC_CHECK_LOG,	info.m_bLog);
 }
 
 void CDCAntiVirusSettingsDlg::SetMemoryData(const CSettingsInfo &info)

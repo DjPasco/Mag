@@ -21,10 +21,14 @@ protected:
 	HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
+	virtual void OnCancel();
+	virtual void OnOK();
+
 private:
 	void RequestData();
-
 	bool SendObj(CSendObj &obj);
+
+	void RunHookInfoDlg();
 
 private:
 	HICON m_hIcon;
