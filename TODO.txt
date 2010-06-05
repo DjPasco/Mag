@@ -1,12 +1,4 @@
-8)	Skenuotu failu DB uzrakinimas startavus procesui.
-9)	Antivirusu palyginimas (Kaspersky, Avira, AVG, ....).
-
-[Aptarimas teorijoje]
-10)	GPU panaudojimas (Kaspersky tai jau daro).
-11) 	Multithreading.
-
-
-Clam naudoja siuos algoritmus:
-	1)	Aho-Corasick
-	2)	extended version of Boyer-Moore
-	
+1) Hookinimo patobulinimas
+2) Idle scanas
+3) Crash suradimas
+4) Ideti manual scanui atskita threada.	
