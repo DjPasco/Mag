@@ -377,6 +377,8 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus, DWORD PID, bool &b
 	if(m_pMainScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
 		sVirus.Format("%s", sVirname);
+		double dSec = timer.Stop();
+		scan_log_utils::LogTime("Scan time", dSec);
 		scan_log_utils::LogVirus(sVirus, true);
 		return false;
 	}
@@ -386,6 +388,8 @@ bool CScanner::ScanFileNoIntDB(LPCSTR sFile, CString &sVirus, DWORD PID, bool &b
 	if(m_pDailyScan->ScanFile(sFilePath.c_str(), &sVirname))
 	{
 		sVirus.Format("%s", sVirname);
+		double dSec = timer.Stop();
+		scan_log_utils::LogTime("Scan time", dSec);
 		scan_log_utils::LogVirus(sVirus, false);
 		return false;
 	}

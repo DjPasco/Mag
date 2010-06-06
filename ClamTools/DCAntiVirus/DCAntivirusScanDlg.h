@@ -39,7 +39,6 @@ protected:
 private:
 	void ReloadSettings(CSendObj *pObj);
 
-	void SendFileToPipeServer(CSendObj *pObj, CFileResult &result);
 	void RequestData(CSendObj *pObj);
 
 	void SendInfoToTray(CTrayRequestData &pTrayInfo);

@@ -293,6 +293,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\PipeServerUtils.h"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.h"
 				>
 			</File>

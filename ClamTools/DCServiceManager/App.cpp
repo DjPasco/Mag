@@ -3,13 +3,11 @@
 #include "ntserv_msg.h"
 #include "app.h"
 
+#include "PipeServerUtils.h" 
+
 #include "../Utils/Scanner/FileHashDBUtils.h"
-#include "../Utils/Scanner/Scanner.h"
-#include "../Utils/Registry.h"
-#include "../Utils/Settings.h"
 #include "../Utils/Log.h"
 #include "../Utils/npipe.h"
-#include "../Utils/TraySendObj.h"
 #include "../Utils/SendObj.h"
 
 #ifdef _DEBUG
@@ -17,144 +15,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-
-void DoAction(CSendObj *pData, CScanner *pScanner, CFileResult &result)
-{
-	result.m_bOK = true;
-	strcpy_s(result.m_sVirusName, MAX_PATH, "File is clean.");
-
-	switch(pData->m_nType)
-	{
-	case EScan:
-		{
-			CString sFile = pData->m_sPath;
-			CString sVirusName;
-			if(!pScanner->ScanFile(sFile, sVirusName, pData->m_PID, result.m_bScanned, true))
-			{
-				result.m_bOK = false;
-				strcpy_s(result.m_sVirusName, MAX_PATH, sVirusName);
-			}
-		}
-		break;
-	case EReloadSettings:
-		{
-			CSettingsInfo info;
-			if(settings_utils::Load(info))
-			{
-				pScanner->SetScanSettings(info.m_bDeep, info.m_bOffice, info.m_bArchives, info.m_bPDF, info.m_bHTML);
-				pScanner->SetFilesTypes(info.m_sFilesTypes);
-			}
-		}
-		break;
-	case EManualScan:
-		{
-			int nOldPriority = GetThreadPriority(GetCurrentThread());
-			SetThreadPriority(GetCurrentThread(), priority_utils::GetRealPriority(path_utils::GetPriority()));
-
-			registry_utils::WriteProfileString(sgSection, sgVirusName, "");
-			CString sFile = pData->m_sPath;
-			CString sVirusName;
-			bool bClean(true);
-			if(pData->m_bUseInternalDB)
-			{
-				bClean = pScanner->ScanFile(sFile, sVirusName, pData->m_PID, result.m_bScanned, false); 
-			}
-			else
-			{
-				bClean = pScanner->ScanFileNoIntDB(sFile, sVirusName, pData->m_PID, result.m_bScanned); 
-			}
-
-			SetThreadPriority(GetCurrentThread(), nOldPriority);
-
-			if(!bClean)
-			{
-				result.m_bOK = false;
-				strcpy_s(result.m_sVirusName, MAX_PATH, sVirusName);
-			}
-		}
-		break;
-	case EReloadDB:
-		{
-			pScanner->ReloadDB();
-		}
-		break;
-	}
-
-	result.m_nFilesCount = pScanner->GetFilesCount();
-}
-
-UINT Server(LPVOID pParam)
-{
-	CScannedFileMap *pFilesMap = (CScannedFileMap *)pParam;
-
-	if(NULL == pFilesMap)
-	{
-		return 0;
-	}
-
-	CScanner *pScanner = new CScanner;
-	pScanner->LoadDatabases();
-	pScanner->SetFilesMap(pFilesMap);
-
-	CNamedPipe serverPipe;
-	SECURITY_ATTRIBUTES sa;
-	sa.lpSecurityDescriptor = (PSECURITY_DESCRIPTOR)malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
-	InitializeSecurityDescriptor(sa.lpSecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
-	// ACL is set as NULL in order to allow all access to the object.
-	SetSecurityDescriptorDacl(sa.lpSecurityDescriptor, TRUE, NULL, FALSE);
-	sa.nLength = sizeof(sa);
-	sa.bInheritHandle = TRUE;
-	if (!serverPipe.Create(_T(sgScanServer), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_WAIT, 1, 4096, 4096, 1, &sa))
-	{
-		delete pScanner;
-		return 0;
-	}
-
-	while (1)
-	{
-		if (!serverPipe.ConnectClient())
-		{
-			continue;
-		}
-		
-		CSendObj obj;
-		DWORD dwBytes;
-		if (serverPipe.Read(&obj, sizeof(CSendObj), dwBytes, NULL))
-		{
-			if(EQuit == obj.m_nType)
-			{
-				serverPipe.DisconnectClient();
-				break;
-			}
-
-			if(obj.m_nType == ERequest)
-			{
-				CTrayRequestData data;
-				ZeroMemory(&data, sizeof(CTrayRequestData));
-				pScanner->RequestData(data);
-				serverPipe.Write(&data, sizeof(CTrayRequestData), dwBytes);
-			}
-			else
-			{
-				CFileResult result;
-				ZeroMemory(&result, sizeof(CFileResult));
-
-				DoAction(&obj, pScanner, result);
-
-				serverPipe.Write(&result, sizeof(CFileResult), dwBytes);
-			}
-		}
-
-		if (!serverPipe.DisconnectClient())
-		{
-			continue;
-		}
-	}
-
-	delete pScanner;
-
-	return 0;
-};
 
 //#define _TEST_
 
@@ -164,10 +24,18 @@ BOOL CApp::InitInstance()
 
 #ifdef _TEST_ 
 	
-	CScanner *pScanner = new CScanner;
-	pScanner->LoadDatabases();
-	Server((LPVOID)pScanner);
-	delete pScanner;
+	CScannedFileMap *pFilesMap = new CScannedFileMap;
+	file_hash_DB_utils::ReadPassData(pFilesMap);
+
+	bool bCriticalSectionOpened = file_hash_DB_utils::CreateHashDBCriticalSection(pFilesMap);
+
+	if(bCriticalSectionOpened)
+	{
+		//Starting real scan pipes server
+		//pRealScanThread = AfxBeginThread(pipe_server_utils::RealScanServer, (LPVOID)pFilesMap);
+		//Starting manual scan pipes server
+		pipe_server_utils::ManualScanServer((LPVOID)pFilesMap);
+	}
 
 #else
 
@@ -189,15 +57,15 @@ CMyService::CMyService() : CNTService(sgServiceName, sgServiceDisplayName, SERVI
 	m_dwBeepInternal = 1000;
 }
 
-void CMyService::StopRealScanServer()
+void CMyService::StopScanServer(LPCSTR sServerName)
 {
 	CNamedPipe clientPipe;
-	if (!CNamedPipe::ServerAvailable(".", _T(sgScanServer), 1000))
+	if (!CNamedPipe::ServerAvailable(".", _T(sServerName), 1000))
 	{
 		return;
 	}
 
-	if (!clientPipe.Open(".", _T(sgScanServer), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, NULL, 0))
+	if (!clientPipe.Open(".", _T(sServerName), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, NULL, 0))
 	{
 		return;
 	}
@@ -205,7 +73,7 @@ void CMyService::StopRealScanServer()
 	DWORD dwBytes;
 
 	CSendObj obj;
-	obj.m_nType = EQuit;
+	obj.m_nType = EQuitServer;
 	clientPipe.Write(&obj, sizeof(CSendObj), dwBytes);
 	clientPipe.Close();
 }
@@ -234,8 +102,16 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	
 	ReportStatusToSCM(SERVICE_RUNNING, NO_ERROR, 0, 1, 0);
 
-	//Starting real scan pipes server
-	CWinThread *pThread = AfxBeginThread(Server, (LPVOID)pFilesMap);
+	CWinThread *pRealScanThread = NULL;
+	CWinThread *pManualScanThread = NULL;
+	bool bCriticalSectionOpened = file_hash_DB_utils::CreateHashDBCriticalSection(pFilesMap);
+	if(bCriticalSectionOpened)
+	{
+		//Starting real scan pipes server
+		pRealScanThread = AfxBeginThread(pipe_server_utils::RealScanServer, (LPVOID)pFilesMap);
+		//Starting manual scan pipes server
+		pManualScanThread = AfxBeginThread(pipe_server_utils::ManualScanServer, (LPVOID)pFilesMap);
+	}
 
 	//Report to the event log that the service has started successfully
 	m_EventLogSource.Report(EVENTLOG_INFORMATION_TYPE, CNTS_MSG_SERVICE_STARTED, m_sDisplayName);
@@ -269,8 +145,20 @@ void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 	ReportStatusToSCM(SERVICE_STOP_PENDING, NO_ERROR, 0, 1, 0);
 	
 	//Stoping real scan pipe server
-	StopRealScanServer();
-	WaitForSingleObject(pThread->m_hThread, INFINITE);
+	if(NULL != pRealScanThread)
+	{
+		StopScanServer(sgScanServer);
+		WaitForSingleObject(pRealScanThread->m_hThread, 20000);
+	}
+
+	if(NULL != pManualScanThread)
+	{
+		//Stoping manual scan pipe server
+		StopScanServer(sgManualScanServer);
+		WaitForSingleObject(pManualScanThread->m_hThread, 20000);
+	}
+
+	file_hash_DB_utils::DeleteHashDBCriticalSection(pFilesMap);
 
 	//Unlock hash DB file
 	UnlockFile(hDataFile, 0, 0, low, high);

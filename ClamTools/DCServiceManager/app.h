@@ -17,7 +17,7 @@ public:
 	virtual void OnUserDefinedRequest(DWORD dwControl);
 
 private:
-	void StopRealScanServer();
+	void StopScanServer(LPCSTR sServerName);
 
 protected:
 	BOOL  m_bWantStop;

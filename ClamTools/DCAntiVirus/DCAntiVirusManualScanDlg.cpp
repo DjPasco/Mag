@@ -5,6 +5,7 @@
 
 #include "../Utils/SendObj.h"
 #include "../Utils/Registry.h"
+#include "../Utils/PipeClientUtils.h"
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -13,8 +14,8 @@
 class CScanFiles : public CEnumerateFiles
 {
 public:
-	CScanFiles(HWND hwnd, CDCAntiVirusManualScanDlg *pDlg, CScanEndingObs *pObs, bool bUseInternalDB)
-		:CEnumerateFiles(pObs, false), m_hwnd(hwnd), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
+	CScanFiles(CDCAntiVirusManualScanDlg *pDlg, CScanEndingObs *pObs, bool bUseInternalDB)
+		:CEnumerateFiles(pObs, false), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
 
 public:
 	virtual void OnFile(LPCTSTR lpzFile)
@@ -27,29 +28,21 @@ public:
 		obj.m_bUseInternalDB = m_bUseInternalDB;
 		obj.m_PID = GetCurrentProcessId();
 
-		COPYDATASTRUCT copy;
-		copy.dwData = 1;
-		copy.cbData = sizeof(obj);
-		copy.lpData = &obj;
-
-		LRESULT result = SendMessage(m_hwnd,
-									 WM_COPYDATA,
-									 0,
-									 (LPARAM) (LPVOID) &copy);
-
-		if(2 == result)
+		CFileResult result;
+		ZeroMemory(&result, sizeof(CFileResult));
+		pipe_client_utils::SendFileToPipeServer(sgManualScanServer, &obj, result);
+		
+		if(!result.m_bOK)
 		{
-			CString sVirus = registry_utils::GetProfileString(sgSection, sgVirusName, "");
+			CString sVirus = result.m_sVirusName;
 			if(!sVirus.IsEmpty())
 			{
 				m_pDlg->OnVirus(lpzFile, sVirus);
-				registry_utils::WriteProfileString(sgSection, sgVirusName, "");
 			}
 		}
 	}
 
 private:
-	HWND m_hwnd;
 	CDCAntiVirusManualScanDlg *m_pDlg;
 	bool m_bUseInternalDB;
 };
@@ -83,33 +76,37 @@ UINT Scan(LPVOID pParam)
 			pDlg->OnFinish("Scan stoped by user.");
 			return 0;
 		}
-		
+
+		CSendObj obj;
+		obj.m_nType = EStartManualScan;
+		CFileResult result;
+		ZeroMemory(&result, sizeof(CFileResult));
+		pipe_client_utils::SendFileToPipeServer(sgManualScanServer, &obj, result);
+
 		CScanItems items = pDlg->GetScanItems();
 		typedef CScanItems::const_iterator CIt;
 		CIt begin = items.begin();
 		CIt end = items.end();
 
-		HWND hwnd = NULL;
-		hwnd = ::FindWindow(NULL, sgServerName);
-
-		if(NULL != hwnd)
+		bool bUseInternalDB = pDlg->GetUseInternalDB();
+		CScanFiles scanner(pDlg, pDlg, bUseInternalDB);
+		CString sExt = pDlg->GetExts();
+		for(CIt it = begin; it != end; ++it)
 		{
-			bool bUseInternalDB = pDlg->GetUseInternalDB();
-			CScanFiles scanner(hwnd, pDlg, pDlg, bUseInternalDB);
-			CString sExt = pDlg->GetExts();
-			for(CIt it = begin; it != end; ++it)
-			{
-				scanner.Execute((*it), sExt, true);
+			scanner.Execute((*it), sExt, true);
 
-				if(!pDlg->Continue())
-				{
-					pDlg->OnFinish("Scan stoped by user.");
-					return 0;
-				}
+			if(!pDlg->Continue())
+			{
+				pDlg->OnFinish("Scan stoped by user.");
+				return 0;
 			}
 		}
 
 		pDlg->OnFinish("Scan completed");
+
+		obj.m_nType = EStopManualScan;
+		ZeroMemory(&result, sizeof(CFileResult));
+		pipe_client_utils::SendFileToPipeServer(sgManualScanServer, &obj, result);
 	}
 	return 0;
 }

@@ -34,6 +34,9 @@ class CScannedFileMap : public std::map<CDCHash, CFileInfo>
 public:
 	CScannedFileMap() { };
 	~CScannedFileMap() { };
+
+public:
+	CRITICAL_SECTION secFilesHashDB;
 };
 
 typedef CScannedFileMap::const_iterator CMapI;
@@ -134,6 +137,9 @@ namespace file_hash_DB_utils
 		double dSec = timer.Stop();
 		scan_log_utils::LogTime("Hash time", dSec);
 
+		EnterCriticalSection(&pMapFiles->secFilesHashDB); 
+		bool bRet(false);
+
 		CMapEditI it = pMapFiles->find(pathHash);
 		if(it != pMapFiles->end())
 		{
@@ -155,16 +161,15 @@ namespace file_hash_DB_utils
 					bScanDaily = false;
 				}
 
-				if(bOld)
+				if(!bOld)
 				{
-					return false;
+					bRet = true;
 				}
-				
-				return true;
 			}
 		}
-		
-		return false;
+
+		LeaveCriticalSection(&pMapFiles->secFilesHashDB); 
+		return bRet;
 	}
 
 	static bool ReadHash(FILE *pFile, CDCHash &hash)
@@ -343,7 +348,26 @@ namespace file_hash_DB_utils
 		info.m_sFilePath = sPath;
 		info.m_fileHash = hash;
 
+		EnterCriticalSection(&pMapFiles->secFilesHashDB); 
 		(*pMapFiles)[pathHash] = info;
+		LeaveCriticalSection(&pMapFiles->secFilesHashDB);
+	}
+
+	static bool CreateHashDBCriticalSection(CScannedFileMap *pFilesMap)
+	{
+		// Initialize the critical section one time only.
+		if (!InitializeCriticalSectionAndSpinCount(&pFilesMap->secFilesHashDB, 0x80000400))
+		{
+			return false;
+		}
+
+        return true;
+	}
+	
+	static void DeleteHashDBCriticalSection(CScannedFileMap *pFilesMap)
+	{
+		// Release resources used by the critical section object.
+		DeleteCriticalSection(&pFilesMap->secFilesHashDB);
 	}
 }
 

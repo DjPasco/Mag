@@ -405,6 +405,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Utils\PipeClientUtils.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Utils\Registry.h"
 				>
 			</File>

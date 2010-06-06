@@ -11,6 +11,7 @@
 #include "../Utils/Log.h"
 #include "../Utils/Scanner/Scanner.h"
 #include "../Utils/npipe.h"
+#include "../Utils/PipeClientUtils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -126,7 +127,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 			{
 				CFileResult result;
 				ZeroMemory(&result, sizeof(CFileResult));
-				SendFileToPipeServer(pData, result);
+				pipe_client_utils::SendFileToPipeServer(sgScanServer, pData, result);
 				if(result.m_bScanned)
 				{
 					SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
@@ -167,7 +168,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		{
 			CFileResult result;
 			ZeroMemory(&result, sizeof(CFileResult));
-			SendFileToPipeServer(pData, result);
+			pipe_client_utils::SendFileToPipeServer(sgScanServer, pData, result);
 			if(result.m_bScanned)
 			{
 				SendFileToTray(pData->m_sPath, result.m_sVirusName, result.m_nFilesCount);
@@ -183,7 +184,7 @@ LRESULT CDCAntivirusScanDlg::OnCopyData(WPARAM wParam, LPARAM lParam)
 		{
 			CFileResult result;
 			ZeroMemory(&result, sizeof(CFileResult));
-			SendFileToPipeServer(pData, result);
+			pipe_client_utils::SendFileToPipeServer(sgScanServer, pData, result);
 		}
 		break;
 	}
@@ -275,34 +276,6 @@ void CDCAntivirusScanDlg::SendFileToTray(LPCSTR sFile, LPCSTR sVirus, int nFiles
 	SendObj(obj);
 }
 
-void CDCAntivirusScanDlg::SendFileToPipeServer(CSendObj *pObj, CFileResult &result)
-{
-	result.m_bOK = true;
-
-	CNamedPipe clientPipe;
-	if (!CNamedPipe::ServerAvailable(".", _T(sgScanServer), 1000))
-	{
-		return;
-	}
-
-	if (!clientPipe.Open(".", _T(sgScanServer), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, NULL, 0))
-	{
-		return;
-	}
-
-	DWORD dwBytes;
-
-	CSendObj newObj(*pObj);						
-	clientPipe.Write(&newObj, sizeof(CSendObj), dwBytes);
-
-	if (!clientPipe.Read(&result, sizeof(CFileResult), dwBytes, NULL))
-	{
-		return;
-	}
-
-	clientPipe.Close();
-}
-
 LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)
 {
 	// Collect the current raw data value for all counters in the 
@@ -390,7 +363,7 @@ void CDCAntivirusScanDlg::ReloadSettings(CSendObj *pObj)
 		{
 			CFileResult result;
 			ZeroMemory(&result, sizeof(CFileResult));
-			SendFileToPipeServer(pObj, result);
+			pipe_client_utils::SendFileToPipeServer(sgScanServer, pObj, result);
 		}
 	}
 }

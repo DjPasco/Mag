@@ -50,7 +50,8 @@ static const char *sgQuarantineDir = "QuarantineDir";
 
 static const char *sgScanPriority = "ScanPriority";
 
-static const char *sgScanServer = "DCSCANSERVER";
+static const char *sgScanServer = "DCREALSCANSERVER";
+static const char *sgManualScanServer = "DCMANUALSCANSERVER";
 
 static const char *sgFileExtSeparator = ";";
 
