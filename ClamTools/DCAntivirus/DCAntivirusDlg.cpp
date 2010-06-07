@@ -14,7 +14,7 @@
 #include "../Utils/Settings.h"
 #include "../Utils/npipe.h"
 
-#define IGNORE_HOOK
+//#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -61,7 +61,7 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 
 	TraySetIcon(IDI_SHIELD_FRAME);
     TraySetToolTip("DCAntiVirus");
-    TraySetMenu(IDR_MENU1);
+    //TraySetMenu(IDR_MENU1);
 
 	TraySetMinimizeToTray(TRUE);
 	TrayShow();
@@ -263,13 +263,13 @@ void CDCAntiVirusDlg::OnUpdateDb()
     si.cb = sizeof si;
 
     PROCESS_INFORMATION pi = {0};
-    CreateProcess(sCmdFile, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    CreateProcess(sCmdFile, NULL, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
 
     ::WaitForSingleObject(pi.hProcess, INFINITE);
 
-	CSendObj obj;
-	obj.m_nType = EReloadDB;
-	SendObj(obj);
+	//CSendObj obj;
+	//obj.m_nType = EReloadDB;
+	//SendObj(obj);
 }
 
 void CDCAntiVirusDlg::OnManualScan()

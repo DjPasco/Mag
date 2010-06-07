@@ -1,39 +1,39 @@
 #pragma once
 
 #include "Registry.h"
+#include "Settings.h"
 #include <math.h>
 #include <Psapi.h>
-#define _LOG_
 
 namespace scan_log_utils
 {
 	static void Write(LPCSTR sLine)
 	{
-#ifdef _LOG_
-		FILE *pFile = fopen(path_utils::GetScanLogFilePath(), "a+");
-		if(NULL == pFile)
+		CSettingsInfo info;
+		settings_utils::Load(info);
+		if(info.m_bLog)
 		{
-			return;
-		}
+			FILE *pFile = fopen(path_utils::GetScanLogFilePath(), "a+");
+			if(NULL == pFile)
+			{
+				return;
+			}
 
-		fprintf(pFile, "%s\n", sLine);
-		fflush(pFile);
-		fclose(pFile);
-#endif
+			fprintf(pFile, "%s\n", sLine);
+			fflush(pFile);
+			fclose(pFile);
+		}
 	}
 
 	static void WriteLine(LPCSTR sLine)
 	{
-#ifdef _LOG_
 		CString s;
 		s.Format("\t%s", sLine);
 		Write(s);
-#endif
 	}
 
 	static void LogHeader(LPCSTR sData, DWORD PID)
 	{
-#ifdef _LOG_
 		char sOSTime[128];
 		_strtime(sOSTime);
 
@@ -54,30 +54,24 @@ namespace scan_log_utils
 		}
 
 		Write(s);
-#endif
 	}
 
 	static void LogFileSize(LPCSTR sData, double dPar)
 	{
-#ifdef _LOG_
 		CString s;
 		s.Format("\t%s: %.2f MB", sData, dPar);
 		Write(s);
-#endif
 	}
 
 	static void LogInt(LPCSTR sData, int nValue)
 	{
-#ifdef _LOG_
 		CString s;
 		s.Format("\t%s: %d", sData, nValue);
 		Write(s);
-#endif
 	}
 
 	static void LogVirus(LPCSTR sVirus, bool bMain)
 	{
-#ifdef _LOG_
 		CString s;
 		if(bMain)
 		{
@@ -89,12 +83,10 @@ namespace scan_log_utils
 		}
 
 		Write(s);
-#endif
 	}
 
 	static void LogTime(LPCSTR sText, double dSec)
 	{
-#ifdef _LOG_
 		int nSec = (int)floor(dSec);
 		int hour=nSec/3600;
 		nSec=nSec%3600;
@@ -113,62 +105,38 @@ namespace scan_log_utils
 		CString s;
 		s.Format("\t%s: %d:%d:%d:%d", sText, hour, min, sec, milisec);
 		Write(s);
-#endif
 	}
 }
-
-//namespace service_log_utils
-//{
-//	static void WriteLine(LPCSTR sLine)
-//	{
-//		FILE *pFile = fopen(path_utils::GetServiceLogFilePath(), "a+");
-//		if(NULL == pFile)
-//		{
-//			return;
-//		}
-//
-//		fprintf(pFile, "%s\n", sLine);
-//		fflush(pFile);
-//		fclose(pFile);
-//	}
-//
-//	static void LogData(LPCSTR sData)
-//	{
-//#ifdef _LOG_
-//		WriteLine(sData);
-//#endif
-//	}
-//}
 
 namespace hook_log_utils
 {
 	static void Write(LPCSTR sLine)
 	{
-#ifdef _LOG_
-		FILE *pFile = fopen(path_utils::GetHookLogFilePath(), "a+");
-		if(NULL == pFile)
+		CSettingsInfo info;
+		settings_utils::Load(info);
+		if(info.m_bLog)
 		{
-			return;
-		}
+			FILE *pFile = fopen(path_utils::GetHookLogFilePath(), "a+");
+			if(NULL == pFile)
+			{
+				return;
+			}
 
-		fprintf(pFile, "%s\n", sLine);
-		fflush(pFile);
-		fclose(pFile);
-#endif
+			fprintf(pFile, "%s\n", sLine);
+			fflush(pFile);
+			fclose(pFile);
+		}
 	}
 
 	static void WriteLine(LPCSTR sLine)
 	{
-#ifdef _LOG_
 		CString s;
 		s.Format("\t%s", sLine);
 		Write(s);
-#endif
 	}
 
 	static void LogHeader(LPCSTR sData, DWORD PID)
 	{
-#ifdef _LOG_
 		char sOSTime[128];
 		_strtime(sOSTime);
 
@@ -189,24 +157,19 @@ namespace hook_log_utils
 		}
 
 		Write(s);
-#endif
 	}
 
 	static void LogString(LPCSTR sData, LPCSTR sValue)
 	{
-#ifdef _LOG_
 		CString s;
 		s.Format("\t%s: %s", sData, sValue);
 		Write(s);
-#endif
 	}
 
 	static void LogString(LPCSTR sData, LPVOID sValue)
 	{
-#ifdef _LOG_
 		CString s;
 		s.Format("\t%s: %s", sData, sValue);
 		Write(s);
-#endif
 	}
 }

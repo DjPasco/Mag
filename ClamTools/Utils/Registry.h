@@ -10,7 +10,7 @@ enum EPriority
 };
 
 static const char *sgSettingsWriteTemplate = "%d %d %d %d %d %d %d %d %d %d %d %d";
-static const char *sgSettingsReadTemplate = "%d%d%d%d%d%d%d%d%d%d%d";
+static const char *sgSettingsReadTemplate = "%d%d%d%d%d%d%d%d%d%d%d%d";
 static const char *sgSection = "Settings";
 static const char *sgUserEntry = "ScanOptions";
 
