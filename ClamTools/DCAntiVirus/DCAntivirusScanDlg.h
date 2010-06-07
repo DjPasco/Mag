@@ -6,25 +6,16 @@
 	#include <pdh.h>
 #endif
 
-#ifndef _SCAN_VALIDATOR_OBS_H__
-	#include "../Utils/Scanner/ScanValidatorObs.h"
-#endif
-
 class CSendObj;
 class CTrayRequestData;
 class CTraySendObj;
 class CFileResult;
 
-class CDCAntivirusScanDlg : public CDialog,
-							public CScanValidatorObs
+class CDCAntivirusScanDlg : public CDialog
 {
 public:
 	CDCAntivirusScanDlg();
 	virtual ~CDCAntivirusScanDlg();
-
-public:
-	virtual bool ContinueScan();
-	virtual bool IsCPULoaded();
 
 protected:
 	LRESULT OnCopyData(WPARAM wParam, LPARAM lParam);

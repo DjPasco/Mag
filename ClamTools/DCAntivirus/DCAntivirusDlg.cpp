@@ -14,7 +14,7 @@
 #include "../Utils/Settings.h"
 #include "../Utils/npipe.h"
 
-//#define IGNORE_HOOK
+#define IGNORE_HOOK
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

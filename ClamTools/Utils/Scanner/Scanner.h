@@ -8,7 +8,6 @@
 
 class CScannedFileMap;
 class CCLScanner;
-class CScanValidatorObs;
 class CDBInfo;
 class CTrayRequestData;
 class CScanner  
@@ -23,7 +22,7 @@ public:
 
 	bool ScanFileNoIntDB(LPCSTR sFile, CString &sVirus, DWORD PID, bool &bScanned);
 
-	void ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs);
+	void ScanFilesForOptimisation();
 
 	void RequestData(CTrayRequestData &data);
 

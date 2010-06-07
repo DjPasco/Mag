@@ -22,7 +22,7 @@ static char THIS_FILE[] = __FILE__;
 static LPCTSTR gszProcessorTime="\\Processor(_Total)\\% Processor Time";
 
 #define MAX_LOAD 10
-#define CHECK_IDLE 60000 // One minute
+#define CHECK_IDLE 1000 // One minute
 
 class CTraySendHelper
 {
@@ -71,8 +71,6 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 	IdleTrackerInit();
 	
-	SetTimer(m_nTimer, CHECK_IDLE, NULL);
-
 	m_hQuery = NULL;
 	m_hCounter = NULL;
 	m_bCounterInit = false;
@@ -84,6 +82,8 @@ BOOL CDCAntivirusScanDlg::OnInitDialog()
 			m_bCounterInit = TRUE;
 		}
 	}
+
+	SetTimer(m_nTimer, CHECK_IDLE, NULL);
 	
 	return TRUE;
 }
@@ -276,6 +276,29 @@ void CDCAntivirusScanDlg::SendFileToTray(LPCSTR sFile, LPCSTR sVirus, int nFiles
 	SendObj(obj);
 }
 
+void CDCAntivirusScanDlg::OnTimer(UINT nIDEvent)
+{
+	if(!m_bIdleScan)
+	{
+		return;
+	}
+
+	if(m_bCounterInit && TimeForScan())
+	{
+		long lLoad = GetCPUCycle(m_hQuery, m_hCounter);
+		if(-1 != lLoad && MAX_LOAD >= lLoad)
+		{
+			CSendObj obj;
+			obj.m_nType = EIdleScan;
+			CFileResult result;
+			ZeroMemory(&result, sizeof(CFileResult));
+			pipe_client_utils::SendFileToPipeServer(sgScanServer, &obj, result);
+		}
+	}
+
+	CDialog::OnTimer(nIDEvent);
+}
+
 LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)
 {
 	// Collect the current raw data value for all counters in the 
@@ -301,44 +324,14 @@ LONG CDCAntivirusScanDlg::GetCPUCycle(HQUERY query, HCOUNTER counter)
 	return -1;
 }
 
-void CDCAntivirusScanDlg::OnTimer(UINT nIDEvent)
-{
-	if(!m_bIdleScan)
-	{
-		return;
-	}
-
-	if(m_bCounterInit && TimeForScan())
-	{
-		long lLoad = GetCPUCycle(m_hQuery, m_hCounter);
-		if(-1 != lLoad && MAX_LOAD >= lLoad)
-		{
-			//m_pScanner->ScanFilesForOptimisation(this);
-		}
-	}
-
-	CDialog::OnTimer(nIDEvent);
-}
-
-bool CDCAntivirusScanDlg::ContinueScan()
-{
-	return TimeForScan();
-}
-
-bool CDCAntivirusScanDlg::IsCPULoaded()
-{
-	if(m_bCounterInit)
-	{
-		long lCPULoad = GetCPUCycle(m_hQuery, m_hCounter);
-		return m_nMaxCPULoad < lCPULoad;
-	}
-
-	return false;
-}
-
 bool CDCAntivirusScanDlg::TimeForScan()
 {
-	UINT timeDuration = (UINT)(GetTickCount() - IdleTrackerGetLastTickCount());
+	LASTINPUTINFO li;
+	li.cbSize = sizeof(LASTINPUTINFO);
+	GetLastInputInfo(&li);
+	int i = li.dwTime;
+	UINT timeDuration = (GetTickCount() - i);
+	
 	if(timeDuration > (UINT)m_nIdleTime)
 	{
 		return true;

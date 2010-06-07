@@ -76,6 +76,11 @@ namespace pipe_server_utils
 					pScanner->ReloadDB();
 				}
 				break;
+			case EIdleScan:
+				{
+					pScanner->ScanFilesForOptimisation();
+				}
+				break;
 			}
 
 			result.m_nFilesCount = pScanner->GetFilesCount();

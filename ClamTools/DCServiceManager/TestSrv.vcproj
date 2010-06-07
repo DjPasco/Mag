@@ -416,7 +416,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\Utils\Scanner\ScanValidatorObs.h"
+					RelativePath="..\Utils\Scanner\ScanValidator.h"
 					>
 				</File>
 			</Filter>

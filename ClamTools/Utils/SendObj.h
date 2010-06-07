@@ -11,6 +11,7 @@ enum ESendInfoType
 	EQuitServer,
 	EStopManualScan,
 	EStartManualScan,
+	EIdleScan,
 	ESendCount
 };
 

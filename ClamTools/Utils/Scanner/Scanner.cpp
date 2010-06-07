@@ -2,7 +2,7 @@
 #include "Scanner.h"
 
 #include "CLScanner.h"
-#include "ScanValidatorObs.h"
+#include "ScanValidator.h"
 #include "PrecisionTimer.h"
 #include "FileHashDBUtils.h"
 #include "../TraySendObj.h"
@@ -209,67 +209,71 @@ bool CScanner::ScanFile(LPCSTR sFile, CString &sVirus, DWORD PID, bool &bScanned
 	return true;
 }
 
-void CScanner::ScanFilesForOptimisation(CScanValidatorObs *pValidatorsObs)
+void CScanner::ScanFilesForOptimisation()
 {
-	//if(!m_bLoaded)
-	//{
-	//	return;
-	//}
+	if(!m_bLoaded)
+	{
+		return;
+	}
 
-	//std::vector<CFileInfoEx> arrFiles;
+	CScanValidator validator;
 
-	//CFileInfoEx infoEx;
-	//CFileInfo info;
-	//CDCHash hash;
+	std::vector<CFileInfoEx> arrFiles;
 
-	//CMapI begin = m_pFilesMap->begin();
-	//CMapI end = m_pFilesMap->end();
-	//for(CMapI it = begin; it != end; ++it)
-	//{
-	//	hash	= it->first;
-	//	info	= it->second;
+	CFileInfoEx infoEx;
+	CFileInfo info;
+	CDCHash hash;
 
-	//	infoEx.m_pathHash			= hash;
-	//	infoEx.m_nCount				= info.m_nCount;
-	//	infoEx.m_nDailyDBVersion	= info.m_nDailyDBVersion;
-	//	infoEx.m_nMainDBVersion		= info.m_nMainDBVersion;
-	//	infoEx.m_sFilePath			= info.m_sFilePath;
-	//	infoEx.m_fileHash			= info.m_fileHash;
+	CMapI begin = m_pFilesMap->begin();
+	CMapI end = m_pFilesMap->end();
+	for(CMapI it = begin; it != end; ++it)
+	{
+		hash	= it->first;
+		info	= it->second;
 
-	//	arrFiles.push_back(infoEx);
-	//}
+		infoEx.m_pathHash			= hash;
+		infoEx.m_nCount				= info.m_nCount;
+		infoEx.m_nDailyDBVersion	= info.m_nDailyDBVersion;
+		infoEx.m_nMainDBVersion		= info.m_nMainDBVersion;
+		infoEx.m_sFilePath			= info.m_sFilePath;
+		infoEx.m_fileHash			= info.m_fileHash;
 
-	//if(!pValidatorsObs->ContinueScan())
-	//{
-	//	return;
-	//}
+		arrFiles.push_back(infoEx);
+	}
 
-	//std::sort(arrFiles.begin(), arrFiles.end(), file_utils::SortFilesByUsage);
+	if(!validator.ContinueScan())
+	{
+		return;
+	}
 
-	//if(!pValidatorsObs->ContinueScan())
-	//{
-	//	return;
-	//}
+	std::sort(arrFiles.begin(), arrFiles.end(), file_hash_DB_utils::SortFilesByUsage);
 
-	//CString sVirus;
-	//typedef std::vector<CFileInfoEx>::const_iterator CIt;
-	//CIt f_end = arrFiles.end();
-	//for(CIt f_it = arrFiles.begin(); f_it != f_end; ++f_it)
-	//{
-	//	infoEx = (*f_it);
+	if(!validator.ContinueScan())
+	{
+		return;
+	}
 
-	//	ScanFile(infoEx.m_sFilePath, sVirus);
+	bool bScanned;
 
-	//	if(!pValidatorsObs->ContinueScan())
-	//	{
-	//		break;
-	//	}
+	CString sVirus;
+	typedef std::vector<CFileInfoEx>::const_iterator CIt;
+	CIt f_end = arrFiles.end();
+	for(CIt f_it = arrFiles.begin(); f_it != f_end; ++f_it)
+	{
+		infoEx = (*f_it);
 
-	//	if(pValidatorsObs->IsCPULoaded())
-	//	{
-	//		Sleep(10);
-	//	}
-	//}
+		ScanFile(infoEx.m_sFilePath, sVirus, GetCurrentProcessId(), bScanned, false);
+
+		if(!validator.ContinueScan())
+		{
+			break;
+		}
+
+		if(validator.IsCPULoaded())
+		{
+			Sleep(10);
+		}
+	}
 }
 
 void CScanner::RequestData(CTrayRequestData &data)
