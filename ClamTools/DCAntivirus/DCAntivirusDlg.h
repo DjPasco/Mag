@@ -12,7 +12,7 @@ public:
 	virtual ~CDCAntiVirusDlg();
 
 protected:
-	LRESULT OnHookSystem(WPARAM wParam, LPARAM lParam);
+	void HookSystem();
 	LRESULT OnCopyData(WPARAM wParam, LPARAM lParam);
 
 	virtual BOOL OnInitDialog();

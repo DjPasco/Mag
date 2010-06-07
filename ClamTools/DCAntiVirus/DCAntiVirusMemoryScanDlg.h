@@ -1,8 +1,11 @@
 #pragma once
 
 #include "DCAntiVirusLogDlg.h"
+#include "ManualScanObs.h"
 
-class CDCAntiVirusMemoryScanDlg : public CDialog
+class CScanItems;
+class CDCAntiVirusMemoryScanDlg : public CDialog,
+								  public CManualScanObs
 {
 public:
 	CDCAntiVirusMemoryScanDlg(CWnd* pParent = NULL);
@@ -13,13 +16,18 @@ protected:
 	virtual void OnCancel();
 	DECLARE_MESSAGE_MAP()
 
-public:
-	void EnumerateFiles();
-	void ShowCurrentItem(LPCSTR sItem);
-	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
-	void OnFinish(LPCSTR sReason);
+	LRESULT OnStartScan(WPARAM wParam, LPARAM lParam);
 
-	bool Continue();
+public:
+	void EnumerateFiles(CScanItems &files);
+
+	//ManualScanObs overides
+public:
+	virtual bool Continue();
+	virtual void ShowCurrentItem(LPCSTR sItem);
+	virtual void OnVirus(LPCSTR sItem, LPCSTR sVirus);
+	virtual void OnFinish(LPCSTR sFinishText);
+	virtual void OnMessage(LPCSTR sMessage);
 
 private:
 	CProgressCtrl m_progres;

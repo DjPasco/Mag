@@ -1,115 +1,12 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "DCAntiVirusManualScanDlg.h"
-#include "EnumerateFiles.h"
 
-#include "../Utils/SendObj.h"
-#include "../Utils/Registry.h"
-#include "../Utils/PipeClientUtils.h"
+#include "ManualScanUtils.h"
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
-
-class CScanFiles : public CEnumerateFiles
-{
-public:
-	CScanFiles(CDCAntiVirusManualScanDlg *pDlg, CScanEndingObs *pObs, bool bUseInternalDB)
-		:CEnumerateFiles(pObs, false), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
-
-public:
-	virtual void OnFile(LPCTSTR lpzFile)
-	{
-		m_pDlg->ShowCurrentItem(lpzFile);
-
-		CSendObj obj;
-		strcpy_s(obj.m_sPath, MAX_PATH, lpzFile);
-		obj.m_nType = EManualScan;
-		obj.m_bUseInternalDB = m_bUseInternalDB;
-		obj.m_PID = GetCurrentProcessId();
-
-		CFileResult result;
-		ZeroMemory(&result, sizeof(CFileResult));
-		pipe_client_utils::SendFileToPipeServer(sgManualScanServer, &obj, result);
-		
-		if(!result.m_bOK)
-		{
-			CString sVirus = result.m_sVirusName;
-			if(!sVirus.IsEmpty())
-			{
-				m_pDlg->OnVirus(lpzFile, sVirus);
-			}
-		}
-	}
-
-private:
-	CDCAntiVirusManualScanDlg *m_pDlg;
-	bool m_bUseInternalDB;
-};
-
-class CCountFiles : public CEnumerateFiles
-{
-public:
-	CCountFiles(CScanEndingObs *pObs): CEnumerateFiles(pObs, true),
-		           m_nCount(0){};
-
-public:
-	virtual void OnFile(LPCTSTR lpzFile)
-	{
-		m_nCount++;
-	}
-
-public:
-	int m_nCount;
-};
-
-UINT Scan(LPVOID pParam)
-{
-	if(NULL != pParam)
-	{
-		CDCAntiVirusManualScanDlg *pDlg = (CDCAntiVirusManualScanDlg *)pParam;
-		
-		pDlg->EnumerateFiles();
-
-		if(!pDlg->Continue())
-		{
-			pDlg->OnFinish("Scan stoped by user.");
-			return 0;
-		}
-
-		CSendObj obj;
-		obj.m_nType = EStartManualScan;
-		CFileResult result;
-		ZeroMemory(&result, sizeof(CFileResult));
-		pipe_client_utils::SendFileToPipeServer(sgManualScanServer, &obj, result);
-
-		CScanItems items = pDlg->GetScanItems();
-		typedef CScanItems::const_iterator CIt;
-		CIt begin = items.begin();
-		CIt end = items.end();
-
-		bool bUseInternalDB = pDlg->GetUseInternalDB();
-		CScanFiles scanner(pDlg, pDlg, bUseInternalDB);
-		CString sExt = pDlg->GetExts();
-		for(CIt it = begin; it != end; ++it)
-		{
-			scanner.Execute((*it), sExt, true);
-
-			if(!pDlg->Continue())
-			{
-				pDlg->OnFinish("Scan stoped by user.");
-				return 0;
-			}
-		}
-
-		pDlg->OnFinish("Scan completed");
-
-		obj.m_nType = EStopManualScan;
-		ZeroMemory(&result, sizeof(CFileResult));
-		pipe_client_utils::SendFileToPipeServer(sgManualScanServer, &obj, result);
-	}
-	return 0;
-}
 
 CDCAntiVirusManualScanDlg::CDCAntiVirusManualScanDlg(CWnd* pParent)
 	: CDialog(IDD_DIALOG_SCAN, pParent),
@@ -123,8 +20,7 @@ CDCAntiVirusManualScanDlg::~CDCAntiVirusManualScanDlg()
 //
 }
 
-BEGIN_MESSAGE_MAP(CDCAntiVirusManualScanDlg, CDialog)
-	
+BEGIN_MESSAGE_MAP(CDCAntiVirusManualScanDlg, CDialog)	
 	ON_BN_CLICKED(IDC_BUTTON_ADD_ADD,		OnAdd)
 	ON_BN_CLICKED(IDC_BUTTON_REMOVE_SCAN,	OnRemove)
 	ON_BN_CLICKED(IDC_BUTTON_SCAN,			OnScan)
@@ -232,7 +128,15 @@ void CDCAntiVirusManualScanDlg::OnScan()
 		m_bScanning = true;
 		m_nCount = 0;
 		m_tStart = CTime::GetCurrentTime();
-		AfxBeginThread(Scan, (LPVOID)this, priority_utils::GetRealPriority(path_utils::GetPriority()));
+		
+		CScanItems files;
+		EnumerateFiles(files);
+		CScanOptions *pOpt = new CScanOptions;
+		pOpt->m_Items = files;
+		pOpt->m_pObs = this;
+		pOpt->m_bUseInternal = GetUseInternalDB();
+		
+		AfxBeginThread(manual_scan_utils::Scan, (LPVOID)pOpt, priority_utils::GetRealPriority(path_utils::GetPriority()));
 	}
 	else
 	{
@@ -245,19 +149,6 @@ bool CDCAntiVirusManualScanDlg::Continue()
 	return m_bScanning;
 }
 
-CScanItems CDCAntiVirusManualScanDlg::GetScanItems()
-{
-	CScanItems items;
-
-	int nCount = m_listScanItems.GetItemCount();
-	for(int i = 0; i < nCount; ++i)
-	{
-		items.push_back(m_listScanItems.GetItemText(i, 0));
-	}
-
-	return items;
-}
-
 void CDCAntiVirusManualScanDlg::ShowCurrentItem(LPCSTR sItem)
 {
 	GetDlgItem(IDC_EDIT1_CUR)->SetWindowText(sItem);
@@ -267,26 +158,30 @@ void CDCAntiVirusManualScanDlg::ShowCurrentItem(LPCSTR sItem)
 	m_nCount++;
 }
 
-void CDCAntiVirusManualScanDlg::EnumerateFiles()
+void CDCAntiVirusManualScanDlg::EnumerateFiles(CScanItems &files)
 {
-	GetDlgItem(IDC_STATIC_ACTION)->SetWindowText("Calculating files....");
+	OnMessage("Calculating files....");
 
 	m_progres.SetPos(0);
-	CScanItems items = GetScanItems();
+
+	CScanItems items;
+	int nCount = m_listScanItems.GetItemCount();
+	for(int i = 0; i < nCount; ++i)
+	{
+		items.push_back(m_listScanItems.GetItemText(i, 0));
+	}
+
 	typedef CScanItems::const_iterator CIt;
 	CIt begin = items.begin();
 	CIt end = items.end();
 
-	CCountFiles counter(this);
-
+	CCountFiles counter(this, files);
 	for(CIt it = begin; it != end; ++it)
 	{
 		counter.Execute((*it), GetExts(), true);
 	}
 
-	m_progres.SetRange32(0, counter.m_nCount);
-
-	GetDlgItem(IDC_STATIC_ACTION)->SetWindowText("Scanning....");
+	m_progres.SetRange32(0, files.size());
 }
 
 void CDCAntiVirusManualScanDlg::OnFinish(LPCSTR sReason)
@@ -352,4 +247,9 @@ void CDCAntiVirusManualScanDlg::OnCancel()
 	}
 	
 	CDialog::OnCancel();
+}
+
+void CDCAntiVirusManualScanDlg::OnMessage(LPCSTR sMessage)
+{
+	GetDlgItem(IDC_STATIC_ACTION)->SetWindowText(sMessage);
 }

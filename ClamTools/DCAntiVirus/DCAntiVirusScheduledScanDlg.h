@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vector>
 #include "ScanEndingObs.h"
 #include "DCAntiVirusLogDlg.h"
+#include "ManualScanObs.h"
 
-typedef std::vector<CString> CScanItems;
-
+class CScanItems;
 class CDCAntiVirusScheduledScanDlg : public CDialog,
-								     public CScanEndingObs
+								     public CScanEndingObs,
+									 public CManualScanObs
 {
 public:
 	CDCAntiVirusScheduledScanDlg(CWnd* pParent = NULL);
@@ -19,6 +19,8 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
+	LRESULT OnStartScan(WPARAM wParam, LPARAM lParam);
+
 private:
 	void EnableProgresItems(BOOL bEnable);
 	void EnableStartItems(BOOL bEnable);
@@ -26,16 +28,19 @@ private:
 	void FillScanItems();
 	void FillItemTypes();
 
+	//ManualScanObs overides
 public:
-	void EnumerateFiles();
 	virtual bool Continue();
+	virtual void ShowCurrentItem(LPCSTR sItem);
+	virtual void OnVirus(LPCSTR sItem, LPCSTR sVirus);
+	virtual void OnFinish(LPCSTR sFinishText);
+	virtual void OnMessage(LPCSTR sMessage);
+
+public:
+	void EnumerateFiles(CScanItems &files);
 	CScanItems GetScanItems();
 	CString GetExts();
-	void ShowCurrentItem(LPCSTR sItem);
-	void OnVirus(LPCSTR sItem, LPCSTR sVirus);
 	bool GetUseInternalDB();
-
-	void OnFinish(LPCSTR sReason);
 
 private:
 	CListCtrl m_listScanItems;

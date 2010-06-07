@@ -14,8 +14,6 @@
 #include "../Utils/Settings.h"
 #include "../Utils/npipe.h"
 
-#define WM_HOOK_SYSTEM	WM_USER+1
-
 //#define IGNORE_HOOK
 
 #ifdef _DEBUG
@@ -45,7 +43,6 @@ BEGIN_MESSAGE_MAP(CDCAntiVirusDlg, CTrayDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_TIMER()
-	ON_MESSAGE(WM_HOOK_SYSTEM,				OnHookSystem)
 	ON_MESSAGE(WM_COPYDATA,					OnCopyData)
 	ON_BN_CLICKED(IDC_BUTTON3,				OnSettings)
 	ON_BN_CLICKED(IDC_BUTTON_UPDATE_DB,		OnUpdateDb)
@@ -71,7 +68,7 @@ BOOL CDCAntiVirusDlg::OnInitDialog()
 
 	RequestData();
 
-	this->SendMessage(WM_HOOK_SYSTEM);
+	HookSystem();
 	SetTimer(m_nTimer, 1000, NULL);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -107,7 +104,7 @@ HCURSOR CDCAntiVirusDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
+void CDCAntiVirusDlg::HookSystem()
 {
 #ifndef IGNORE_HOOK
 	hook_utils::GlobalHook(true);
@@ -115,8 +112,6 @@ LRESULT CDCAntiVirusDlg::OnHookSystem(WPARAM wParam, LPARAM lParam)
 #endif
 
 	RunHookInfoDlg();
-
-	return 0;
 }
 
 void CDCAntiVirusDlg::OnTimer(UINT nIDEvent)

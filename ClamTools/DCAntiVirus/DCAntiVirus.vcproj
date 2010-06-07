@@ -287,6 +287,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ManualScanObs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ManualScanUtils.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MatchFileExtension.cpp"
 				>
 			</File>

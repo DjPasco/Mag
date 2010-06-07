@@ -1,118 +1,15 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "DCAntiVirusScheduledScanDlg.h"
-#include "EnumerateFiles.h"
 
-#include "../Utils/SendObj.h"
 #include "../Utils/Registry.h"
+#include "ManualScanUtils.h"
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
 #endif
 
-class CScanSchedFiles : public CEnumerateFiles
-{
-public:
-	CScanSchedFiles(HWND hwnd, CDCAntiVirusScheduledScanDlg *pDlg, CScanEndingObs *pObs, bool bUseInternalDB)
-		:CEnumerateFiles(pObs, false), m_hwnd(hwnd), m_pDlg(pDlg), m_bUseInternalDB(bUseInternalDB) {};
-
-public:
-	virtual void OnFile(LPCTSTR lpzFile)
-	{
-		m_pDlg->ShowCurrentItem(lpzFile);
-
-		CSendObj obj;
-		strcpy_s(obj.m_sPath, MAX_PATH, lpzFile);
-		obj.m_nType = EManualScan;
-		obj.m_bUseInternalDB = m_bUseInternalDB;
-		obj.m_PID = GetCurrentProcessId();
-
-		COPYDATASTRUCT copy;
-		copy.dwData = 1;
-		copy.cbData = sizeof(obj);
-		copy.lpData = &obj;
-
-		LRESULT result = SendMessage(m_hwnd,
-									 WM_COPYDATA,
-									 0,
-									 (LPARAM) (LPVOID) &copy);
-
-		if(2 == result)
-		{
-			CString sVirus = registry_utils::GetProfileString(sgSection, sgVirusName, "");
-			if(!sVirus.IsEmpty())
-			{
-				m_pDlg->OnVirus(lpzFile, sVirus);
-				registry_utils::WriteProfileString(sgSection, sgVirusName, "");
-			}
-		}
-	}
-
-private:
-	HWND m_hwnd;
-	CDCAntiVirusScheduledScanDlg *m_pDlg;
-	bool m_bUseInternalDB;
-};
-
-class CCountSchedFiles : public CEnumerateFiles
-{
-public:
-	CCountSchedFiles(CScanEndingObs *pObs): CEnumerateFiles(pObs, true),
-		           m_nCount(0){};
-
-public:
-	virtual void OnFile(LPCTSTR lpzFile)
-	{
-		m_nCount++;
-	}
-
-public:
-	int m_nCount;
-};
-
-UINT SchedScan(LPVOID pParam)
-{
-	if(NULL != pParam)
-	{
-		CDCAntiVirusScheduledScanDlg *pDlg = (CDCAntiVirusScheduledScanDlg *)pParam;
-		
-		pDlg->EnumerateFiles();
-
-		if(!pDlg->Continue())
-		{
-			pDlg->OnFinish("Scan stoped by user.");
-			return 0;
-		}
-		
-		CScanItems items = pDlg->GetScanItems();
-		typedef CScanItems::const_iterator CIt;
-		CIt begin = items.begin();
-		CIt end = items.end();
-
-		HWND hwnd = NULL;
-		hwnd = ::FindWindow(NULL, sgServerName);
-
-		if(NULL != hwnd)
-		{
-			bool bUseInternalDB = pDlg->GetUseInternalDB();
-			CScanSchedFiles scanner(hwnd, pDlg, pDlg, bUseInternalDB);
-			CString sExt = pDlg->GetExts();
-			for(CIt it = begin; it != end; ++it)
-			{
-				scanner.Execute((*it), sExt, true);
-
-				if(!pDlg->Continue())
-				{
-					pDlg->OnFinish("Scan stoped by user.");
-					return 0;
-				}
-			}
-		}
-
-		pDlg->OnFinish("Scan completed.");
-	}
-	return 0;
-}
+#define WM_START_SCHED_SCAN WM_USER+101
 
 CDCAntiVirusScheduledScanDlg::CDCAntiVirusScheduledScanDlg(CWnd* pParent)
 	: CDialog(IDD_DIALOG_SCHED_SCAN, pParent),
@@ -127,7 +24,7 @@ CDCAntiVirusScheduledScanDlg::~CDCAntiVirusScheduledScanDlg()
 }
 
 BEGIN_MESSAGE_MAP(CDCAntiVirusScheduledScanDlg, CDialog)
-	
+	ON_MESSAGE(WM_START_SCHED_SCAN,	  OnStartScan)
 	ON_BN_CLICKED(IDD_STOP, &CDCAntiVirusScheduledScanDlg::OnStop)
 END_MESSAGE_MAP()
 
@@ -152,14 +49,29 @@ BOOL CDCAntiVirusScheduledScanDlg::OnInitDialog()
 	FillItemTypes();
 
 	//Starting scan
+	PostMessage(WM_START_SCHED_SCAN);
+
+	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+LRESULT CDCAntiVirusScheduledScanDlg::OnStartScan(WPARAM wParam, LPARAM lParam)
+{
 	EnableStartItems(FALSE);
 	EnableProgresItems(TRUE);
 	m_bScanning = true;
 	m_nCount = 0;
 	m_tStart = CTime::GetCurrentTime();
-	AfxBeginThread(SchedScan, (LPVOID)this, priority_utils::GetRealPriority(path_utils::GetPriority()));
 
-	return TRUE;  // return TRUE  unless you set the focus to a control
+	CScanItems files;
+	EnumerateFiles(files);
+	CScanOptions *pOpt = new CScanOptions;
+	pOpt->m_Items = files;
+	pOpt->m_pObs = this;
+	pOpt->m_bUseInternal = GetUseInternalDB();
+	
+	AfxBeginThread(manual_scan_utils::Scan, (LPVOID)pOpt, priority_utils::GetRealPriority(path_utils::GetPriority()));
+
+	return 0;
 }
 
 void CDCAntiVirusScheduledScanDlg::EnableProgresItems(BOOL bEnable)
@@ -210,9 +122,9 @@ void CDCAntiVirusScheduledScanDlg::ShowCurrentItem(LPCSTR sItem)
 	m_nCount++;
 }
 
-void CDCAntiVirusScheduledScanDlg::EnumerateFiles()
+void CDCAntiVirusScheduledScanDlg::EnumerateFiles(CScanItems &files)
 {
-	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText("Calculating files....");
+	OnMessage("Enumerating files....");
 
 	m_progres.SetPos(0);
 	CScanItems items = GetScanItems();
@@ -220,25 +132,23 @@ void CDCAntiVirusScheduledScanDlg::EnumerateFiles()
 	CIt begin = items.begin();
 	CIt end = items.end();
 
-	CCountSchedFiles counter(this);
+	CCountFiles counter(this, files);
 
 	for(CIt it = begin; it != end; ++it)
 	{
 		counter.Execute((*it), "*.*", true);
 	}
 
-	m_progres.SetRange32(0, counter.m_nCount);
-
-	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText("Scanning....");
+	m_progres.SetRange32(0, files.size());
 }
 
-void CDCAntiVirusScheduledScanDlg::OnFinish(LPCSTR sReason)
+void CDCAntiVirusScheduledScanDlg::OnFinish(LPCSTR sFinishText)
 {
 	m_tEnd = CTime::GetCurrentTime();
 	CTimeSpan time = m_tEnd - m_tStart;
 
 	m_progres.SetPos(0);
-	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText(sReason);
+	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText(sFinishText);
 
 	m_bScanning = false;
 	GetDlgItem(IDD_EDIT_CUR_SC)->SetWindowText("");
@@ -336,4 +246,9 @@ void CDCAntiVirusScheduledScanDlg::OnCancel()
 	}
 	
 	CDialog::OnCancel();
+}
+
+void CDCAntiVirusScheduledScanDlg::OnMessage(LPCSTR sMessage)
+{
+	GetDlgItem(IDD_STATIC_CURR_ACTION_SC)->SetWindowText(sMessage);
 }
