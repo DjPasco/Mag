@@ -4,7 +4,6 @@
 
 #include "DCAntivirusAlertDlg.h"
 
-#include "../IdleTracker/IdleTracker.h"
 #include "../Utils/SendObj.h"
 #include "../Utils/TraySendObj.h"
 #include "../Utils/Settings.h"
@@ -22,7 +21,7 @@ static char THIS_FILE[] = __FILE__;
 static LPCTSTR gszProcessorTime="\\Processor(_Total)\\% Processor Time";
 
 #define MAX_LOAD 10
-#define CHECK_IDLE 1000 // One minute
+#define CHECK_IDLE 60000 // One minute
 
 class CTraySendHelper
 {
@@ -63,13 +62,12 @@ CDCAntivirusScanDlg::CDCAntivirusScanDlg()
 
 CDCAntivirusScanDlg::~CDCAntivirusScanDlg()
 {
-	IdleTrackerTerm();
+	//
 }
 
 BOOL CDCAntivirusScanDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	IdleTrackerInit();
 	
 	m_hQuery = NULL;
 	m_hCounter = NULL;
