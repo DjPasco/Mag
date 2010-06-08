@@ -5,7 +5,7 @@
 #include "../Utils/HookUtils.h"
 #include "../Utils/Registry.h"
 
-#include "../../detours/include/detours.h"
+#include "detours.h"
 
 #include <stdio.h>
 #include <tchar.h>

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../../detours/include/detours.h"
+#include "detours.h"
 #include "detourapis.h"
 
 BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved)

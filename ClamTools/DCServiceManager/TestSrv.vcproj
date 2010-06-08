@@ -51,7 +51,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=".,"
+				AdditionalIncludeDirectories="..\Third\stlport2.1\stlport;..\Third\openssl\include;."
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -77,11 +77,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamav.lib  Psapi.lib"
+				AdditionalDependencies="libeay32.lib pdh.lib libclamav.lib  Psapi.lib"
 				OutputFile="../Bin/DCService.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\MAG_REPO\ClamTools\Bin;C:\MAG_REPO\ClamTools\ClamInclude"
+				AdditionalLibraryDirectories="..\Third\stlport2.1\lib;..\Third\openssl\lib;..\Bin;..\ClamInclude"
 				ProgramDatabaseFile=".\Release/TestSrv.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -146,7 +146,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".,"
+				AdditionalIncludeDirectories="..\Third\openssl\include;..\Third\stlport2.1\stlport;."
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS"
 				MinimalRebuild="true"
 				RuntimeLibrary="3"
@@ -172,11 +172,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libeay32.lib IdleTrac.lib pdh.lib libclamavd.lib  Psapi.lib"
+				AdditionalDependencies="libeay32.lib pdh.lib libclamavd.lib  Psapi.lib"
 				OutputFile="../Bin/DCServiceD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\MAG_REPO\ClamTools\Bin;C:\MAG_REPO\ClamTools\ClamInclude"
+				AdditionalLibraryDirectories="..\Third\stlport2.1\lib;..\Third\openssl\lib;..\Bin;..\ClamInclude"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/TestSrv.pdb"
 				SubSystem="2"

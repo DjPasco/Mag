@@ -267,9 +267,9 @@ void CDCAntiVirusDlg::OnUpdateDb()
 
     ::WaitForSingleObject(pi.hProcess, INFINITE);
 
-	//CSendObj obj;
-	//obj.m_nType = EReloadDB;
-	//SendObj(obj);
+	CSendObj obj;
+	obj.m_nType = EReloadDB;
+	SendObj(obj);
 }
 
 void CDCAntiVirusDlg::OnManualScan()
