@@ -103,7 +103,7 @@
 			OutputDirectory="..\Bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="1"
+			UseOfMFC="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -132,7 +132,7 @@
 				AdditionalIncludeDirectories="..\Third\stlport2.1\stlport;..\Third\openssl\include;..\Detours\include"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				MinimalRebuild="false"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
@@ -382,10 +382,6 @@
 		<Filter
 			Name="Hook"
 			>
-			<File
-				RelativePath=".\Hook\Hook.cpp"
-				>
-			</File>
 			<File
 				RelativePath=".\Hook\Hook.h"
 				>
