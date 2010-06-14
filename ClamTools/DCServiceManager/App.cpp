@@ -50,7 +50,7 @@ BOOL CApp::InitInstance()
 }
 
 
-CMyService::CMyService() : CNTService(sgServiceName, sgServiceDisplayName, NULL, sgServiceDescription) 
+CMyService::CMyService() : CNTService(sgServiceName, sgServiceDisplayName,  SERVICE_ACCEPT_STOP, sgServiceDescription) 
 {
 	m_bWantStop = FALSE;
 	m_bPaused = FALSE;
