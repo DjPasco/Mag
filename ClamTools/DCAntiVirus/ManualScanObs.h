@@ -1,5 +1,6 @@
 #pragma once
 
+//Observer, used in all manual scan dialogs (manual/memory/scheduled)
 class CManualScanObs  
 {
 public:

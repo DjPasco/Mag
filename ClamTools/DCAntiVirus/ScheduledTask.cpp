@@ -46,6 +46,15 @@
 #include "ScheduledTask.h"
 #include <afxconv.h>    // For ANSI->Unicode conversion macros.
 
+#define SECURITY_WIN32
+#include <Security.h>
+#include <wchar.h>
+
+# pragma comment(lib, "Secur32.lib")
+//# pragma comment(lib, "credui.lib")
+
+
+
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -695,6 +704,12 @@ __try
         }
 
 
+	TCHAR infoBuf[32767];
+	DWORD bufCharCount = 32767;
+
+	GetUserNameEx(NameSamCompatible, infoBuf, &bufCharCount);
+	hr = pITask->SetAccountInformation((LPCWSTR)infoBuf, L"");
+
     // Set the job comment.
 
     if ( m_sComment.GetLength() > 0 )
@@ -709,6 +724,20 @@ __try
             }
         }
 
+    //TCHAR pszName[CREDUI_MAX_USERNAME_LENGTH] = "";
+    //TCHAR pszPwd[CREDUI_MAX_PASSWORD_LENGTH] = "";
+
+  ///////////////////////////////////////////////////////////////////
+  // Call ITask::SetAccountInformation to specify the account name
+  // and the account password for Test Task.
+  ///////////////////////////////////////////////////////////////////
+  //hr = pITask->SetAccountInformation((LPCWSTR)pszName, 
+  //          (LPCWSTR)pszPwd);
+
+  //SecureZeroMemory(pszName, sizeof(pszName));
+  //SecureZeroMemory(pszPwd, sizeof(pszPwd));
+  
+
 
     // Set the flags on the task object
     
@@ -719,8 +748,7 @@ __try
     // scheduler.  If this flag is set and the event is missed, the scheduler
     // nukes the event without notifying you .  How mean.
 
-    dwTaskFlags = TASK_FLAG_DONT_START_IF_ON_BATTERIES |
-                  TASK_FLAG_KILL_IF_GOING_ON_BATTERIES;
+    dwTaskFlags = TASK_FLAG_RUN_ONLY_IF_LOGGED_ON;
 
     // On NT, set the interactive flag so the user can see it.
     if ( !( GetVersion() & 0x80000000 ) )

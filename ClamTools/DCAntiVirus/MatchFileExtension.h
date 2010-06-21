@@ -1,5 +1,6 @@
 #pragma once
 
+//File match checker.
 class CMatchFileExtension  
 {
 	CString GetFileExtension(LPCTSTR lpzFile);

@@ -2,6 +2,10 @@
 
 #include <tchar.h>
 
+//Defined ALL used constant strings.
+
+//Allso contains utils to work with registry (copy/paste and modifyed from internal VC sources)
+
 enum EPriority
 {
 	ENormal = 0,
@@ -189,6 +193,8 @@ namespace registry_utils
 	}
 }
 
+
+//Utils to handle path generation.
 namespace path_utils
 {
 	static CString GetDailyDBPathCVD()

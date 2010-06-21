@@ -11,6 +11,8 @@ class CTrayRequestData;
 class CTraySendObj;
 class CFileResult;
 
+
+// WM_COPY_DATA server dialog. Dialog are invisible.
 class CDCAntivirusScanDlg : public CDialog
 {
 public:

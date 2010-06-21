@@ -8,6 +8,9 @@
 #include <vector>
 #include <map>
 
+
+//Internal hash DB utils.
+
 #define DC_HASH_SIZE 16
 #define DC_HASH_BUFFER 1048576
 
@@ -36,18 +39,22 @@ public:
 	~CScannedFileMap() { };
 
 public:
+	//hash DB hols his critical section (to handle multiple threads)
 	CRITICAL_SECTION secFilesHashDB;
 };
 
+//vevtor iterators
 typedef CScannedFileMap::const_iterator CMapI;
 typedef CScannedFileMap::iterator CMapEditI;
 
+//Files types array
 typedef std::vector<CString> CFilesTypes;
 
 namespace file_hash_DB_utils
 {
 	namespace internal
 	{
+		//Calculates file hash
 		static bool GetFileHash(LPCSTR sFile, CDCHash &hash, CDCHash &pathHash, const EVP_MD *pMD5)
 		{
 			FILE *pFile = fopen(sFile, "rb");
@@ -115,6 +122,7 @@ namespace file_hash_DB_utils
 		}
 	};
 
+	//Checks if file exists in internal hash DB
 	static bool FileExistsInInternalDB(LPCSTR sFile,
 								CScannedFileMap *pMapFiles,
 								const EVP_MD *pMD5,
@@ -137,6 +145,7 @@ namespace file_hash_DB_utils
 		double dSec = timer.Stop();
 		scan_log_utils::LogTime("Hash time", dSec);
 
+		//Lock hash DB
 		EnterCriticalSection(&pMapFiles->secFilesHashDB); 
 		bool bRet(false);
 
@@ -168,17 +177,19 @@ namespace file_hash_DB_utils
 			}
 		}
 
+		//UnLock hash DB
 		LeaveCriticalSection(&pMapFiles->secFilesHashDB); 
 		return bRet;
 	}
 
+	//Reads hash value from hash DB file
 	static bool ReadHash(FILE *pFile, CDCHash &hash)
 	{
 		hash.resize(DC_HASH_SIZE);
 		int pt = 0;
 		for(int i = 0; i < DC_HASH_SIZE; ++i)
 		{
-			if(1 != fscanf(pFile, "%x", &pt))//Error.
+			if(1 != fscanf(pFile, "%x", &pt))//Error if no symbol readed
 			{
 				return false;
 			}
@@ -189,6 +200,7 @@ namespace file_hash_DB_utils
 		return true;
 	}
 
+	//Reads path from hash DB file
 	static bool ReadPath(FILE *pFile, CString &sPath)
 	{
 		char s;
@@ -210,6 +222,7 @@ namespace file_hash_DB_utils
 		return true;
 	}
 
+	//Reads data to memory from hash DB file.
 	static void ReadPassData(CScannedFileMap *pMapFiles)
 	{
 		FILE *pFile = fopen(path_utils::GetDataFilePath(), "rb");
@@ -221,14 +234,17 @@ namespace file_hash_DB_utils
 		char symbol;
 		CString sBuffer;
 
+		//read from all file
 		while(!feof(pFile))
 		{
+			//File path hash
 			CDCHash hash;
 			if(!ReadHash(pFile, hash))
 			{
 				break;
 			}
 
+			//File hash
 			CFileInfo info;
 			if(!ReadHash(pFile, info.m_fileHash))
 			{
@@ -251,6 +267,7 @@ namespace file_hash_DB_utils
 		scan_log_utils::LogInt("Loaded items", pMapFiles->size());
 	}
 
+	//Writes hash DB info from memory to file (saving)
 	static void WritePassData(CScannedFileMap *pMapFiles)
 	{
 		FILE *pFile = fopen(path_utils::GetDataFilePath(), "wb");
@@ -295,6 +312,7 @@ namespace file_hash_DB_utils
 		fclose(pFile);
 	}
 
+	//Chech if file is supported.
 	static bool FileIsSupported(LPCSTR sFile, CFilesTypes &types)
 	{
 		FILE *pFile = fopen(sFile, "rb");
@@ -328,11 +346,13 @@ namespace file_hash_DB_utils
 		return false;
 	}
 
+	//Function to sort files by using count.
 	static bool SortFilesByUsage(const CFileInfoEx &file1, const CFileInfoEx &file2)
 	{
 		return file1.m_nCount > file2.m_nCount;
 	}
 
+	//Add file to hash DB.
 	static void AddFileInfo(CScannedFileMap *pMapFiles,
 					 int nCount,
 					 int nMainVersion,

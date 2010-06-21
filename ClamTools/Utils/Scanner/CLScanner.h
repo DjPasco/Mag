@@ -11,6 +11,8 @@ public:
     unsigned int m_nSigs;
 };
 
+//Clam scan engine wrapper.
+
 class CCLScanner
 {
 public:

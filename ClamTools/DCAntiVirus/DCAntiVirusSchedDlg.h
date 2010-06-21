@@ -1,6 +1,8 @@
 #pragma once
 
 class CScheduledTask;
+
+//Dialog to set sched scan options
 class CDCAntiVirusShedDlg : public CDialog
 {
 public:

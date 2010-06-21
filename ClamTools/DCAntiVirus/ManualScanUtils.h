@@ -9,6 +9,7 @@
 
 #include <vector>
 
+//Scan items array class
 class CScanItems : public std::vector<CString>
 {
 public:
@@ -16,6 +17,7 @@ public:
 	~CScanItems(){};
 };
 
+//Files enumeration class
 class CCountFiles : public CEnumerateFiles
 {
 public:
@@ -49,6 +51,7 @@ namespace manual_scan_utils
 		{
 			pObs->ShowCurrentItem(sFile);
 
+			//Fill scan info
 			CSendObj obj;
 			strcpy_s(obj.m_sPath, MAX_PATH, sFile);
 			obj.m_nType = EManualScan;
@@ -78,6 +81,7 @@ namespace manual_scan_utils
 			pipe_client_utils::SendFileToPipeServer(sgManualScanServer, &obj, result);
 		}
 
+		//Shutdown manual scan server
 		static void ClearManualScanServer()
 		{
 			CSendObj obj;
@@ -88,6 +92,7 @@ namespace manual_scan_utils
 		}
 	}
 
+	//Here runs all scan process.
 	static UINT Scan(LPVOID pParam)
 	{
 		if(NULL != pParam)

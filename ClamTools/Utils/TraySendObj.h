@@ -9,6 +9,7 @@ enum EInfoType
 	ECount
 };
 
+//Tray program info storage
 class CTraySendObj
 {
 public:

@@ -12,6 +12,7 @@
 
 namespace wnd_utils
 {
+	//Send file to scan server
 	static bool Execute(LPCSTR sFile)
 	{
 		HWND hwnd = NULL;
@@ -93,66 +94,5 @@ HANDLE WINAPI TransCreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD d
 	return pTrueCreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
 						    dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 };
-
-extern BOOL (WINAPI *pTrueCreateProcessW)(LPCWSTR lpszImageName,
-								   LPWSTR lpszCmdLine,
-								   LPSECURITY_ATTRIBUTES lpsaProcess,
-								   LPSECURITY_ATTRIBUTES lpsaThread,
-								   BOOL fInheritHandles,
-								   DWORD fdwCreate,
-								   LPVOID lpvEnvironment,
-								   LPCWSTR lpszCurDir,
-								   LPSTARTUPINFOW lpsiStartInfo,
-								   LPPROCESS_INFORMATION lppiProcInfo); 
-
-BOOL WINAPI TransCreateProcessW(LPCWSTR lpszImageName,
-								LPWSTR lpszCmdLine,
-								LPSECURITY_ATTRIBUTES lpsaProcess,
-								LPSECURITY_ATTRIBUTES lpsaThread,
-								BOOL fInheritHandles,
-								DWORD fdwCreate,
-								LPVOID lpvEnvironment,
-								LPCWSTR lpszCurDir,
-								LPSTARTUPINFOW lpsiStartInfo,
-								LPPROCESS_INFORMATION lppiProcInfo)
-{
-	char sHookPath[MAX_PATH];
-	path_utils::GetHookDllPath(sHookPath);
-
-	char sFullDetoursPath[MAX_PATH];
-	path_utils::GetDetourDllPath(sFullDetoursPath);
-	
-	return DetourCreateProcessWithDllW(lpszImageName, lpszCmdLine, lpsaProcess,
-								   lpsaThread, fInheritHandles, fdwCreate,
-								   lpvEnvironment, lpszCurDir, lpsiStartInfo, lppiProcInfo,
-								   sFullDetoursPath, sHookPath, pTrueCreateProcessW);
-}
-
-extern BOOL (WINAPI *pTrueCreateProcessA)(LPCSTR lpApplicationName,
-								   LPSTR lpCommandLine,
-								   LPSECURITY_ATTRIBUTES lpProcessAttributes,
-								   LPSECURITY_ATTRIBUTES lpThreadAttributes,
-								   BOOL bInheritHandles,
-								   DWORD dwCreate,
-								   LPVOID lpEnvironment,
-								   LPCSTR lpCurrentDirectory,
-								   LPSTARTUPINFOA lpStartupInfo,
-								   LPPROCESS_INFORMATION lpProcessInformation); 
-
-BOOL WINAPI TransCreateProcessA(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes,
-								   LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreate,
-								   LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
-{
-	char sHookPath[MAX_PATH];
-	path_utils::GetHookDllPath(sHookPath);
-
-	char sFullDetoursPath[MAX_PATH];
-	path_utils::GetDetourDllPath(sFullDetoursPath);
-
-	return DetourCreateProcessWithDllA(lpApplicationName, lpCommandLine, lpProcessAttributes,
-								   lpThreadAttributes, bInheritHandles, dwCreate,
-								   lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation,
-								   sFullDetoursPath, sHookPath, pTrueCreateProcessA);
-}
 
 SYSTEM_HOOK_API void DoMagic(){ }

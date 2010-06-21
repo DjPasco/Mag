@@ -15,6 +15,7 @@ namespace hook_utils
 {
 	namespace internal
 	{
+		//Enabling debug privileges for properly dll injection
 		static void EnableDebugPriv()
 		{
 			HANDLE hToken;
@@ -34,6 +35,7 @@ namespace hook_utils
 			CloseHandle(hToken); 
 		}
 
+		//Check if need hook hook program
 		static bool NeedHook(LPCSTR sExeName)
 		{
 			if(0 == lstrcmpi(sExeName, "DCService.exe"))
@@ -64,6 +66,7 @@ namespace hook_utils
 			return false;
 		}
 
+		//Eject DLL from exe
 		static BOOL EjectDLL(DWORD WorProcessId, const char *sDllPath, LPCSTR sProcName)
 		{
 			hook_log_utils::LogString("Ejecting", sDllPath);
@@ -101,6 +104,7 @@ namespace hook_utils
 		}
 	}
 
+	//Start new process with hook dll's
 	static void StartExeWithHookDll(LPCSTR sRunExe)
 	{
 		STARTUPINFO si;
@@ -134,6 +138,7 @@ namespace hook_utils
 		}
 	}
 
+	//Checks module existance
 	static bool ExistsModule(DWORD dwProcID, char *sDLLPath)
 	{
 		if(NULL == RemoteGetModuleHandleNT(dwProcID, sDLLPath))
@@ -144,6 +149,7 @@ namespace hook_utils
 		return true;
 	}
 
+	//Hook All system
 	static void GlobalHook(bool bInitial)
 	{
 		if(bInitial)
@@ -228,6 +234,7 @@ namespace hook_utils
 		CloseHandle( snapshot );
 	}
 
+	//Unhook all system
 	static void GlobalUnHook()
 	{
 		hook_log_utils::LogHeader("UnHook System", GetCurrentProcessId());

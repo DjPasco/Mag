@@ -1,5 +1,6 @@
 #pragma once
 
+//Dialog to notify user about virus
 class CDCAntivirusAlertDlg : public CDialog
 {
 public:

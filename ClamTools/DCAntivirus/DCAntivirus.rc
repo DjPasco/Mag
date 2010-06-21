@@ -313,13 +313,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
-            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "CompanyName", "DC"
+            VALUE "FileDescription", "DCAntiVirus"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "DCAntiVirus.exe"
-            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "LegalCopyright", "DC.  All rights reserved."
             VALUE "OriginalFilename", "DCAntiVirus.exe"
-            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductName", "DCAntiVirus"
             VALUE "ProductVersion", "1.0.0.1"
         END
     END

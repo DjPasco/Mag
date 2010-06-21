@@ -1,5 +1,7 @@
 #pragma once
 
+
+//Observer to check if user press stop button when running scan
 class CScanEndingObs
 {
 public:

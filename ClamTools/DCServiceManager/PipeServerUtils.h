@@ -6,6 +6,8 @@
 #include "../Utils/Settings.h"
 #include "../Utils/TraySendObj.h"
 
+
+//Scan pipe server utils
 namespace pipe_server_utils
 {
 	namespace internal

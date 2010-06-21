@@ -22,7 +22,7 @@ CApp theApp;
 BOOL CApp::InitInstance()
 {
 
-#ifdef _TEST_ 
+#ifdef _TEST_ //If defined test, then simple pipe server (no service running)
 	
 	CScannedFileMap *pFilesMap = new CScannedFileMap;
 	file_hash_DB_utils::ReadPassData(pFilesMap);
@@ -38,7 +38,7 @@ BOOL CApp::InitInstance()
 	}
 
 #else
-
+	//Service creation
 	CNTServiceCommandLineInfo cmdInfo;
 	CMyService Service;
 	Service.ParseCommandLine(cmdInfo);
@@ -78,6 +78,7 @@ void CMyService::StopScanServer(LPCSTR sServerName)
 	clientPipe.Close();
 }
 
+//Main service function. If this function end's service also end's.
 void CMyService::ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
 {
 	//register our control handler

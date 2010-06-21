@@ -5,6 +5,9 @@
 #include <math.h>
 #include <Psapi.h>
 
+//namspaces to log info.
+
+//Scan loging utils
 namespace scan_log_utils
 {
 	static void Write(LPCSTR sLine)
@@ -108,6 +111,7 @@ namespace scan_log_utils
 	}
 }
 
+//Hook loging utils
 namespace hook_log_utils
 {
 	static void Write(LPCSTR sLine)

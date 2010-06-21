@@ -8,8 +8,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved)
 	{
         DetourTransactionBegin();
         DetourUpdateThread(GetCurrentThread());
-  //      DetourAttach(&(PVOID&)pTrueCreateProcessW, TransCreateProcessW);
-		//DetourAttach(&(PVOID&)pTrueCreateProcessA, TransCreateProcessA);
 		DetourAttach(&(PVOID&)pTrueCreateFileW, TransCreateFileW);
         DetourAttach(&(PVOID&)pTrueCreateFileA, TransCreateFileA);
         DetourTransactionCommit();
@@ -18,8 +16,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved)
 	{
         DetourTransactionBegin();
         DetourUpdateThread(GetCurrentThread());
-  //      DetourDetach(&(PVOID&)pTrueCreateProcessW, TransCreateProcessW);
-		//DetourDetach(&(PVOID&)pTrueCreateProcessA, TransCreateProcessA);
 		DetourDetach(&(PVOID&)pTrueCreateFileW, TransCreateFileW);
 	    DetourDetach(&(PVOID&)pTrueCreateFileA, TransCreateFileA);
         DetourTransactionCommit();

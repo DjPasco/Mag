@@ -2,6 +2,8 @@
 
 #include "Registry.h"
 
+//Program settings class.
+
 class CSettingsInfo
 {
 public:
@@ -37,6 +39,7 @@ public:
 	CString m_sFilesTypes;
 };
 
+//Settings utils (loading/saving)
 namespace settings_utils
 {
 	static bool Load(CSettingsInfo &info)

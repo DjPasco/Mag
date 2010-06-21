@@ -31,6 +31,7 @@ CScanner::CScanner()
 
 	Init();
 	
+	//MD5 calc helper.
 	m_pMD5 = EVP_md5();
 
 	CSettingsInfo info;

@@ -65,7 +65,7 @@
 				AdditionalDependencies="detours.lib detoured.lib"
 				OutputFile="$(OutDir)\SystemHookD.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\Detours\lib"
+				AdditionalLibraryDirectories="..\Detours\lib;..\Third\stlport2.1\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"

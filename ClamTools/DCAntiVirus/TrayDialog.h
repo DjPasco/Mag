@@ -4,6 +4,9 @@
 
 #define WM_TRAY_ICON_NOTIFY_MESSAGE (WM_USER + 100)
 
+
+//Tray dialog (main dialog) base class. 
+//This class handles all needed info to show tray icon.
 class CTrayDialog : public CDialog
 {
 

@@ -1,5 +1,7 @@
 #pragma once
 
+
+//Dialog to dislplay info about hooked programs.
 class CDCAntivirusHookDlg : public CDialog
 {
 public:

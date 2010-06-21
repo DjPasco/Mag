@@ -2,6 +2,8 @@
 
 #include "../Utils/npipe.h"
 
+
+//Used send scan infor to pipe server.
 namespace pipe_client_utils
 {
 	static void SendFileToPipeServer(LPCSTR sServerName, CSendObj *pObj, CFileResult &result)

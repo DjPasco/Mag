@@ -5,6 +5,8 @@
 #endif
 
 class CSendObj;
+
+//Main tray dialog
 class CDCAntiVirusDlg : public CTrayDialog
 {
 public:

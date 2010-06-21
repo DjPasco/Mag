@@ -16,6 +16,7 @@ class CVirusFilesList : public CListCtrl
 	//
 };
 
+//Manual scan results dialog
 class CDCAntivirusLogDlg : public CDialog
 {
 public:

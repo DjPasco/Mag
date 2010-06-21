@@ -15,6 +15,7 @@ enum ESendInfoType
 	ESendCount
 };
 
+//Scan info storage
 class CSendObj
 {
 public:
@@ -34,6 +35,7 @@ public:
 	DWORD m_PID;
 };
 
+//Scan results storage
 class CFileResult
 {
 public:
